@@ -1,40 +1,71 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Search, UserRound, Stethoscope } from "lucide-react";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import { Plus, Search } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+
+type Lookup = { id: string; nome: string };
 
 export default function Medicos() {
+  const { user } = useAuth();
   const [items, setItems] = useState<any[]>([]);
+  const [especialidades, setEspecialidades] = useState<Lookup[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [filterEsp, setFilterEsp] = useState<string>("all");
+  const [filterCidade, setFilterCidade] = useState<string>("all");
   const [open, setOpen] = useState(false);
 
   useEffect(() => { void load(); }, []);
   async function load() {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("medicos")
-      .select("*, medico_unidades(unidade_id)")
-      .is("archived_at", null)
-      .order("nome");
-    if (error) toast.error(error.message);
-    setItems(data ?? []);
+    const [m, esp] = await Promise.all([
+      supabase.from("medicos").select(`
+        *,
+        especialidades_medicas(id, nome),
+        medico_unidades(unidade_id, unidades_saude(id, nome, cidade))
+      `).is("archived_at", null).order("nome"),
+      supabase.from("especialidades_medicas").select("id, nome").is("archived_at", null).order("nome"),
+    ]);
+    if (m.error) toast.error(m.error.message);
+    setItems(m.data ?? []);
+    setEspecialidades((esp.data ?? []) as Lookup[]);
     setLoading(false);
   }
 
-  const filtered = items.filter((m) =>
-    !search || m.nome.toLowerCase().includes(search.toLowerCase()) ||
-    (m.especialidade ?? "").toLowerCase().includes(search.toLowerCase())
-  );
+  const cidadesDisponiveis = useMemo(() => {
+    const s = new Set<string>();
+    items.forEach((m: any) => (m.medico_unidades ?? []).forEach((mu: any) => {
+      if (mu.unidades_saude?.cidade) s.add(mu.unidades_saude.cidade);
+    }));
+    return Array.from(s).sort();
+  }, [items]);
+
+  const filtered = items.filter((m) => {
+    if (search) {
+      const q = search.toLowerCase();
+      if (!m.nome.toLowerCase().includes(q) && !(m.crm ?? "").toLowerCase().includes(q)) return false;
+    }
+    if (filterEsp !== "all" && m.especialidades_medicas?.id !== filterEsp) return false;
+    if (filterCidade !== "all") {
+      const cidades = (m.medico_unidades ?? []).map((mu: any) => mu.unidades_saude?.cidade).filter(Boolean);
+      if (!cidades.includes(filterCidade)) return false;
+    }
+    return true;
+  });
 
   return (
     <div className="space-y-6 p-6">
@@ -47,71 +78,107 @@ export default function Medicos() {
           <DialogTrigger asChild>
             <Button><Plus className="mr-2 h-4 w-4" /> Novo médico</Button>
           </DialogTrigger>
-          <MedicoForm onSaved={() => { setOpen(false); void load(); }} />
+          <MedicoForm especialidades={especialidades} userId={user?.id}
+            onSaved={() => { setOpen(false); void load(); }} />
         </Dialog>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input className="pl-9" placeholder="Buscar por nome ou especialidade..."
-          value={search} onChange={(e) => setSearch(e.target.value)} />
+      <div className="flex flex-wrap gap-2">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input className="pl-9" placeholder="Buscar por nome ou CRM..."
+            value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+        <Select value={filterEsp} onValueChange={setFilterEsp}>
+          <SelectTrigger className="w-[200px]"><SelectValue placeholder="Especialidade" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas especialidades</SelectItem>
+            {especialidades.map((e) => <SelectItem key={e.id} value={e.id}>{e.nome}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={filterCidade} onValueChange={setFilterCidade}>
+          <SelectTrigger className="w-[180px]"><SelectValue placeholder="Cidade" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas cidades</SelectItem>
+            {cidadesDisponiveis.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+          </SelectContent>
+        </Select>
       </div>
 
       {loading ? (
         <p className="text-sm text-muted-foreground">Carregando...</p>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((m) => (
-            <Link key={m.id} to={`/medicos/${m.id}`}>
-              <Card className="transition-all hover:shadow-md hover:border-primary/40">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10 text-accent shrink-0">
-                      <UserRound className="h-5 w-5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold truncate">Dr. {m.nome}</div>
-                      {m.especialidade && (
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Stethoscope className="h-3 w-3" />
-                          {m.especialidade}
-                        </div>
+        <div className="rounded-lg border bg-card overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome</TableHead>
+                <TableHead>CRM</TableHead>
+                <TableHead>Especialidade</TableHead>
+                <TableHead>Telefone</TableHead>
+                <TableHead>Unidades</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.map((m, i) => (
+                <TableRow key={m.id} className={i % 2 ? "bg-muted/30" : ""}>
+                  <TableCell className="font-medium">
+                    <Link to={`/medicos/${m.id}`} className="hover:text-primary">Dr. {m.nome}</Link>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{m.crm ?? "—"}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {m.especialidades_medicas?.nome ?? m.especialidade ?? "—"}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{m.telefone ?? "—"}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {(m.medico_unidades ?? []).slice(0, 3).map((mu: any) => (
+                        <Badge key={mu.unidade_id} variant="secondary" className="text-xs">
+                          {mu.unidades_saude?.nome}
+                        </Badge>
+                      ))}
+                      {(m.medico_unidades ?? []).length > 3 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{(m.medico_unidades ?? []).length - 3}
+                        </Badge>
                       )}
-                      {m.crm && <div className="text-xs text-muted-foreground">CRM {m.crm}</div>}
-                      <div className="mt-1 text-xs text-muted-foreground">
-                        {m.medico_unidades?.length ?? 0} unidade(s) vinculada(s)
-                      </div>
+                      {(m.medico_unidades ?? []).length === 0 && <span className="text-xs text-muted-foreground">—</span>}
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-          {filtered.length === 0 && (
-            <p className="col-span-full text-sm text-muted-foreground">Nenhum médico encontrado.</p>
-          )}
+                  </TableCell>
+                </TableRow>
+              ))}
+              {filtered.length === 0 && (
+                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                  Nenhum médico encontrado.
+                </TableCell></TableRow>
+              )}
+            </TableBody>
+          </Table>
         </div>
       )}
     </div>
   );
 }
 
-function MedicoForm({ onSaved }: { onSaved: () => void }) {
+function MedicoForm({ especialidades, userId, onSaved }: { especialidades: Lookup[]; userId?: string; onSaved: () => void }) {
   const [form, setForm] = useState({
-    nome: "", crm: "", especialidade: "", email: "", telefone: "", observacoes: "",
+    nome: "", crm: "", especialidade_id: "", email: "", telefone: "", observacoes: "",
   });
   const [saving, setSaving] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
+    const espNome = especialidades.find((e) => e.id === form.especialidade_id)?.nome ?? null;
     const { error } = await supabase.from("medicos").insert({
       nome: form.nome,
       crm: form.crm || null,
-      especialidade: form.especialidade || null,
+      especialidade_id: form.especialidade_id || null,
+      especialidade: espNome,
       email: form.email || null,
       telefone: form.telefone || null,
       observacoes: form.observacoes || null,
+      created_by: userId ?? null,
     });
     setSaving(false);
     if (error) { toast.error(error.message); return; }
@@ -134,8 +201,12 @@ function MedicoForm({ onSaved }: { onSaved: () => void }) {
           </div>
           <div className="space-y-2">
             <Label>Especialidade</Label>
-            <Input value={form.especialidade}
-              onChange={(e) => setForm({ ...form, especialidade: e.target.value })} />
+            <Select value={form.especialidade_id} onValueChange={(v) => setForm({ ...form, especialidade_id: v })}>
+              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectContent>
+                {especialidades.map((e) => <SelectItem key={e.id} value={e.id}>{e.nome}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">

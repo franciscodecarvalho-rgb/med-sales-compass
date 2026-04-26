@@ -21,6 +21,7 @@ export default function MedicoDetail() {
   const [medico, setMedico] = useState<any>(null);
   const [unidades, setUnidades] = useState<any[]>([]);
   const [anotacoes, setAnotacoes] = useState<any[]>([]);
+  const [tarefas, setTarefas] = useState<any[]>([]);
   const [unidadesAll, setUnidadesAll] = useState<any[]>([]);
   const [papeis, setPapeis] = useState<any[]>([]);
   const [especialidades, setEspecialidades] = useState<any[]>([]);

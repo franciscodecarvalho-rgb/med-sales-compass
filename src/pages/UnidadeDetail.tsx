@@ -380,6 +380,10 @@ export default function UnidadeDetail() {
           )}
         </TabsContent>
 
+        <TabsContent value="tarefas">
+          <TarefasList tarefas={tarefas} onChange={load} />
+        </TabsContent>
+
         <TabsContent value="posvenda">
           <Card><CardContent className="p-6 text-sm text-muted-foreground text-center">
             Os atendimentos pós-venda serão exibidos aqui na fase de Pós-Venda.

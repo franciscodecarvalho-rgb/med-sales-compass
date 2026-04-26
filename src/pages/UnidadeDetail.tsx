@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Building2, MapPin, Phone, Mail, Globe, Plus, ArrowLeft, Trash2, Save, Send, Star } from "lucide-react";
+import { TarefasList } from "@/components/TarefasList";
 import { toast } from "sonner";
 import { UNIDADE_CICLO_LABELS, UNIDADE_CICLO_BADGE, UnidadeCiclo } from "@/lib/crm";
 import { format } from "date-fns";

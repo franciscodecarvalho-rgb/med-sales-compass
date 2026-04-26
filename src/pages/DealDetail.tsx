@@ -43,7 +43,8 @@ export default function DealDetail() {
         *,
         unidades_saude(id, nome, cidade, estado),
         linhas_produto(id, nome, cor, limite_verde_dias, limite_amarelo_dias),
-        profiles!deals_vendedor_id_fkey(nome)
+        profiles!deals_vendedor_id_fkey(nome),
+        motivos_perda(nome)
       `).eq("id", id).maybeSingle(),
       supabase.from("equipamentos").select("id, nome, valor_referencia, linha_id").is("archived_at", null),
       supabase.from("deal_equipamentos").select("*, equipamentos(nome)").eq("deal_id", id),

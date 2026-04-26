@@ -409,4 +409,4 @@ function FinalizarInline({ deal, onClose }: { deal: any; onClose: () => void }) 
     </DialogContent>
   );
 }
-}
+

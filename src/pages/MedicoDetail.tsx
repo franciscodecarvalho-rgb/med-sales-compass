@@ -95,6 +95,7 @@ export default function MedicoDetail() {
           <TabsTrigger value="dados">Dados</TabsTrigger>
           <TabsTrigger value="unidades">Unidades ({unidades.length})</TabsTrigger>
           <TabsTrigger value="timeline">Timeline ({anotacoes.length})</TabsTrigger>
+          <TabsTrigger value="tarefas">Tarefas ({tarefas.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dados">

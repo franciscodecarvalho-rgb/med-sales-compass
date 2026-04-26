@@ -276,10 +276,13 @@ export default function DealDetail() {
         </TabsContent>
       </Tabs>
 
-      {deal.motivo_perda && (
+      {(deal.motivos_perda?.nome || deal.motivo_perda) && deal.resultado === "perdido" && (
         <Card className="border-destructive/40">
           <CardHeader><CardTitle className="text-sm text-destructive">Motivo da perda</CardTitle></CardHeader>
-          <CardContent><p className="text-sm whitespace-pre-wrap">{deal.motivo_perda}</p></CardContent>
+          <CardContent>
+            <p className="text-sm font-medium">{deal.motivos_perda?.nome ?? "—"}</p>
+            {deal.motivo_perda && <p className="mt-1 text-sm text-muted-foreground whitespace-pre-wrap">{deal.motivo_perda}</p>}
+          </CardContent>
         </Card>
       )}
 

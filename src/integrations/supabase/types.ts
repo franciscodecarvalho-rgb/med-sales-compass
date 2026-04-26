@@ -111,6 +111,7 @@ export type Database = {
           id: string
           nome: string
           observacoes: string | null
+          papel_id: string | null
           setor: string | null
           telefone: string | null
           unidade_id: string
@@ -124,6 +125,7 @@ export type Database = {
           id?: string
           nome: string
           observacoes?: string | null
+          papel_id?: string | null
           setor?: string | null
           telefone?: string | null
           unidade_id: string
@@ -137,12 +139,20 @@ export type Database = {
           id?: string
           nome?: string
           observacoes?: string | null
+          papel_id?: string | null
           setor?: string | null
           telefone?: string | null
           unidade_id?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "contatos_papel_id_fkey"
+            columns: ["papel_id"]
+            isOneToOne: false
+            referencedRelation: "papeis_contato"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "contatos_unidade_id_fkey"
             columns: ["unidade_id"]
@@ -471,6 +481,7 @@ export type Database = {
           id: string
           medico_id: string
           papel: string | null
+          papel_id: string | null
           unidade_id: string
         }
         Insert: {
@@ -478,6 +489,7 @@ export type Database = {
           id?: string
           medico_id: string
           papel?: string | null
+          papel_id?: string | null
           unidade_id: string
         }
         Update: {
@@ -485,6 +497,7 @@ export type Database = {
           id?: string
           medico_id?: string
           papel?: string | null
+          papel_id?: string | null
           unidade_id?: string
         }
         Relationships: [
@@ -493,6 +506,13 @@ export type Database = {
             columns: ["medico_id"]
             isOneToOne: false
             referencedRelation: "medicos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medico_unidades_papel_id_fkey"
+            columns: ["papel_id"]
+            isOneToOne: false
+            referencedRelation: "papeis_contato"
             referencedColumns: ["id"]
           },
           {
@@ -508,9 +528,11 @@ export type Database = {
         Row: {
           archived_at: string | null
           created_at: string
+          created_by: string | null
           crm: string | null
           email: string | null
           especialidade: string | null
+          especialidade_id: string | null
           id: string
           nome: string
           observacoes: string | null
@@ -520,9 +542,11 @@ export type Database = {
         Insert: {
           archived_at?: string | null
           created_at?: string
+          created_by?: string | null
           crm?: string | null
           email?: string | null
           especialidade?: string | null
+          especialidade_id?: string | null
           id?: string
           nome: string
           observacoes?: string | null
@@ -532,16 +556,33 @@ export type Database = {
         Update: {
           archived_at?: string | null
           created_at?: string
+          created_by?: string | null
           crm?: string | null
           email?: string | null
           especialidade?: string | null
+          especialidade_id?: string | null
           id?: string
           nome?: string
           observacoes?: string | null
           telefone?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "medicos_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medicos_especialidade_id_fkey"
+            columns: ["especialidade_id"]
+            isOneToOne: false
+            referencedRelation: "especialidades_medicas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       motivos_perda: {
         Row: {
@@ -595,12 +636,16 @@ export type Database = {
         Row: {
           archived_at: string | null
           created_at: string
+          created_by: string | null
           data_instalacao: string | null
-          equipamento_id: string
+          descricao: string | null
+          equipamento_id: string | null
           garantia_ate: string | null
           id: string
+          linha_id: string | null
           numero_serie: string | null
           observacoes: string | null
+          quantidade: number
           unidade_id: string
           updated_at: string
           valor: number | null
@@ -608,12 +653,16 @@ export type Database = {
         Insert: {
           archived_at?: string | null
           created_at?: string
+          created_by?: string | null
           data_instalacao?: string | null
-          equipamento_id: string
+          descricao?: string | null
+          equipamento_id?: string | null
           garantia_ate?: string | null
           id?: string
+          linha_id?: string | null
           numero_serie?: string | null
           observacoes?: string | null
+          quantidade?: number
           unidade_id: string
           updated_at?: string
           valor?: number | null
@@ -621,22 +670,40 @@ export type Database = {
         Update: {
           archived_at?: string | null
           created_at?: string
+          created_by?: string | null
           data_instalacao?: string | null
-          equipamento_id?: string
+          descricao?: string | null
+          equipamento_id?: string | null
           garantia_ate?: string | null
           id?: string
+          linha_id?: string | null
           numero_serie?: string | null
           observacoes?: string | null
+          quantidade?: number
           unidade_id?: string
           updated_at?: string
           valor?: number | null
         }
         Relationships: [
           {
+            foreignKeyName: "parque_instalado_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "parque_instalado_equipamento_id_fkey"
             columns: ["equipamento_id"]
             isOneToOne: false
             referencedRelation: "equipamentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parque_instalado_linha_id_fkey"
+            columns: ["linha_id"]
+            isOneToOne: false
+            referencedRelation: "linhas_produto"
             referencedColumns: ["id"]
           },
           {
@@ -820,15 +887,20 @@ export type Database = {
           cidade: string | null
           cnpj: string | null
           created_at: string
+          created_by: string | null
           email: string | null
           endereco: string | null
           estado: string | null
+          estado_id: string | null
           id: string
           medico_principal_id: string | null
           nome: string
           observacoes: string | null
+          porte: string | null
+          site: string | null
           telefone: string | null
           tipo: Database["public"]["Enums"]["unidade_tipo"]
+          tipo_id: string | null
           updated_at: string
         }
         Insert: {
@@ -838,15 +910,20 @@ export type Database = {
           cidade?: string | null
           cnpj?: string | null
           created_at?: string
+          created_by?: string | null
           email?: string | null
           endereco?: string | null
           estado?: string | null
+          estado_id?: string | null
           id?: string
           medico_principal_id?: string | null
           nome: string
           observacoes?: string | null
+          porte?: string | null
+          site?: string | null
           telefone?: string | null
           tipo?: Database["public"]["Enums"]["unidade_tipo"]
+          tipo_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -856,23 +933,49 @@ export type Database = {
           cidade?: string | null
           cnpj?: string | null
           created_at?: string
+          created_by?: string | null
           email?: string | null
           endereco?: string | null
           estado?: string | null
+          estado_id?: string | null
           id?: string
           medico_principal_id?: string | null
           nome?: string
           observacoes?: string | null
+          porte?: string | null
+          site?: string | null
           telefone?: string | null
           tipo?: Database["public"]["Enums"]["unidade_tipo"]
+          tipo_id?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "unidades_saude_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unidades_saude_estado_id_fkey"
+            columns: ["estado_id"]
+            isOneToOne: false
+            referencedRelation: "estados"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "unidades_saude_medico_principal_id_fkey"
             columns: ["medico_principal_id"]
             isOneToOne: false
             referencedRelation: "medicos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unidades_saude_tipo_id_fkey"
+            columns: ["tipo_id"]
+            isOneToOne: false
+            referencedRelation: "tipos_unidade"
             referencedColumns: ["id"]
           },
         ]

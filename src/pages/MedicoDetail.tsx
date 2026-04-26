@@ -177,6 +177,10 @@ export default function MedicoDetail() {
             {anotacoes.length === 0 && <p className="text-sm text-muted-foreground">Sem anotações.</p>}
           </div>
         </TabsContent>
+
+        <TabsContent value="tarefas">
+          <TarefasList tarefas={tarefas} onChange={load} />
+        </TabsContent>
       </Tabs>
     </div>
   );

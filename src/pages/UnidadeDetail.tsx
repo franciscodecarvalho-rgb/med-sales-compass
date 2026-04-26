@@ -32,6 +32,7 @@ export default function UnidadeDetail() {
   const [estados, setEstados] = useState<any[]>([]);
   const [papeis, setPapeis] = useState<any[]>([]);
   const [dealsUnidade, setDealsUnidade] = useState<any[]>([]);
+  const [tarefas, setTarefas] = useState<any[]>([]);
   const [novaAnot, setNovaAnot] = useState("");
   const [proxContato, setProxContato] = useState("");
 

@@ -11,6 +11,7 @@ import {
   LogOut,
   Activity,
   Package,
+  Wrench,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,7 @@ const navItems: NavItem[] = [
   { to: "/medicos", label: "Médicos", icon: UserRound },
   { to: "/funil-vendas", label: "Funil de Vendas", icon: Kanban },
   { to: "/tarefas", label: "Tarefas", icon: CheckSquare },
+  { to: "/pos-venda", label: "Pós-Venda", icon: Wrench, roles: ["admin", "gerente", "pos_venda"] },
   { to: "/equipamentos", label: "Equipamentos", icon: Package, roles: ["admin", "gerente"] },
   { to: "/configuracoes", label: "Configurações", icon: Settings, roles: ["admin"] },
   { to: "/usuarios", label: "Usuários", icon: Users, roles: ["admin"] },

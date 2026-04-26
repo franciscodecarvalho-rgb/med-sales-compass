@@ -6,6 +6,91 @@ export type UnidadeTipo = Database["public"]["Enums"]["unidade_tipo"];
 export type UnidadeCiclo = Database["public"]["Enums"]["unidade_ciclo"];
 export type TarefaStatus = Database["public"]["Enums"]["tarefa_status"];
 export type TarefaPrioridade = Database["public"]["Enums"]["tarefa_prioridade"];
+export type ChamadoPrioridade = Database["public"]["Enums"]["chamado_prioridade"];
+export type ChamadoStatus = Database["public"]["Enums"]["chamado_status"];
+export type InstalacaoTipo = Database["public"]["Enums"]["instalacao_tipo"];
+export type InstalacaoStatus = Database["public"]["Enums"]["instalacao_status"];
+export type ContratoStatus = Database["public"]["Enums"]["contrato_status"];
+export type GarantiaStatus = Database["public"]["Enums"]["garantia_status"];
+
+export const CHAMADO_PRIORIDADE_LABELS: Record<ChamadoPrioridade, string> = {
+  critica: "Crítica",
+  alta: "Alta",
+  media: "Média",
+  baixa: "Baixa",
+};
+export const CHAMADO_PRIORIDADE_BADGE: Record<ChamadoPrioridade, string> = {
+  critica: "bg-destructive/20 text-destructive border-destructive/40",
+  alta: "bg-destructive/15 text-destructive border-destructive/30",
+  media: "bg-warning/15 text-warning border-warning/30",
+  baixa: "bg-muted text-muted-foreground border-border",
+};
+export const CHAMADO_STATUS_LABELS: Record<ChamadoStatus, string> = {
+  aberto: "Aberto",
+  em_atendimento: "Em atendimento",
+  resolvido: "Resolvido",
+  fechado: "Fechado",
+};
+export const CHAMADO_STATUS_BADGE: Record<ChamadoStatus, string> = {
+  aberto: "bg-info/15 text-info border-info/30",
+  em_atendimento: "bg-primary/15 text-primary border-primary/30",
+  resolvido: "bg-success/15 text-success border-success/30",
+  fechado: "bg-muted text-muted-foreground border-border",
+};
+
+export const INSTALACAO_TIPO_LABELS: Record<InstalacaoTipo, string> = {
+  instalacao: "Instalação",
+  aplicacao: "Aplicação",
+};
+export const INSTALACAO_STATUS_LABELS: Record<InstalacaoStatus, string> = {
+  pendente: "Pendente",
+  em_andamento: "Em andamento",
+  concluido: "Concluído",
+};
+export const INSTALACAO_STATUS_BADGE: Record<InstalacaoStatus, string> = {
+  pendente: "bg-info/15 text-info border-info/30",
+  em_andamento: "bg-warning/15 text-warning border-warning/30",
+  concluido: "bg-success/15 text-success border-success/30",
+};
+
+export const CONTRATO_STATUS_LABELS: Record<ContratoStatus, string> = {
+  ativo: "Ativo",
+  vencido: "Vencido",
+  a_vencer: "A vencer",
+};
+export const CONTRATO_STATUS_BADGE: Record<ContratoStatus, string> = {
+  ativo: "bg-success/15 text-success border-success/30",
+  vencido: "bg-destructive/15 text-destructive border-destructive/30",
+  a_vencer: "bg-warning/15 text-warning border-warning/30",
+};
+
+export const GARANTIA_STATUS_LABELS: Record<GarantiaStatus, string> = {
+  ativa: "Ativa",
+  vencida: "Vencida",
+  a_vencer: "A vencer",
+};
+export const GARANTIA_STATUS_BADGE: Record<GarantiaStatus, string> = {
+  ativa: "bg-success/15 text-success border-success/30",
+  vencida: "bg-destructive/15 text-destructive border-destructive/30",
+  a_vencer: "bg-warning/15 text-warning border-warning/30",
+};
+
+/** Retorna 'vencida'|'a_vencer'|'ativa' calculado pela data fim. */
+export function computeVigenciaStatus(dataFim: string): "ativa" | "a_vencer" | "vencida" {
+  const fim = new Date(dataFim);
+  const hoje = new Date();
+  const diff = (fim.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24);
+  if (diff < 0) return "vencida";
+  if (diff <= 30) return "a_vencer";
+  return "ativa";
+}
+
+/** Cor para a nota do NPS. */
+export function npsColorClass(nota: number): string {
+  if (nota <= 6) return "bg-destructive/15 text-destructive border-destructive/30";
+  if (nota <= 8) return "bg-warning/15 text-warning border-warning/30";
+  return "bg-success/15 text-success border-success/30";
+}
 
 export const STAGE_ORDER: DealStage[] = [
   "prospeccao",

@@ -16,6 +16,7 @@ import Equipamentos from "./pages/Equipamentos";
 import FunilVendas from "./pages/FunilVendas";
 import DealDetail from "./pages/DealDetail";
 import Tarefas from "./pages/Tarefas";
+import PosVenda from "./pages/PosVenda";
 import Usuarios from "./pages/Usuarios";
 import Configuracoes from "./pages/Configuracoes";
 import NotFound from "./pages/NotFound";
@@ -43,6 +44,9 @@ const App = () => (
               <Route path="/funil-vendas" element={<FunilVendas />} />
               <Route path="/deals/:id" element={<DealDetail />} />
               <Route path="/tarefas" element={<Tarefas />} />
+              <Route path="/pos-venda" element={
+                <ProtectedRoute requireRoles={["admin", "gerente", "pos_venda"]}><PosVenda /></ProtectedRoute>
+              } />
               <Route path="/usuarios" element={
                 <ProtectedRoute requireRoles={["admin"]}><Usuarios /></ProtectedRoute>
               } />

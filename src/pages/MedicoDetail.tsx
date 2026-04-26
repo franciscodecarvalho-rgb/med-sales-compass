@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UserRound, ArrowLeft, Plus, Stethoscope, Mail, Phone, Star, Save, Trash2 } from "lucide-react";
+import { TarefasList } from "@/components/TarefasList";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";

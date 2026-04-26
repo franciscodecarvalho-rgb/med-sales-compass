@@ -43,8 +43,14 @@ export const UNIDADE_TIPO_LABELS: Record<UnidadeTipo, string> = {
 
 export const UNIDADE_CICLO_LABELS: Record<UnidadeCiclo, string> = {
   discovery: "Discovery",
-  lead: "Lead",
+  lead: "Ativo",
   cliente: "Cliente",
+};
+
+export const UNIDADE_CICLO_BADGE: Record<UnidadeCiclo, string> = {
+  discovery: "bg-info/15 text-info border-info/30",
+  lead: "bg-success/15 text-success border-success/30",
+  cliente: "bg-primary/15 text-primary border-primary/30",
 };
 
 export const TAREFA_STATUS_LABELS: Record<TarefaStatus, string> = {

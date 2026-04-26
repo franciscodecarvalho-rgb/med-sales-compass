@@ -147,7 +147,7 @@ export default function UnidadeDetail() {
           <TabsTrigger value="parque">Parque ({parque.length})</TabsTrigger>
           <TabsTrigger value="pessoas">Pessoas ({medicosVinc.length + contatos.length})</TabsTrigger>
           <TabsTrigger value="timeline">Timeline ({anotacoes.length})</TabsTrigger>
-          <TabsTrigger value="deals">Deals</TabsTrigger>
+          <TabsTrigger value="deals">Deals ({dealsUnidade.length})</TabsTrigger>
           <TabsTrigger value="posvenda">Pós-Venda</TabsTrigger>
         </TabsList>
 

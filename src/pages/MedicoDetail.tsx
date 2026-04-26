@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UserRound, ArrowLeft, Plus, Stethoscope, Mail, Phone, Star, Save, Trash2 } from "lucide-react";
+import { TarefasList } from "@/components/TarefasList";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -175,6 +176,10 @@ export default function MedicoDetail() {
             ))}
             {anotacoes.length === 0 && <p className="text-sm text-muted-foreground">Sem anotações.</p>}
           </div>
+        </TabsContent>
+
+        <TabsContent value="tarefas">
+          <TarefasList tarefas={tarefas} onChange={load} />
         </TabsContent>
       </Tabs>
     </div>

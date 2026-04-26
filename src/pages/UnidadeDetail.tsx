@@ -38,7 +38,7 @@ export default function UnidadeDetail() {
 
   async function load() {
     if (!id) return;
-    const [u, p, c, mu, an, md, ln, tp, es, pp] = await Promise.all([
+    const [u, p, c, mu, an, md, ln, tp, es, pp, dl] = await Promise.all([
       supabase.from("unidades_saude").select("*, tipos_unidade(id, nome), estados(id, sigla, nome)").eq("id", id).maybeSingle(),
       supabase.from("parque_instalado").select("*, linhas_produto(id, nome, cor)").eq("unidade_id", id).is("archived_at", null),
       supabase.from("contatos").select("*, papeis_contato(id, nome)").eq("unidade_id", id).is("archived_at", null),
@@ -49,6 +49,7 @@ export default function UnidadeDetail() {
       supabase.from("tipos_unidade").select("id, nome").is("archived_at", null).order("nome"),
       supabase.from("estados").select("id, sigla, nome").is("archived_at", null).order("sigla"),
       supabase.from("papeis_contato").select("id, nome").is("archived_at", null).order("nome"),
+      supabase.from("deals").select("id, titulo, estagio, resultado, valor_total, data_entrada_estagio, data_previsao_fechamento, linhas_produto(nome, cor), profiles!deals_vendedor_id_fkey(nome)").eq("unidade_id", id).is("archived_at", null).order("created_at", { ascending: false }),
     ]);
     setUnidade(u.data);
     setParque(p.data ?? []);
@@ -60,6 +61,7 @@ export default function UnidadeDetail() {
     setTipos(tp.data ?? []);
     setEstados(es.data ?? []);
     setPapeis(pp.data ?? []);
+    setDealsUnidade(dl.data ?? []);
   }
 
   const score = parque.reduce((s, p) => s + Number(p.quantidade ?? 0), 0);

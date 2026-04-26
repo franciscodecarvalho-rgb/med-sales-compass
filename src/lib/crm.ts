@@ -1,0 +1,82 @@
+import { Database } from "@/integrations/supabase/types";
+
+export type DealStage = Database["public"]["Enums"]["deal_stage"];
+export type DealResultado = Database["public"]["Enums"]["deal_resultado"];
+export type UnidadeTipo = Database["public"]["Enums"]["unidade_tipo"];
+export type UnidadeCiclo = Database["public"]["Enums"]["unidade_ciclo"];
+export type TarefaStatus = Database["public"]["Enums"]["tarefa_status"];
+export type TarefaPrioridade = Database["public"]["Enums"]["tarefa_prioridade"];
+
+export const STAGE_ORDER: DealStage[] = [
+  "prospeccao",
+  "qualificacao",
+  "demonstracao",
+  "negociacao",
+  "decisao",
+  "fechamento",
+  "finalizado",
+];
+
+export const STAGE_LABELS: Record<DealStage, string> = {
+  prospeccao: "Prospecção",
+  qualificacao: "Qualificação",
+  demonstracao: "Demonstração",
+  negociacao: "Negociação",
+  decisao: "Decisão",
+  fechamento: "Fechamento",
+  finalizado: "Finalizado",
+};
+
+export const RESULTADO_LABELS: Record<DealResultado, string> = {
+  em_andamento: "Em andamento",
+  ganho: "Ganho",
+  perdido: "Perdido",
+};
+
+export const UNIDADE_TIPO_LABELS: Record<UnidadeTipo, string> = {
+  hospital: "Hospital",
+  clinica: "Clínica",
+  ubs: "UBS",
+  laboratorio: "Laboratório",
+  outro: "Outro",
+};
+
+export const UNIDADE_CICLO_LABELS: Record<UnidadeCiclo, string> = {
+  discovery: "Discovery",
+  lead: "Lead",
+  cliente: "Cliente",
+};
+
+export const TAREFA_STATUS_LABELS: Record<TarefaStatus, string> = {
+  pendente: "Pendente",
+  em_andamento: "Em andamento",
+  concluida: "Concluída",
+  cancelada: "Cancelada",
+};
+
+export const TAREFA_PRIORIDADE_LABELS: Record<TarefaPrioridade, string> = {
+  baixa: "Baixa",
+  media: "Média",
+  alta: "Alta",
+};
+
+export const ESTADOS_BR = [
+  "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI",
+  "RJ","RN","RS","RO","RR","SC","SP","SE","TO"
+];
+
+export function formatCurrency(value: number | null | undefined): string {
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" })
+    .format(value ?? 0);
+}
+
+export function daysBetween(from: string | Date, to: Date = new Date()): number {
+  const a = typeof from === "string" ? new Date(from) : from;
+  return Math.floor((to.getTime() - a.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+export function stageColorClass(days: number, verde: number, amarelo: number): string {
+  if (days <= verde) return "text-success bg-success/10 border-success/30";
+  if (days <= amarelo) return "text-warning bg-warning/10 border-warning/30";
+  return "text-destructive bg-destructive/10 border-destructive/30";
+}

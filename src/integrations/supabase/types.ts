@@ -75,6 +75,33 @@ export type Database = {
           },
         ]
       }
+      config_contador: {
+        Row: {
+          created_at: string
+          id: string
+          is_default: boolean
+          limite_amarelo_dias: number
+          limite_verde_dias: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          limite_amarelo_dias?: number
+          limite_verde_dias?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          limite_amarelo_dias?: number
+          limite_verde_dias?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contatos: {
         Row: {
           archived_at: string | null
@@ -327,6 +354,57 @@ export type Database = {
           },
         ]
       }
+      especialidades_medicas: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          id: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          id?: string
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          id?: string
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      estados: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          id: string
+          nome: string
+          sigla: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          id?: string
+          nome: string
+          sigla: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          id?: string
+          nome?: string
+          sigla?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       linhas_produto: {
         Row: {
           archived_at: string | null
@@ -358,6 +436,30 @@ export type Database = {
           id?: string
           limite_amarelo_dias?: number
           limite_verde_dias?: number
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      marcas_equipamento: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          id: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          id?: string
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          id?: string
           nome?: string
           updated_at?: string
         }
@@ -437,6 +539,54 @@ export type Database = {
           nome?: string
           observacoes?: string | null
           telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      motivos_perda: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          id: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          id?: string
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          id?: string
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      papeis_contato: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          id: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          id?: string
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          id?: string
+          nome?: string
           updated_at?: string
         }
         Relationships: []
@@ -614,6 +764,54 @@ export type Database = {
           },
         ]
       }
+      tipos_equipamento: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          id: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          id?: string
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          id?: string
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tipos_unidade: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          id: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          id?: string
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          id?: string
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       unidades_saude: {
         Row: {
           archived_at: string | null
@@ -678,6 +876,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_linhas: {
+        Row: {
+          created_at: string
+          id: string
+          linha_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          linha_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          linha_id?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

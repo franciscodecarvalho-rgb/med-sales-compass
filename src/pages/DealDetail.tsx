@@ -177,8 +177,10 @@ export default function DealDetail() {
               <Card key={de.id}>
                 <CardContent className="flex items-center justify-between p-3">
                   <div>
-                    <div className="font-medium">{de.equipamentos?.nome}</div>
-                    <div className="text-xs text-muted-foreground">Qtd: {de.quantidade} × {formatCurrency(de.valor_unitario)}</div>
+                    <div className="font-medium">{de.equipamentos?.nome ?? de.descricao ?? "—"}</div>
+                    <div className="text-xs text-muted-foreground">
+                      Qtd: {de.quantidade} {Number(de.valor_unitario) > 0 && <>× {formatCurrency(de.valor_unitario)}</>}
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="font-semibold">{formatCurrency(de.quantidade * Number(de.valor_unitario))}</span>

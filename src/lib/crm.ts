@@ -54,10 +54,25 @@ export const UNIDADE_CICLO_BADGE: Record<UnidadeCiclo, string> = {
 };
 
 export const TAREFA_STATUS_LABELS: Record<TarefaStatus, string> = {
-  pendente: "Pendente",
+  pendente: "Aberta",
   em_andamento: "Em andamento",
   concluida: "Concluída",
   cancelada: "Cancelada",
+  atrasada: "Atrasada",
+};
+
+export const TAREFA_STATUS_BADGE: Record<TarefaStatus, string> = {
+  pendente: "bg-info/15 text-info border-info/30",
+  em_andamento: "bg-primary/15 text-primary border-primary/30",
+  concluida: "bg-success/15 text-success border-success/30",
+  cancelada: "bg-muted text-muted-foreground border-border",
+  atrasada: "bg-destructive/15 text-destructive border-destructive/30",
+};
+
+export const TAREFA_PRIORIDADE_BADGE: Record<TarefaPrioridade, string> = {
+  alta: "bg-destructive/15 text-destructive border-destructive/30",
+  media: "bg-warning/15 text-warning border-warning/30",
+  baixa: "bg-muted text-muted-foreground border-border",
 };
 
 export const TAREFA_PRIORIDADE_LABELS: Record<TarefaPrioridade, string> = {

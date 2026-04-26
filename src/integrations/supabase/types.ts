@@ -1059,6 +1059,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin_or_gerente: { Args: { _user_id: string }; Returns: boolean }
+      marcar_tarefas_atrasadas: { Args: never; Returns: number }
     }
     Enums: {
       app_role:
@@ -1077,7 +1078,12 @@ export type Database = {
         | "fechamento"
         | "finalizado"
       tarefa_prioridade: "baixa" | "media" | "alta"
-      tarefa_status: "pendente" | "em_andamento" | "concluida" | "cancelada"
+      tarefa_status:
+        | "pendente"
+        | "em_andamento"
+        | "concluida"
+        | "cancelada"
+        | "atrasada"
       unidade_ciclo: "discovery" | "lead" | "cliente"
       unidade_tipo: "hospital" | "clinica" | "ubs" | "laboratorio" | "outro"
     }
@@ -1225,7 +1231,13 @@ export const Constants = {
         "finalizado",
       ],
       tarefa_prioridade: ["baixa", "media", "alta"],
-      tarefa_status: ["pendente", "em_andamento", "concluida", "cancelada"],
+      tarefa_status: [
+        "pendente",
+        "em_andamento",
+        "concluida",
+        "cancelada",
+        "atrasada",
+      ],
       unidade_ciclo: ["discovery", "lead", "cliente"],
       unidade_tipo: ["hospital", "clinica", "ubs", "laboratorio", "outro"],
     },

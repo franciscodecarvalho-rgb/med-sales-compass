@@ -30,6 +30,7 @@ export default function UnidadeDetail() {
   const [tipos, setTipos] = useState<any[]>([]);
   const [estados, setEstados] = useState<any[]>([]);
   const [papeis, setPapeis] = useState<any[]>([]);
+  const [dealsUnidade, setDealsUnidade] = useState<any[]>([]);
   const [novaAnot, setNovaAnot] = useState("");
   const [proxContato, setProxContato] = useState("");
 
@@ -37,7 +38,7 @@ export default function UnidadeDetail() {
 
   async function load() {
     if (!id) return;
-    const [u, p, c, mu, an, md, ln, tp, es, pp] = await Promise.all([
+    const [u, p, c, mu, an, md, ln, tp, es, pp, dl] = await Promise.all([
       supabase.from("unidades_saude").select("*, tipos_unidade(id, nome), estados(id, sigla, nome)").eq("id", id).maybeSingle(),
       supabase.from("parque_instalado").select("*, linhas_produto(id, nome, cor)").eq("unidade_id", id).is("archived_at", null),
       supabase.from("contatos").select("*, papeis_contato(id, nome)").eq("unidade_id", id).is("archived_at", null),
@@ -48,6 +49,7 @@ export default function UnidadeDetail() {
       supabase.from("tipos_unidade").select("id, nome").is("archived_at", null).order("nome"),
       supabase.from("estados").select("id, sigla, nome").is("archived_at", null).order("sigla"),
       supabase.from("papeis_contato").select("id, nome").is("archived_at", null).order("nome"),
+      supabase.from("deals").select("id, titulo, estagio, resultado, valor_total, data_entrada_estagio, data_previsao_fechamento, linhas_produto(nome, cor), profiles!deals_vendedor_id_fkey(nome)").eq("unidade_id", id).is("archived_at", null).order("created_at", { ascending: false }),
     ]);
     setUnidade(u.data);
     setParque(p.data ?? []);
@@ -59,6 +61,7 @@ export default function UnidadeDetail() {
     setTipos(tp.data ?? []);
     setEstados(es.data ?? []);
     setPapeis(pp.data ?? []);
+    setDealsUnidade(dl.data ?? []);
   }
 
   const score = parque.reduce((s, p) => s + Number(p.quantidade ?? 0), 0);
@@ -144,7 +147,7 @@ export default function UnidadeDetail() {
           <TabsTrigger value="parque">Parque ({parque.length})</TabsTrigger>
           <TabsTrigger value="pessoas">Pessoas ({medicosVinc.length + contatos.length})</TabsTrigger>
           <TabsTrigger value="timeline">Timeline ({anotacoes.length})</TabsTrigger>
-          <TabsTrigger value="deals">Deals</TabsTrigger>
+          <TabsTrigger value="deals">Deals ({dealsUnidade.length})</TabsTrigger>
           <TabsTrigger value="posvenda">Pós-Venda</TabsTrigger>
         </TabsList>
 
@@ -323,10 +326,53 @@ export default function UnidadeDetail() {
           </div>
         </TabsContent>
 
-        <TabsContent value="deals">
-          <Card><CardContent className="p-6 text-sm text-muted-foreground text-center">
-            Os deals desta unidade serão exibidos aqui na próxima fase (Funil de Vendas).
-          </CardContent></Card>
+        <TabsContent value="deals" className="space-y-3">
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-muted-foreground">{dealsUnidade.length} deal(s) vinculado(s)</p>
+            <Button size="sm" variant="outline" onClick={() => navigate(`/funil-vendas?unidade=${id}`)}>
+              <Plus className="mr-2 h-4 w-4" /> Novo deal
+            </Button>
+          </div>
+          {dealsUnidade.length === 0 ? (
+            <Card><CardContent className="p-6 text-sm text-muted-foreground text-center">
+              Nenhum deal cadastrado para esta unidade ainda.
+            </CardContent></Card>
+          ) : (
+            <div className="space-y-2">
+              {dealsUnidade.map((d) => {
+                const isFinal = d.estagio === "finalizado";
+                const dias = Math.floor((Date.now() - new Date(d.data_entrada_estagio).getTime()) / 86400000);
+                return (
+                  <Card key={d.id} className="cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => navigate(`/deals/${d.id}`)}>
+                    <CardContent className="p-3 flex items-center justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium truncate">{d.titulo}</div>
+                        <div className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
+                          <span style={{ color: d.linhas_produto?.cor }}>{d.linhas_produto?.nome}</span>
+                          <span>·</span>
+                          <span>👤 {d.profiles?.nome}</span>
+                          {!isFinal && <><span>·</span><span>{dias}d no estágio</span></>}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-semibold text-sm">{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(d.valor_total ?? 0))}</div>
+                        {isFinal ? (
+                          <Badge variant="outline" className={d.resultado === "ganho"
+                            ? "bg-success/15 text-success border-success/40"
+                            : "bg-destructive/15 text-destructive border-destructive/40"}>
+                            {d.resultado === "ganho" ? "GANHO" : "PERDIDO"}
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary">{d.estagio}</Badge>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="posvenda">

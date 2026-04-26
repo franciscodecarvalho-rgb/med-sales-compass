@@ -166,7 +166,8 @@ export type Database = {
         Row: {
           created_at: string
           deal_id: string
-          equipamento_id: string
+          descricao: string | null
+          equipamento_id: string | null
           id: string
           quantidade: number
           valor_unitario: number
@@ -174,7 +175,8 @@ export type Database = {
         Insert: {
           created_at?: string
           deal_id: string
-          equipamento_id: string
+          descricao?: string | null
+          equipamento_id?: string | null
           id?: string
           quantidade?: number
           valor_unitario?: number
@@ -182,7 +184,8 @@ export type Database = {
         Update: {
           created_at?: string
           deal_id?: string
-          equipamento_id?: string
+          descricao?: string | null
+          equipamento_id?: string | null
           id?: string
           quantidade?: number
           valor_unitario?: number
@@ -257,10 +260,12 @@ export type Database = {
           created_at: string
           data_entrada_estagio: string
           data_fechamento: string | null
+          data_previsao_fechamento: string | null
           estagio: Database["public"]["Enums"]["deal_stage"]
           id: string
           linha_id: string
           motivo_perda: string | null
+          motivo_perda_id: string | null
           observacoes: string | null
           resultado: Database["public"]["Enums"]["deal_resultado"]
           titulo: string
@@ -274,10 +279,12 @@ export type Database = {
           created_at?: string
           data_entrada_estagio?: string
           data_fechamento?: string | null
+          data_previsao_fechamento?: string | null
           estagio?: Database["public"]["Enums"]["deal_stage"]
           id?: string
           linha_id: string
           motivo_perda?: string | null
+          motivo_perda_id?: string | null
           observacoes?: string | null
           resultado?: Database["public"]["Enums"]["deal_resultado"]
           titulo: string
@@ -291,10 +298,12 @@ export type Database = {
           created_at?: string
           data_entrada_estagio?: string
           data_fechamento?: string | null
+          data_previsao_fechamento?: string | null
           estagio?: Database["public"]["Enums"]["deal_stage"]
           id?: string
           linha_id?: string
           motivo_perda?: string | null
+          motivo_perda_id?: string | null
           observacoes?: string | null
           resultado?: Database["public"]["Enums"]["deal_resultado"]
           titulo?: string
@@ -309,6 +318,13 @@ export type Database = {
             columns: ["linha_id"]
             isOneToOne: false
             referencedRelation: "linhas_produto"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_motivo_perda_id_fkey"
+            columns: ["motivo_perda_id"]
+            isOneToOne: false
+            referencedRelation: "motivos_perda"
             referencedColumns: ["id"]
           },
           {

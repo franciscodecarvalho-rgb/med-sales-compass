@@ -43,7 +43,8 @@ export default function DealDetail() {
         *,
         unidades_saude(id, nome, cidade, estado),
         linhas_produto(id, nome, cor, limite_verde_dias, limite_amarelo_dias),
-        profiles!deals_vendedor_id_fkey(nome)
+        profiles!deals_vendedor_id_fkey(nome),
+        motivos_perda(nome)
       `).eq("id", id).maybeSingle(),
       supabase.from("equipamentos").select("id, nome, valor_referencia, linha_id").is("archived_at", null),
       supabase.from("deal_equipamentos").select("*, equipamentos(nome)").eq("deal_id", id),
@@ -176,8 +177,10 @@ export default function DealDetail() {
               <Card key={de.id}>
                 <CardContent className="flex items-center justify-between p-3">
                   <div>
-                    <div className="font-medium">{de.equipamentos?.nome}</div>
-                    <div className="text-xs text-muted-foreground">Qtd: {de.quantidade} × {formatCurrency(de.valor_unitario)}</div>
+                    <div className="font-medium">{de.equipamentos?.nome ?? de.descricao ?? "—"}</div>
+                    <div className="text-xs text-muted-foreground">
+                      Qtd: {de.quantidade} {Number(de.valor_unitario) > 0 && <>× {formatCurrency(de.valor_unitario)}</>}
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="font-semibold">{formatCurrency(de.quantidade * Number(de.valor_unitario))}</span>
@@ -273,10 +276,13 @@ export default function DealDetail() {
         </TabsContent>
       </Tabs>
 
-      {deal.motivo_perda && (
+      {(deal.motivos_perda?.nome || deal.motivo_perda) && deal.resultado === "perdido" && (
         <Card className="border-destructive/40">
           <CardHeader><CardTitle className="text-sm text-destructive">Motivo da perda</CardTitle></CardHeader>
-          <CardContent><p className="text-sm whitespace-pre-wrap">{deal.motivo_perda}</p></CardContent>
+          <CardContent>
+            <p className="text-sm font-medium">{deal.motivos_perda?.nome ?? "—"}</p>
+            {deal.motivo_perda && <p className="mt-1 text-sm text-muted-foreground whitespace-pre-wrap">{deal.motivo_perda}</p>}
+          </CardContent>
         </Card>
       )}
 
@@ -334,19 +340,28 @@ function DealEquipAdd({ dealId, equipamentos, onAdded }: { dealId: string; equip
 
 function FinalizarInline({ deal, onClose }: { deal: any; onClose: () => void }) {
   const [resultado, setResultado] = useState<"ganho" | "perdido">("ganho");
-  const [motivo, setMotivo] = useState("");
+  const [motivoId, setMotivoId] = useState<string>("");
+  const [motivoExtra, setMotivoExtra] = useState("");
+  const [motivos, setMotivos] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    supabase.from("motivos_perda").select("*").is("archived_at", null).order("nome")
+      .then(({ data }) => setMotivos(data ?? []));
+  }, []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (resultado === "perdido" && !motivo.trim()) {
-      toast.error("Motivo de perda é obrigatório"); return;
+    if (resultado === "perdido" && !motivoId) {
+      toast.error("Selecione um motivo de perda"); return;
     }
     setSaving(true);
+    const motivoNome = motivos.find((m) => m.id === motivoId)?.nome ?? "";
     const { error } = await supabase.from("deals").update({
       estagio: "finalizado",
       resultado,
-      motivo_perda: resultado === "perdido" ? motivo : null,
+      motivo_perda_id: resultado === "perdido" ? motivoId : null,
+      motivo_perda: resultado === "perdido" ? (motivoExtra ? `${motivoNome} — ${motivoExtra}` : motivoNome) : null,
       data_fechamento: new Date().toISOString(),
     }).eq("id", deal.id);
     setSaving(false);
@@ -370,10 +385,21 @@ function FinalizarInline({ deal, onClose }: { deal: any; onClose: () => void }) 
           </Select>
         </div>
         {resultado === "perdido" && (
-          <div className="space-y-2">
-            <Label>Motivo da perda *</Label>
-            <Textarea required rows={3} value={motivo} onChange={(e) => setMotivo(e.target.value)} />
-          </div>
+          <>
+            <div className="space-y-2">
+              <Label>Motivo da perda *</Label>
+              <Select value={motivoId} onValueChange={setMotivoId}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  {motivos.map((m) => <SelectItem key={m.id} value={m.id}>{m.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Detalhes (opcional)</Label>
+              <Textarea rows={2} value={motivoExtra} onChange={(e) => setMotivoExtra(e.target.value)} />
+            </div>
+          </>
         )}
         <DialogFooter>
           <Button type="button" variant="ghost" onClick={onClose}>Cancelar</Button>
@@ -383,3 +409,4 @@ function FinalizarInline({ deal, onClose }: { deal: any; onClose: () => void }) 
     </DialogContent>
   );
 }
+

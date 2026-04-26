@@ -51,6 +51,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const fetchRoles = async (userId: string) => {
+    // Verifica se o usuário está ativo; caso contrário, faz signOut imediatamente.
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("ativo")
+      .eq("id", userId)
+      .maybeSingle();
+    if (profile && profile.ativo === false) {
+      await supabase.auth.signOut();
+      setRoles([]);
+      setUser(null);
+      setSession(null);
+      return;
+    }
     const { data } = await supabase
       .from("user_roles")
       .select("role")

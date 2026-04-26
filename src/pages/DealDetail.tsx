@@ -340,19 +340,28 @@ function DealEquipAdd({ dealId, equipamentos, onAdded }: { dealId: string; equip
 
 function FinalizarInline({ deal, onClose }: { deal: any; onClose: () => void }) {
   const [resultado, setResultado] = useState<"ganho" | "perdido">("ganho");
-  const [motivo, setMotivo] = useState("");
+  const [motivoId, setMotivoId] = useState<string>("");
+  const [motivoExtra, setMotivoExtra] = useState("");
+  const [motivos, setMotivos] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    supabase.from("motivos_perda").select("*").is("archived_at", null).order("nome")
+      .then(({ data }) => setMotivos(data ?? []));
+  }, []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (resultado === "perdido" && !motivo.trim()) {
-      toast.error("Motivo de perda é obrigatório"); return;
+    if (resultado === "perdido" && !motivoId) {
+      toast.error("Selecione um motivo de perda"); return;
     }
     setSaving(true);
+    const motivoNome = motivos.find((m) => m.id === motivoId)?.nome ?? "";
     const { error } = await supabase.from("deals").update({
       estagio: "finalizado",
       resultado,
-      motivo_perda: resultado === "perdido" ? motivo : null,
+      motivo_perda_id: resultado === "perdido" ? motivoId : null,
+      motivo_perda: resultado === "perdido" ? (motivoExtra ? `${motivoNome} — ${motivoExtra}` : motivoNome) : null,
       data_fechamento: new Date().toISOString(),
     }).eq("id", deal.id);
     setSaving(false);
@@ -376,10 +385,21 @@ function FinalizarInline({ deal, onClose }: { deal: any; onClose: () => void }) 
           </Select>
         </div>
         {resultado === "perdido" && (
-          <div className="space-y-2">
-            <Label>Motivo da perda *</Label>
-            <Textarea required rows={3} value={motivo} onChange={(e) => setMotivo(e.target.value)} />
-          </div>
+          <>
+            <div className="space-y-2">
+              <Label>Motivo da perda *</Label>
+              <Select value={motivoId} onValueChange={setMotivoId}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  {motivos.map((m) => <SelectItem key={m.id} value={m.id}>{m.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Detalhes (opcional)</Label>
+              <Textarea rows={2} value={motivoExtra} onChange={(e) => setMotivoExtra(e.target.value)} />
+            </div>
+          </>
         )}
         <DialogFooter>
           <Button type="button" variant="ghost" onClick={onClose}>Cancelar</Button>
@@ -388,4 +408,5 @@ function FinalizarInline({ deal, onClose }: { deal: any; onClose: () => void }) 
       </form>
     </DialogContent>
   );
+}
 }

@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Building2, MapPin, Phone, Mail, Globe, Plus, ArrowLeft, Trash2, Save, Send, Star } from "lucide-react";
 import { TarefasList } from "@/components/TarefasList";
+import PosVendaUnidadeTab from "@/components/posvenda/PosVendaUnidadeTab";
 import { toast } from "sonner";
 import { UNIDADE_CICLO_LABELS, UNIDADE_CICLO_BADGE, UnidadeCiclo } from "@/lib/crm";
 import { format } from "date-fns";
@@ -385,9 +386,7 @@ export default function UnidadeDetail() {
         </TabsContent>
 
         <TabsContent value="posvenda">
-          <Card><CardContent className="p-6 text-sm text-muted-foreground text-center">
-            Os atendimentos pós-venda serão exibidos aqui na fase de Pós-Venda.
-          </CardContent></Card>
+          <PosVendaUnidadeTab unidadeId={id!} />
         </TabsContent>
       </Tabs>
     </div>

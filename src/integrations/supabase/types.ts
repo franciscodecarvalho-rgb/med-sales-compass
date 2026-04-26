@@ -75,6 +75,57 @@ export type Database = {
           },
         ]
       }
+      chamados: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          created_by: string | null
+          data_abertura: string
+          data_resolucao: string | null
+          descricao_equipamento: string
+          descricao_problema: string
+          id: string
+          observacoes: string | null
+          prioridade: Database["public"]["Enums"]["chamado_prioridade"]
+          status: Database["public"]["Enums"]["chamado_status"]
+          tecnico_id: string | null
+          unidade_id: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_abertura?: string
+          data_resolucao?: string | null
+          descricao_equipamento: string
+          descricao_problema: string
+          id?: string
+          observacoes?: string | null
+          prioridade?: Database["public"]["Enums"]["chamado_prioridade"]
+          status?: Database["public"]["Enums"]["chamado_status"]
+          tecnico_id?: string | null
+          unidade_id: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_abertura?: string
+          data_resolucao?: string | null
+          descricao_equipamento?: string
+          descricao_problema?: string
+          id?: string
+          observacoes?: string | null
+          prioridade?: Database["public"]["Enums"]["chamado_prioridade"]
+          status?: Database["public"]["Enums"]["chamado_status"]
+          tecnico_id?: string | null
+          unidade_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       config_contador: {
         Row: {
           created_at: string
@@ -161,6 +212,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      contratos_manutencao: {
+        Row: {
+          archived_at: string | null
+          cobertura: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          linha_id: string | null
+          observacoes: string | null
+          status: Database["public"]["Enums"]["contrato_status"]
+          tipo_contrato: string
+          unidade_id: string
+          updated_at: string
+          valor: number
+          vigencia_fim: string
+          vigencia_inicio: string
+        }
+        Insert: {
+          archived_at?: string | null
+          cobertura?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          linha_id?: string | null
+          observacoes?: string | null
+          status?: Database["public"]["Enums"]["contrato_status"]
+          tipo_contrato: string
+          unidade_id: string
+          updated_at?: string
+          valor?: number
+          vigencia_fim: string
+          vigencia_inicio: string
+        }
+        Update: {
+          archived_at?: string | null
+          cobertura?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          linha_id?: string | null
+          observacoes?: string | null
+          status?: Database["public"]["Enums"]["contrato_status"]
+          tipo_contrato?: string
+          unidade_id?: string
+          updated_at?: string
+          valor?: number
+          vigencia_fim?: string
+          vigencia_inicio?: string
+        }
+        Relationships: []
       }
       deal_equipamentos: {
         Row: {
@@ -431,6 +533,105 @@ export type Database = {
         }
         Relationships: []
       }
+      garantias: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          created_by: string | null
+          data_fim: string
+          data_inicio: string
+          deal_origem_id: string | null
+          descricao_equipamento: string
+          id: string
+          linha_id: string | null
+          observacoes: string | null
+          status: Database["public"]["Enums"]["garantia_status"]
+          unidade_id: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_fim: string
+          data_inicio: string
+          deal_origem_id?: string | null
+          descricao_equipamento: string
+          id?: string
+          linha_id?: string | null
+          observacoes?: string | null
+          status?: Database["public"]["Enums"]["garantia_status"]
+          unidade_id: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_fim?: string
+          data_inicio?: string
+          deal_origem_id?: string | null
+          descricao_equipamento?: string
+          id?: string
+          linha_id?: string | null
+          observacoes?: string | null
+          status?: Database["public"]["Enums"]["garantia_status"]
+          unidade_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      instalacoes: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          created_by: string | null
+          data_conclusao: string | null
+          data_prevista: string | null
+          deal_id: string | null
+          id: string
+          observacoes: string | null
+          pdf_url: string | null
+          status: Database["public"]["Enums"]["instalacao_status"]
+          tecnico_id: string | null
+          tipo: Database["public"]["Enums"]["instalacao_tipo"]
+          unidade_id: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_conclusao?: string | null
+          data_prevista?: string | null
+          deal_id?: string | null
+          id?: string
+          observacoes?: string | null
+          pdf_url?: string | null
+          status?: Database["public"]["Enums"]["instalacao_status"]
+          tecnico_id?: string | null
+          tipo?: Database["public"]["Enums"]["instalacao_tipo"]
+          unidade_id: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_conclusao?: string | null
+          data_prevista?: string | null
+          deal_id?: string | null
+          id?: string
+          observacoes?: string | null
+          pdf_url?: string | null
+          status?: Database["public"]["Enums"]["instalacao_status"]
+          tecnico_id?: string | null
+          tipo?: Database["public"]["Enums"]["instalacao_tipo"]
+          unidade_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       linhas_produto: {
         Row: {
           archived_at: string | null
@@ -620,6 +821,42 @@ export type Database = {
           created_at?: string
           id?: string
           nome?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      nps: {
+        Row: {
+          archived_at: string | null
+          comentarios: string | null
+          created_at: string
+          created_by: string | null
+          data: string
+          id: string
+          nota: number
+          unidade_id: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          comentarios?: string | null
+          created_at?: string
+          created_by?: string | null
+          data?: string
+          id?: string
+          nota: number
+          unidade_id: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          comentarios?: string | null
+          created_at?: string
+          created_by?: string | null
+          data?: string
+          id?: string
+          nota?: number
+          unidade_id?: string
           updated_at?: string
         }
         Relationships: []
@@ -1068,6 +1305,9 @@ export type Database = {
         | "vendedor"
         | "pos_venda"
         | "assistente_vendas"
+      chamado_prioridade: "critica" | "alta" | "media" | "baixa"
+      chamado_status: "aberto" | "em_atendimento" | "resolvido" | "fechado"
+      contrato_status: "ativo" | "vencido" | "a_vencer"
       deal_resultado: "em_andamento" | "ganho" | "perdido"
       deal_stage:
         | "prospeccao"
@@ -1077,6 +1317,9 @@ export type Database = {
         | "decisao"
         | "fechamento"
         | "finalizado"
+      garantia_status: "ativa" | "vencida" | "a_vencer"
+      instalacao_status: "pendente" | "em_andamento" | "concluido"
+      instalacao_tipo: "instalacao" | "aplicacao"
       tarefa_prioridade: "baixa" | "media" | "alta"
       tarefa_status:
         | "pendente"
@@ -1220,6 +1463,9 @@ export const Constants = {
         "pos_venda",
         "assistente_vendas",
       ],
+      chamado_prioridade: ["critica", "alta", "media", "baixa"],
+      chamado_status: ["aberto", "em_atendimento", "resolvido", "fechado"],
+      contrato_status: ["ativo", "vencido", "a_vencer"],
       deal_resultado: ["em_andamento", "ganho", "perdido"],
       deal_stage: [
         "prospeccao",
@@ -1230,6 +1476,9 @@ export const Constants = {
         "fechamento",
         "finalizado",
       ],
+      garantia_status: ["ativa", "vencida", "a_vencer"],
+      instalacao_status: ["pendente", "em_andamento", "concluido"],
+      instalacao_tipo: ["instalacao", "aplicacao"],
       tarefa_prioridade: ["baixa", "media", "alta"],
       tarefa_status: [
         "pendente",

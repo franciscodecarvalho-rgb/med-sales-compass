@@ -12,6 +12,7 @@ import {
   Activity,
   Package,
   Wrench,
+  Receipt,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,8 @@ const navItems: NavItem[] = [
   { to: "/unidades", label: "Unidades de Saúde", icon: Building2 },
   { to: "/medicos", label: "Médicos", icon: UserRound },
   { to: "/funil-vendas", label: "Funil de Vendas", icon: Kanban },
+  { to: "/funil-manutencao", label: "Funil de Manutenção", icon: Wrench },
+  { to: "/faturamento", label: "Faturamento", icon: Receipt, roles: ["admin", "gerente", "assistente_vendas"] },
   { to: "/tarefas", label: "Tarefas", icon: CheckSquare },
   { to: "/pos-venda", label: "Pós-Venda", icon: Wrench, roles: ["admin", "gerente", "pos_venda"] },
   { to: "/equipamentos", label: "Equipamentos", icon: Package, roles: ["admin", "gerente"] },

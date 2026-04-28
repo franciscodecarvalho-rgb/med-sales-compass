@@ -16,6 +16,7 @@ import {
   type ChamadoPrioridade, type ChamadoStatus,
 } from "@/lib/crm";
 import { Plus, Search } from "lucide-react";
+import { ExportButton, exportToExcel } from "@/lib/export";
 
 interface Chamado {
   id: string;
@@ -152,6 +153,12 @@ export default function ChamadosTab() {
             {Object.entries(CHAMADO_PRIORIDADE_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
           </SelectContent>
         </Select>
+        <ExportButton onExport={() => exportToExcel(filtered.map((c: any) => ({
+          Equipamento: c.descricao_equipamento, Problema: c.descricao_problema,
+          Prioridade: CHAMADO_PRIORIDADE_LABELS[c.prioridade as ChamadoPrioridade],
+          Status: CHAMADO_STATUS_LABELS[c.status as ChamadoStatus],
+          Abertura: c.data_abertura, Resolucao: c.data_resolucao,
+        })), "chamados", "Chamados")} />
         {canWrite && (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>

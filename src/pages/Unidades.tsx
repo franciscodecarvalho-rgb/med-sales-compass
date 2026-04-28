@@ -18,6 +18,8 @@ import { Plus, Search } from "lucide-react";
 import { toast } from "sonner";
 import { UNIDADE_CICLO_LABELS, UNIDADE_CICLO_BADGE, UnidadeCiclo } from "@/lib/crm";
 import { useAuth } from "@/contexts/AuthContext";
+import { ExportButton, exportToExcel } from "@/lib/export";
+import { maskCnpj, maskTelefone, maskCep, isEmailValido } from "@/lib/masks";
 
 type Lookup = { id: string; nome: string; sigla?: string };
 
@@ -91,13 +93,19 @@ export default function Unidades() {
           <h1 className="text-3xl font-bold tracking-tight">Unidades de Saúde</h1>
           <p className="text-sm text-muted-foreground">{filtered.length} unidades</p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button><Plus className="mr-2 h-4 w-4" /> Nova unidade</Button>
-          </DialogTrigger>
-          <UnidadeForm tipos={tipos} estados={estados}
-            onSaved={() => { setOpen(false); void load(); }} />
-        </Dialog>
+        <div className="flex gap-2">
+          <ExportButton onExport={() => exportToExcel(filtered.map((u: any) => ({
+            Nome: u.nome, CNPJ: u.cnpj, Tipo: u.tipos_unidade?.nome, Ciclo: UNIDADE_CICLO_LABELS[u.ciclo as UnidadeCiclo],
+            Cidade: u.cidade, Estado: u.estados?.sigla || u.estado, Telefone: u.telefone, Email: u.email,
+          })), "unidades-saude", "Unidades")} />
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button><Plus className="mr-2 h-4 w-4" /> Nova unidade</Button>
+            </DialogTrigger>
+            <UnidadeForm tipos={tipos} estados={estados}
+              onSaved={() => { setOpen(false); void load(); }} />
+          </Dialog>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2 items-center">
@@ -298,11 +306,12 @@ function UnidadeForm({ tipos, estados, onSaved }: { tipos: Lookup[]; estados: Lo
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
             <Label>Telefone</Label>
-            <Input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} />
+            <Input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: maskTelefone(e.target.value) })} placeholder="(11) 99999-9999" />
           </div>
           <div className="space-y-2">
             <Label>Email</Label>
-            <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
+              className={form.email && !isEmailValido(form.email) ? "border-destructive" : ""} />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
@@ -312,7 +321,7 @@ function UnidadeForm({ tipos, estados, onSaved }: { tipos: Lookup[]; estados: Lo
           </div>
           <div className="space-y-2">
             <Label>CNPJ</Label>
-            <Input value={form.cnpj} onChange={(e) => setForm({ ...form, cnpj: e.target.value })} />
+            <Input value={form.cnpj} onChange={(e) => setForm({ ...form, cnpj: maskCnpj(e.target.value) })} placeholder="00.000.000/0000-00" />
           </div>
         </div>
         <div className="space-y-2">

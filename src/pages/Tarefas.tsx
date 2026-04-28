@@ -24,6 +24,7 @@ import {
   TAREFA_PRIORIDADE_LABELS, TAREFA_PRIORIDADE_BADGE,
   TAREFA_STATUS_LABELS, TAREFA_STATUS_BADGE, TarefaPrioridade, TarefaStatus,
 } from "@/lib/crm";
+import { ExportButton, exportToExcel } from "@/lib/export";
 import { format, isToday, isThisWeek, isThisMonth, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -182,12 +183,21 @@ export default function Tarefas() {
             {isAdminOrGerente && vendedorFilter === "todos" && " · visão da equipe"}
           </p>
         </div>
-        <Dialog open={openNew} onOpenChange={setOpenNew}>
-          <DialogTrigger asChild>
-            <Button><Plus className="mr-2 h-4 w-4" /> Nova tarefa</Button>
-          </DialogTrigger>
-          <NovaTarefaDialog onSaved={() => { setOpenNew(false); void load(); }} />
-        </Dialog>
+        <div className="flex gap-2">
+          <ExportButton onExport={() => exportToExcel(filtered.map((t: any) => ({
+            Titulo: t.titulo, Descricao: t.descricao,
+            Prioridade: TAREFA_PRIORIDADE_LABELS[t.prioridade as TarefaPrioridade],
+            Status: TAREFA_STATUS_LABELS[t.status as TarefaStatus],
+            Vencimento: t.data_vencimento, Responsavel: t.responsavel?.nome,
+            Vinculo: t.deals?.titulo || t.medicos?.nome || t.unidades_saude?.nome || "—",
+          })), "tarefas", "Tarefas")} />
+          <Dialog open={openNew} onOpenChange={setOpenNew}>
+            <DialogTrigger asChild>
+              <Button><Plus className="mr-2 h-4 w-4" /> Nova tarefa</Button>
+            </DialogTrigger>
+            <NovaTarefaDialog onSaved={() => { setOpenNew(false); void load(); }} />
+          </Dialog>
+        </div>
       </div>
 
       {/* FILTROS */}

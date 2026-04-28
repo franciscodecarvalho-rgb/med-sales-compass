@@ -335,53 +335,104 @@ export default function UnidadeDetail() {
           </div>
         </TabsContent>
 
-        <TabsContent value="deals" className="space-y-3">
-          <div className="flex justify-between items-center">
-            <p className="text-sm text-muted-foreground">{dealsUnidade.length} deal(s) vinculado(s)</p>
-            <Button size="sm" variant="outline" onClick={() => navigate(`/funil-vendas?unidade=${id}`)}>
-              <Plus className="mr-2 h-4 w-4" /> Novo deal
-            </Button>
-          </div>
-          {dealsUnidade.length === 0 ? (
-            <Card><CardContent className="p-6 text-sm text-muted-foreground text-center">
-              Nenhum deal cadastrado para esta unidade ainda.
-            </CardContent></Card>
-          ) : (
-            <div className="space-y-2">
-              {dealsUnidade.map((d) => {
-                const isFinal = d.estagio === "finalizado";
-                const dias = Math.floor((Date.now() - new Date(d.data_entrada_estagio).getTime()) / 86400000);
-                return (
-                  <Card key={d.id} className="cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => navigate(`/deals/${d.id}`)}>
-                    <CardContent className="p-3 flex items-center justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate">{d.titulo}</div>
-                        <div className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
-                          <span style={{ color: d.linhas_produto?.cor }}>{d.linhas_produto?.nome}</span>
-                          <span>·</span>
-                          <span>👤 {d.profiles?.nome}</span>
-                          {!isFinal && <><span>·</span><span>{dias}d no estágio</span></>}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-semibold text-sm">{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(d.valor_total ?? 0))}</div>
-                        {isFinal ? (
-                          <Badge variant="outline" className={d.resultado === "ganho"
-                            ? "bg-success/15 text-success border-success/40"
-                            : "bg-destructive/15 text-destructive border-destructive/40"}>
-                            {d.resultado === "ganho" ? "GANHO" : "PERDIDO"}
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary">{d.estagio}</Badge>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+        <TabsContent value="deals" className="space-y-6">
+          {/* Deals de Vendas */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-primary">
+                Vendas ({dealsUnidade.length})
+              </h3>
+              <Button size="sm" variant="outline" onClick={() => navigate(`/funil-vendas?unidade=${id}`)}>
+                <Plus className="mr-2 h-4 w-4" /> Novo deal
+              </Button>
             </div>
-          )}
+            {dealsUnidade.length === 0 ? (
+              <Card><CardContent className="p-4 text-sm text-muted-foreground text-center">Nenhum deal de vendas.</CardContent></Card>
+            ) : (
+              <div className="space-y-2">
+                {dealsUnidade.map((d) => {
+                  const isFinal = d.estagio === "finalizado";
+                  const dias = Math.floor((Date.now() - new Date(d.data_entrada_estagio).getTime()) / 86400000);
+                  return (
+                    <Card key={d.id} className="cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-primary"
+                      onClick={() => navigate(`/deals/${d.id}`)}>
+                      <CardContent className="p-3 flex items-center justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium truncate">{d.titulo}</div>
+                          <div className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
+                            <span style={{ color: d.linhas_produto?.cor }}>{d.linhas_produto?.nome}</span>
+                            <span>·</span><span>👤 {d.profiles?.nome}</span>
+                            {!isFinal && <><span>·</span><span>{dias}d no estágio</span></>}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold text-sm">{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(d.valor_total ?? 0))}</div>
+                          {isFinal ? (
+                            <Badge variant="outline" className={d.resultado === "ganho"
+                              ? "bg-success/15 text-success border-success/40"
+                              : "bg-destructive/15 text-destructive border-destructive/40"}>
+                              {d.resultado === "ganho" ? "GANHO" : "PERDIDO"}
+                            </Badge>
+                          ) : <Badge variant="secondary">{d.estagio}</Badge>}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Deals de Manutenção */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-success">
+                Manutenção ({dealsManutUnidade.length})
+              </h3>
+              <Button size="sm" variant="outline" onClick={() => navigate(`/funil-manutencao?unidade=${id}`)}>
+                <Plus className="mr-2 h-4 w-4" /> Novo deal
+              </Button>
+            </div>
+            {dealsManutUnidade.length === 0 ? (
+              <Card><CardContent className="p-4 text-sm text-muted-foreground text-center">Nenhum deal de manutenção.</CardContent></Card>
+            ) : (
+              <div className="space-y-2">
+                {dealsManutUnidade.map((d) => {
+                  const isFinal = d.estagio === "finalizado";
+                  const dias = Math.floor((Date.now() - new Date(d.data_entrada_estagio).getTime()) / 86400000);
+                  return (
+                    <Card key={d.id} className="cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-success"
+                      onClick={() => navigate(`/deals-manutencao/${d.id}`)}>
+                      <CardContent className="p-3 flex items-center justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-[9px] bg-success/10 text-success border-success/30">MANUT</Badge>
+                            <div className="font-medium truncate">{d.titulo}</div>
+                          </div>
+                          <div className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap mt-1">
+                            <span style={{ color: d.linhas_produto?.cor }}>{d.linhas_produto?.nome}</span>
+                            <span>·</span><span>👤 {d.profiles?.nome}</span>
+                            {!isFinal && <><span>·</span><span>{dias}d no estágio</span></>}
+                            {d.garantia_origem_id && <><span>·</span><span className="text-warning">via garantia</span></>}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold text-sm">{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(d.valor_total ?? 0))}</div>
+                          {isFinal ? (
+                            <Badge variant="outline" className={d.resultado === "ganho"
+                              ? "bg-success/15 text-success border-success/40"
+                              : "bg-destructive/15 text-destructive border-destructive/40"}>
+                              {d.resultado === "ganho" ? "GANHO" : "PERDIDO"}
+                            </Badge>
+                          ) : <Badge variant="secondary">{d.estagio}</Badge>}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         <TabsContent value="tarefas">

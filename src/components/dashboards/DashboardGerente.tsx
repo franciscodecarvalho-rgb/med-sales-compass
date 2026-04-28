@@ -55,7 +55,7 @@ export function DashboardGerente() {
   async function load() {
     setLoading(true);
     const [deals, unis, anots, tarefas] = await Promise.all([
-      supabase.from("deals").select("id, titulo, valor_total, estagio, resultado, data_entrada_estagio, data_fechamento, vendedor_id, linha_id, unidade_id, motivo_perda, motivos_perda(nome), unidades_saude(nome, cidade, estado), linhas_produto(nome, cor, limite_amarelo_dias), profiles!deals_vendedor_id_fkey:profiles(nome)").is("archived_at", null).limit(2000),
+      supabase.from("deals").select("id, titulo, valor_total, estagio, resultado, data_entrada_estagio, data_fechamento, vendedor_id, linha_id, unidade_id, motivo_perda, motivos_perda(nome), unidades_saude(nome, cidade, estado), linhas_produto(nome, cor, limite_amarelo_dias), profiles!deals_vendedor_id_fkey(nome)").is("archived_at", null).limit(2000),
       supabase.from("unidades_saude").select("id, nome, ciclo, estado, cidade").is("archived_at", null).limit(2000),
       supabase.from("anotacoes").select("autor_id, created_at").is("archived_at", null).gte("created_at", new Date(Date.now() - 7 * 86400000).toISOString()).limit(2000),
       supabase.from("tarefas").select("responsavel_id, status, updated_at").is("archived_at", null).limit(5000),

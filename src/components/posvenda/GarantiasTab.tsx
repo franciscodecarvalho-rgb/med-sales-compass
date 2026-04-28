@@ -178,7 +178,7 @@ export default function GarantiasTab() {
                   <TableCell>{new Date(g.data_fim).toLocaleDateString("pt-BR")}</TableCell>
                   <TableCell><Badge variant="outline" className={GARANTIA_STATUS_BADGE[labelKey as any]}>{GARANTIA_STATUS_LABELS[labelKey as any]}</Badge></TableCell>
                   <TableCell>
-                    {g.computed === "vencida" && canWrite && (
+                    {(g.computed === "vencida" || g.computed === "a_vencer") && canWrite && (
                       <Button size="sm" variant="outline" onClick={() => gerarOportunidade(g)}>
                         <Sparkles className="mr-1 h-3 w-3" />Gerar oportunidade
                       </Button>
@@ -190,6 +190,23 @@ export default function GarantiasTab() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Modal de geração de oportunidade de manutenção */}
+      <Dialog open={!!oportGarantia} onOpenChange={(o) => !o && setOportGarantia(null)}>
+        {oportGarantia && (
+          <NewDealManutDialog
+            linhas={linhas as any[]}
+            vendedores={vendedores as any[]}
+            defaultLinhaId={oportGarantia.linha_id ?? ""}
+            defaultUnidadeId={oportGarantia.unidade_id}
+            garantiaId={oportGarantia.id}
+            onSaved={(id) => {
+              setOportGarantia(null);
+              navigate(`/deals-manutencao/${id}`);
+            }}
+          />
+        )}
+      </Dialog>
     </div>
   );
 }

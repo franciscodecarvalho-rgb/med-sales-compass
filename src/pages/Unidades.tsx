@@ -18,6 +18,7 @@ import { Plus, Search } from "lucide-react";
 import { toast } from "sonner";
 import { UNIDADE_CICLO_LABELS, UNIDADE_CICLO_BADGE, UnidadeCiclo } from "@/lib/crm";
 import { useAuth } from "@/contexts/AuthContext";
+import { ExportButton, exportToExcel } from "@/lib/export";
 
 type Lookup = { id: string; nome: string; sigla?: string };
 
@@ -91,13 +92,19 @@ export default function Unidades() {
           <h1 className="text-3xl font-bold tracking-tight">Unidades de Saúde</h1>
           <p className="text-sm text-muted-foreground">{filtered.length} unidades</p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button><Plus className="mr-2 h-4 w-4" /> Nova unidade</Button>
-          </DialogTrigger>
-          <UnidadeForm tipos={tipos} estados={estados}
-            onSaved={() => { setOpen(false); void load(); }} />
-        </Dialog>
+        <div className="flex gap-2">
+          <ExportButton onExport={() => exportToExcel(filtered.map((u: any) => ({
+            Nome: u.nome, CNPJ: u.cnpj, Tipo: u.tipos_unidade?.nome, Ciclo: UNIDADE_CICLO_LABELS[u.ciclo as UnidadeCiclo],
+            Cidade: u.cidade, Estado: u.estados?.sigla || u.estado, Telefone: u.telefone, Email: u.email,
+          })), "unidades-saude", "Unidades")} />
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button><Plus className="mr-2 h-4 w-4" /> Nova unidade</Button>
+            </DialogTrigger>
+            <UnidadeForm tipos={tipos} estados={estados}
+              onSaved={() => { setOpen(false); void load(); }} />
+          </Dialog>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2 items-center">

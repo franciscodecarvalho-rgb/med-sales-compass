@@ -16,6 +16,7 @@ import {
 import { Plus, Search } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { ExportButton, exportToExcel } from "@/lib/export";
 
 type Lookup = { id: string; nome: string };
 
@@ -74,13 +75,20 @@ export default function Medicos() {
           <h1 className="text-3xl font-bold tracking-tight">Médicos</h1>
           <p className="text-sm text-muted-foreground">{filtered.length} médicos cadastrados</p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button><Plus className="mr-2 h-4 w-4" /> Novo médico</Button>
-          </DialogTrigger>
-          <MedicoForm especialidades={especialidades} userId={user?.id}
-            onSaved={() => { setOpen(false); void load(); }} />
-        </Dialog>
+        <div className="flex gap-2">
+          <ExportButton onExport={() => exportToExcel(filtered.map((m: any) => ({
+            Nome: m.nome, CRM: m.crm, Especialidade: m.especialidades_medicas?.nome || m.especialidade,
+            Telefone: m.telefone, Email: m.email,
+            Unidades: (m.medico_unidades ?? []).map((mu: any) => mu.unidades_saude?.nome).filter(Boolean).join(" | "),
+          })), "medicos", "Médicos")} />
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button><Plus className="mr-2 h-4 w-4" /> Novo médico</Button>
+            </DialogTrigger>
+            <MedicoForm especialidades={especialidades} userId={user?.id}
+              onSaved={() => { setOpen(false); void load(); }} />
+          </Dialog>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2">

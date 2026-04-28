@@ -438,6 +438,69 @@ export type Database = {
           },
         ]
       }
+      deals_manutencao: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          data_entrada_estagio: string
+          data_fechamento: string | null
+          data_previsao_fechamento: string | null
+          estagio: Database["public"]["Enums"]["deal_stage"]
+          garantia_origem_id: string | null
+          id: string
+          linha_id: string
+          motivo_perda: string | null
+          motivo_perda_id: string | null
+          observacoes: string | null
+          resultado: Database["public"]["Enums"]["deal_resultado"]
+          titulo: string
+          unidade_id: string
+          updated_at: string
+          valor_total: number
+          vendedor_id: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          data_entrada_estagio?: string
+          data_fechamento?: string | null
+          data_previsao_fechamento?: string | null
+          estagio?: Database["public"]["Enums"]["deal_stage"]
+          garantia_origem_id?: string | null
+          id?: string
+          linha_id: string
+          motivo_perda?: string | null
+          motivo_perda_id?: string | null
+          observacoes?: string | null
+          resultado?: Database["public"]["Enums"]["deal_resultado"]
+          titulo: string
+          unidade_id: string
+          updated_at?: string
+          valor_total?: number
+          vendedor_id: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          data_entrada_estagio?: string
+          data_fechamento?: string | null
+          data_previsao_fechamento?: string | null
+          estagio?: Database["public"]["Enums"]["deal_stage"]
+          garantia_origem_id?: string | null
+          id?: string
+          linha_id?: string
+          motivo_perda?: string | null
+          motivo_perda_id?: string | null
+          observacoes?: string | null
+          resultado?: Database["public"]["Enums"]["deal_resultado"]
+          titulo?: string
+          unidade_id?: string
+          updated_at?: string
+          valor_total?: number
+          vendedor_id?: string
+        }
+        Relationships: []
+      }
       equipamentos: {
         Row: {
           archived_at: string | null
@@ -530,6 +593,45 @@ export type Database = {
           nome?: string
           sigla?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      faturamento: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          data_faturamento: string
+          deal_id: string
+          id: string
+          numero_nf: string
+          observacoes: string | null
+          registrado_por: string | null
+          updated_at: string
+          valor_faturado: number
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          data_faturamento: string
+          deal_id: string
+          id?: string
+          numero_nf: string
+          observacoes?: string | null
+          registrado_por?: string | null
+          updated_at?: string
+          valor_faturado?: number
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          data_faturamento?: string
+          deal_id?: string
+          id?: string
+          numero_nf?: string
+          observacoes?: string | null
+          registrado_por?: string | null
+          updated_at?: string
+          valor_faturado?: number
         }
         Relationships: []
       }

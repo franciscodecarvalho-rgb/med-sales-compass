@@ -15,6 +15,9 @@ import MedicoDetail from "./pages/MedicoDetail";
 import Equipamentos from "./pages/Equipamentos";
 import FunilVendas from "./pages/FunilVendas";
 import DealDetail from "./pages/DealDetail";
+import FunilManutencao from "./pages/FunilManutencao";
+import DealManutencaoDetail from "./pages/DealManutencaoDetail";
+import Faturamento from "./pages/Faturamento";
 import Tarefas from "./pages/Tarefas";
 import PosVenda from "./pages/PosVenda";
 import Usuarios from "./pages/Usuarios";
@@ -43,6 +46,11 @@ const App = () => (
               } />
               <Route path="/funil-vendas" element={<FunilVendas />} />
               <Route path="/deals/:id" element={<DealDetail />} />
+              <Route path="/funil-manutencao" element={<FunilManutencao />} />
+              <Route path="/deals-manutencao/:id" element={<DealManutencaoDetail />} />
+              <Route path="/faturamento" element={
+                <ProtectedRoute requireRoles={["admin", "gerente", "assistente_vendas"]}><Faturamento /></ProtectedRoute>
+              } />
               <Route path="/tarefas" element={<Tarefas />} />
               <Route path="/pos-venda" element={
                 <ProtectedRoute requireRoles={["admin", "gerente", "pos_venda"]}><PosVenda /></ProtectedRoute>

@@ -16,6 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Clock, Search, XCircle, ArrowUpDown, ArrowDown, ArrowUp, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { STAGE_ORDER, STAGE_LABELS, formatCurrency, DealStage, ESTADOS_BR } from "@/lib/crm";
+import { ExportButton, exportToExcel } from "@/lib/export";
 import {
   DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor,
   useDraggable, useDroppable, useSensor, useSensors,
@@ -168,6 +169,13 @@ export default function FunilManutencao() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <ExportButton onExport={() => exportToExcel(filtered.map((d: any) => ({
+            Titulo: d.titulo, Estagio: STAGE_LABELS[d.estagio as DealStage], Resultado: d.resultado,
+            Valor: Number(d.valor_total), Unidade: d.unidades_saude?.nome,
+            Cidade: d.unidades_saude?.cidade, Estado: d.unidades_saude?.estado,
+            Linha: d.linhas_produto?.nome, Vendedor: d.profiles?.nome,
+            Previsao: d.data_previsao_fechamento,
+          })), "deals-manutencao", "Manutenção")} />
           <Dialog open={openNew} onOpenChange={setOpenNew}>
             <DialogTrigger asChild>
               <Button><Plus className="mr-2 h-4 w-4" /> Novo deal</Button>

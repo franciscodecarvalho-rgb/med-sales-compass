@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { UNIDADE_CICLO_LABELS, UNIDADE_CICLO_BADGE, UnidadeCiclo } from "@/lib/crm";
 import { useAuth } from "@/contexts/AuthContext";
 import { ExportButton, exportToExcel } from "@/lib/export";
+import { maskCnpj, maskTelefone, maskCep, isEmailValido } from "@/lib/masks";
 
 type Lookup = { id: string; nome: string; sigla?: string };
 
@@ -305,11 +306,12 @@ function UnidadeForm({ tipos, estados, onSaved }: { tipos: Lookup[]; estados: Lo
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
             <Label>Telefone</Label>
-            <Input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} />
+            <Input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: maskTelefone(e.target.value) })} placeholder="(11) 99999-9999" />
           </div>
           <div className="space-y-2">
             <Label>Email</Label>
-            <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
+              className={form.email && !isEmailValido(form.email) ? "border-destructive" : ""} />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
@@ -319,7 +321,7 @@ function UnidadeForm({ tipos, estados, onSaved }: { tipos: Lookup[]; estados: Lo
           </div>
           <div className="space-y-2">
             <Label>CNPJ</Label>
-            <Input value={form.cnpj} onChange={(e) => setForm({ ...form, cnpj: e.target.value })} />
+            <Input value={form.cnpj} onChange={(e) => setForm({ ...form, cnpj: maskCnpj(e.target.value) })} placeholder="00.000.000/0000-00" />
           </div>
         </div>
         <div className="space-y-2">

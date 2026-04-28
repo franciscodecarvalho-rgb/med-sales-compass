@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { GlobalSearch } from "@/components/GlobalSearch";
 
 interface NavItem {
   to: string;
@@ -109,14 +110,17 @@ export default function AppLayout() {
 
       {/* Mobile top bar */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="flex h-14 items-center justify-between border-b bg-card px-4 md:hidden">
-          <div className="flex items-center gap-2">
+        <header className="flex h-14 items-center gap-3 border-b bg-card px-4">
+          <div className="flex items-center gap-2 md:hidden">
             <div className="flex h-8 w-8 items-center justify-center rounded-md gradient-primary">
               <Activity className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="font-bold">VitaTech CRM</span>
+            <span className="font-bold">VitaTech</span>
           </div>
-          <Button variant="ghost" size="sm" onClick={handleSignOut}>
+          <div className="flex-1 flex justify-center md:justify-start">
+            <GlobalSearch />
+          </div>
+          <Button variant="ghost" size="sm" onClick={handleSignOut} className="md:hidden">
             <LogOut className="h-4 w-4" />
           </Button>
         </header>

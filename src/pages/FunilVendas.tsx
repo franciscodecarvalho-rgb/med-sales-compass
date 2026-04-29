@@ -523,6 +523,7 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
   const [novoEquip, setNovoEquip] = useState("");
   const [novaQtd, setNovaQtd] = useState("1");
   const [unidadeSearch, setUnidadeSearch] = useState("");
+  const [openNovaUnidade, setOpenNovaUnidade] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {

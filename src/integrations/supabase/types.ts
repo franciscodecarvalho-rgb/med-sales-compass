@@ -20,6 +20,7 @@ export type Database = {
           autor_id: string
           created_at: string
           deal_id: string | null
+          discovery_id: string | null
           id: string
           medico_id: string | null
           proximo_contato: string | null
@@ -32,6 +33,7 @@ export type Database = {
           autor_id: string
           created_at?: string
           deal_id?: string | null
+          discovery_id?: string | null
           id?: string
           medico_id?: string | null
           proximo_contato?: string | null
@@ -44,6 +46,7 @@ export type Database = {
           autor_id?: string
           created_at?: string
           deal_id?: string | null
+          discovery_id?: string | null
           id?: string
           medico_id?: string | null
           proximo_contato?: string | null
@@ -64,6 +67,13 @@ export type Database = {
             columns: ["deal_id"]
             isOneToOne: false
             referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anotacoes_discovery_id_fkey"
+            columns: ["discovery_id"]
+            isOneToOne: false
+            referencedRelation: "discovery"
             referencedColumns: ["id"]
           },
           {
@@ -173,6 +183,7 @@ export type Database = {
           archived_at: string | null
           cargo: string | null
           created_at: string
+          discovery_id: string | null
           email: string | null
           id: string
           nome: string
@@ -180,13 +191,14 @@ export type Database = {
           papel_id: string | null
           setor: string | null
           telefone: string | null
-          unidade_id: string
+          unidade_id: string | null
           updated_at: string
         }
         Insert: {
           archived_at?: string | null
           cargo?: string | null
           created_at?: string
+          discovery_id?: string | null
           email?: string | null
           id?: string
           nome: string
@@ -194,13 +206,14 @@ export type Database = {
           papel_id?: string | null
           setor?: string | null
           telefone?: string | null
-          unidade_id: string
+          unidade_id?: string | null
           updated_at?: string
         }
         Update: {
           archived_at?: string | null
           cargo?: string | null
           created_at?: string
+          discovery_id?: string | null
           email?: string | null
           id?: string
           nome?: string
@@ -208,10 +221,17 @@ export type Database = {
           papel_id?: string | null
           setor?: string | null
           telefone?: string | null
-          unidade_id?: string
+          unidade_id?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "contatos_discovery_id_fkey"
+            columns: ["discovery_id"]
+            isOneToOne: false
+            referencedRelation: "discovery"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "contatos_papel_id_fkey"
             columns: ["papel_id"]
@@ -538,6 +558,94 @@ export type Database = {
           },
         ]
       }
+      discovery: {
+        Row: {
+          archived_at: string | null
+          cidade: string | null
+          cnpj: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          endereco: string | null
+          estado_id: string | null
+          id: string
+          informacoes_adicionais: string | null
+          nome: string
+          porte: string | null
+          site: string | null
+          status: Database["public"]["Enums"]["discovery_status"]
+          telefone: string | null
+          tipo_id: string | null
+          unidade_gerada_id: string | null
+          updated_at: string
+          vendedor_id: string
+        }
+        Insert: {
+          archived_at?: string | null
+          cidade?: string | null
+          cnpj?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          endereco?: string | null
+          estado_id?: string | null
+          id?: string
+          informacoes_adicionais?: string | null
+          nome: string
+          porte?: string | null
+          site?: string | null
+          status?: Database["public"]["Enums"]["discovery_status"]
+          telefone?: string | null
+          tipo_id?: string | null
+          unidade_gerada_id?: string | null
+          updated_at?: string
+          vendedor_id: string
+        }
+        Update: {
+          archived_at?: string | null
+          cidade?: string | null
+          cnpj?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          endereco?: string | null
+          estado_id?: string | null
+          id?: string
+          informacoes_adicionais?: string | null
+          nome?: string
+          porte?: string | null
+          site?: string | null
+          status?: Database["public"]["Enums"]["discovery_status"]
+          telefone?: string | null
+          tipo_id?: string | null
+          unidade_gerada_id?: string | null
+          updated_at?: string
+          vendedor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discovery_estado_id_fkey"
+            columns: ["estado_id"]
+            isOneToOne: false
+            referencedRelation: "estados"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discovery_tipo_id_fkey"
+            columns: ["tipo_id"]
+            isOneToOne: false
+            referencedRelation: "tipos_unidade"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discovery_unidade_gerada_id_fkey"
+            columns: ["unidade_gerada_id"]
+            isOneToOne: false
+            referencedRelation: "unidades_saude"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       equipamentos: {
         Row: {
           archived_at: string | null
@@ -847,6 +955,52 @@ export type Database = {
         }
         Relationships: []
       }
+      medico_discovery: {
+        Row: {
+          created_at: string
+          discovery_id: string
+          id: string
+          medico_id: string
+          papel_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          discovery_id: string
+          id?: string
+          medico_id: string
+          papel_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          discovery_id?: string
+          id?: string
+          medico_id?: string
+          papel_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medico_discovery_discovery_id_fkey"
+            columns: ["discovery_id"]
+            isOneToOne: false
+            referencedRelation: "discovery"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medico_discovery_medico_id_fkey"
+            columns: ["medico_id"]
+            isOneToOne: false
+            referencedRelation: "medicos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medico_discovery_papel_id_fkey"
+            columns: ["papel_id"]
+            isOneToOne: false
+            referencedRelation: "papeis_contato"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       medico_unidades: {
         Row: {
           created_at: string
@@ -1047,6 +1201,7 @@ export type Database = {
           created_by: string | null
           data_instalacao: string | null
           descricao: string | null
+          discovery_id: string | null
           equipamento_id: string | null
           garantia_ate: string | null
           id: string
@@ -1054,7 +1209,7 @@ export type Database = {
           numero_serie: string | null
           observacoes: string | null
           quantidade: number
-          unidade_id: string
+          unidade_id: string | null
           updated_at: string
           valor: number | null
         }
@@ -1064,6 +1219,7 @@ export type Database = {
           created_by?: string | null
           data_instalacao?: string | null
           descricao?: string | null
+          discovery_id?: string | null
           equipamento_id?: string | null
           garantia_ate?: string | null
           id?: string
@@ -1071,7 +1227,7 @@ export type Database = {
           numero_serie?: string | null
           observacoes?: string | null
           quantidade?: number
-          unidade_id: string
+          unidade_id?: string | null
           updated_at?: string
           valor?: number | null
         }
@@ -1081,6 +1237,7 @@ export type Database = {
           created_by?: string | null
           data_instalacao?: string | null
           descricao?: string | null
+          discovery_id?: string | null
           equipamento_id?: string | null
           garantia_ate?: string | null
           id?: string
@@ -1088,7 +1245,7 @@ export type Database = {
           numero_serie?: string | null
           observacoes?: string | null
           quantidade?: number
-          unidade_id?: string
+          unidade_id?: string | null
           updated_at?: string
           valor?: number | null
         }
@@ -1098,6 +1255,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parque_instalado_discovery_id_fkey"
+            columns: ["discovery_id"]
+            isOneToOne: false
+            referencedRelation: "discovery"
             referencedColumns: ["id"]
           },
           {
@@ -1305,11 +1469,11 @@ export type Database = {
         Row: {
           archived_at: string | null
           cep: string | null
-          ciclo: Database["public"]["Enums"]["unidade_ciclo"]
           cidade: string | null
           cnpj: string | null
           created_at: string
           created_by: string | null
+          discovery_origem_id: string | null
           email: string | null
           endereco: string | null
           estado: string | null
@@ -1320,6 +1484,7 @@ export type Database = {
           observacoes: string | null
           porte: string | null
           site: string | null
+          status: Database["public"]["Enums"]["unidade_status"]
           telefone: string | null
           tipo: Database["public"]["Enums"]["unidade_tipo"]
           tipo_id: string | null
@@ -1328,11 +1493,11 @@ export type Database = {
         Insert: {
           archived_at?: string | null
           cep?: string | null
-          ciclo?: Database["public"]["Enums"]["unidade_ciclo"]
           cidade?: string | null
           cnpj?: string | null
           created_at?: string
           created_by?: string | null
+          discovery_origem_id?: string | null
           email?: string | null
           endereco?: string | null
           estado?: string | null
@@ -1343,6 +1508,7 @@ export type Database = {
           observacoes?: string | null
           porte?: string | null
           site?: string | null
+          status?: Database["public"]["Enums"]["unidade_status"]
           telefone?: string | null
           tipo?: Database["public"]["Enums"]["unidade_tipo"]
           tipo_id?: string | null
@@ -1351,11 +1517,11 @@ export type Database = {
         Update: {
           archived_at?: string | null
           cep?: string | null
-          ciclo?: Database["public"]["Enums"]["unidade_ciclo"]
           cidade?: string | null
           cnpj?: string | null
           created_at?: string
           created_by?: string | null
+          discovery_origem_id?: string | null
           email?: string | null
           endereco?: string | null
           estado?: string | null
@@ -1366,6 +1532,7 @@ export type Database = {
           observacoes?: string | null
           porte?: string | null
           site?: string | null
+          status?: Database["public"]["Enums"]["unidade_status"]
           telefone?: string | null
           tipo?: Database["public"]["Enums"]["unidade_tipo"]
           tipo_id?: string | null
@@ -1377,6 +1544,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unidades_saude_discovery_origem_id_fkey"
+            columns: ["discovery_origem_id"]
+            isOneToOne: false
+            referencedRelation: "discovery"
             referencedColumns: ["id"]
           },
           {
@@ -1494,6 +1668,7 @@ export type Database = {
         | "decisao"
         | "fechamento"
         | "finalizado"
+      discovery_status: "em_pesquisa" | "oficializado" | "descartado"
       garantia_status: "ativa" | "vencida" | "a_vencer"
       instalacao_status: "pendente" | "em_andamento" | "concluido"
       instalacao_tipo: "instalacao" | "aplicacao"
@@ -1504,7 +1679,7 @@ export type Database = {
         | "concluida"
         | "cancelada"
         | "atrasada"
-      unidade_ciclo: "discovery" | "lead" | "cliente"
+      unidade_status: "lead" | "cliente" | "inativo"
       unidade_tipo: "hospital" | "clinica" | "ubs" | "laboratorio" | "outro"
     }
     CompositeTypes: {
@@ -1653,6 +1828,7 @@ export const Constants = {
         "fechamento",
         "finalizado",
       ],
+      discovery_status: ["em_pesquisa", "oficializado", "descartado"],
       garantia_status: ["ativa", "vencida", "a_vencer"],
       instalacao_status: ["pendente", "em_andamento", "concluido"],
       instalacao_tipo: ["instalacao", "aplicacao"],
@@ -1664,7 +1840,7 @@ export const Constants = {
         "cancelada",
         "atrasada",
       ],
-      unidade_ciclo: ["discovery", "lead", "cliente"],
+      unidade_status: ["lead", "cliente", "inativo"],
       unidade_tipo: ["hospital", "clinica", "ubs", "laboratorio", "outro"],
     },
   },

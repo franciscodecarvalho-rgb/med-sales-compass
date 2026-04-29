@@ -9,11 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Building2, MapPin, Phone, Mail, Globe, Plus, ArrowLeft, Trash2, Save, Send, Star } from "lucide-react";
 import { TarefasList } from "@/components/TarefasList";
 import PosVendaUnidadeTab from "@/components/posvenda/PosVendaUnidadeTab";
 import { toast } from "sonner";
-import { UNIDADE_CICLO_LABELS, UNIDADE_CICLO_BADGE, UnidadeCiclo } from "@/lib/crm";
+import { UNIDADE_CICLO_LABELS, UNIDADE_CICLO_BADGE, UnidadeCiclo, TarefaPrioridade } from "@/lib/crm";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
@@ -435,7 +436,10 @@ export default function UnidadeDetail() {
           </div>
         </TabsContent>
 
-        <TabsContent value="tarefas">
+        <TabsContent value="tarefas" className="space-y-3">
+          <div className="flex justify-end">
+            <NovaTarefaUnidadeDialog unidadeId={id!} userId={user?.id} onCreated={load} />
+          </div>
           <TarefasList tarefas={tarefas} onChange={load} />
         </TabsContent>
 
@@ -660,5 +664,77 @@ function ContatoAdd({ unidadeId, papeis, onAdded }: { unidadeId: string; papeis:
         </form>
       </CardContent>
     </Card>
+  );
+}
+
+function NovaTarefaUnidadeDialog({ unidadeId, userId, onCreated }: { unidadeId: string; userId?: string; onCreated: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [titulo, setTitulo] = useState("");
+  const [descricao, setDescricao] = useState("");
+  const [data, setData] = useState("");
+  const [prioridade, setPrioridade] = useState<TarefaPrioridade>("media");
+  const [saving, setSaving] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userId) { toast.error("Usuário não autenticado"); return; }
+    setSaving(true);
+    const { error } = await supabase.from("tarefas").insert({
+      titulo,
+      descricao: descricao || null,
+      data_vencimento: data || null,
+      prioridade,
+      unidade_id: unidadeId,
+      criador_id: userId,
+      responsavel_id: userId,
+      status: "pendente",
+    });
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Tarefa criada");
+    setTitulo(""); setDescricao(""); setData(""); setPrioridade("media");
+    setOpen(false);
+    onCreated();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm"><Plus className="h-4 w-4 mr-1" />Nova tarefa</Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-md">
+        <DialogHeader><DialogTitle>Nova tarefa</DialogTitle></DialogHeader>
+        <form onSubmit={submit} className="space-y-3">
+          <div className="space-y-2">
+            <Label>Descrição *</Label>
+            <Input required value={titulo} onChange={(e) => setTitulo(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label>Notas (opcional)</Label>
+            <Textarea rows={2} value={descricao} onChange={(e) => setDescricao(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Data e hora</Label>
+              <Input type="datetime-local" value={data} onChange={(e) => setData(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>Prioridade</Label>
+              <Select value={prioridade} onValueChange={(v) => setPrioridade(v as TarefaPrioridade)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="alta">Alta</SelectItem>
+                  <SelectItem value="media">Média</SelectItem>
+                  <SelectItem value="baixa">Baixa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="submit" disabled={saving}>{saving ? "Salvando..." : "Criar tarefa"}</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

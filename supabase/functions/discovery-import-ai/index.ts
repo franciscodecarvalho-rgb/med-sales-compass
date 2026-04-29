@@ -152,7 +152,7 @@ REGRAS:
       cidade: u.cidade?.trim() || null,
       estado_id: u.estado_sigla ? estadoMap.get(u.estado_sigla.toUpperCase()) ?? null : null,
       estado_sigla: u.estado_sigla ?? null,
-      tipo_unidade_id: u.tipo_nome ? tipoMap.get(u.tipo_nome.toLowerCase()) ?? null : null,
+      tipo_id: u.tipo_nome ? tipoMap.get(u.tipo_nome.toLowerCase()) ?? null : null,
       tipo_nome: u.tipo_nome ?? null,
       telefone: u.telefone ?? null,
       site: u.site ?? null,

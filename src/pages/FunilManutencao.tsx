@@ -17,6 +17,7 @@ import { Plus, Clock, Search, XCircle, ArrowUpDown, ArrowDown, ArrowUp, Wrench }
 import { toast } from "sonner";
 import { STAGE_ORDER, STAGE_LABELS, formatCurrency, DealStage, ESTADOS_BR } from "@/lib/crm";
 import { ExportButton, exportToExcel } from "@/lib/export";
+import QuickUnidadeDialog from "@/components/QuickUnidadeDialog";
 import {
   DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor,
   useDraggable, useDroppable, useSensor, useSensors,
@@ -484,6 +485,7 @@ export function NewDealManutDialog({ linhas, vendedores, defaultLinhaId, default
     vendedor_id: user?.id ?? "",
   });
   const [saving, setSaving] = useState(false);
+  const [openNovaUnidade, setOpenNovaUnidade] = useState(false);
 
   useEffect(() => {
     supabase.from("unidades_saude").select("id, nome").is("archived_at", null).order("nome")
@@ -555,7 +557,13 @@ export function NewDealManutDialog({ linhas, vendedores, defaultLinhaId, default
             placeholder="Ex: Contrato manutenção Hospital ABC" />
         </div>
         <div className="space-y-2">
-          <Label>Unidade de saúde *</Label>
+          <div className="flex items-center justify-between">
+            <Label>Unidade de saúde *</Label>
+            <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-xs"
+              onClick={() => setOpenNovaUnidade(true)}>
+              <Plus className="h-3 w-3 mr-1" /> Nova unidade
+            </Button>
+          </div>
           <Input placeholder="Buscar unidade..." value={unidadeSearch} onChange={(e) => setUnidadeSearch(e.target.value)} />
           <Select value={form.unidade_id} onValueChange={(v) => setForm({ ...form, unidade_id: v })}>
             <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
@@ -606,6 +614,14 @@ export function NewDealManutDialog({ linhas, vendedores, defaultLinhaId, default
           </Button>
         </DialogFooter>
       </form>
+      <QuickUnidadeDialog
+        open={openNovaUnidade}
+        onOpenChange={setOpenNovaUnidade}
+        onCreated={(u) => {
+          setUnidades((prev) => [...prev, u].sort((a, b) => a.nome.localeCompare(b.nome)));
+          setForm((f) => ({ ...f, unidade_id: u.id }));
+        }}
+      />
     </DialogContent>
   );
 }

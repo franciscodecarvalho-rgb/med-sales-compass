@@ -25,6 +25,7 @@ import {
 } from "@dnd-kit/core";
 import { format } from "date-fns";
 import * as XLSX from "xlsx";
+import QuickUnidadeDialog from "@/components/QuickUnidadeDialog";
 
 // ---------- Live counter helpers ----------
 function useNow(intervalMs = 1000) {
@@ -523,6 +524,7 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
   const [novoEquip, setNovoEquip] = useState("");
   const [novaQtd, setNovaQtd] = useState("1");
   const [unidadeSearch, setUnidadeSearch] = useState("");
+  const [openNovaUnidade, setOpenNovaUnidade] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -582,7 +584,13 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
             placeholder="Ex: Hospital ABC - 2 ultrassons" />
         </div>
         <div className="space-y-2">
-          <Label>Unidade de saúde *</Label>
+          <div className="flex items-center justify-between">
+            <Label>Unidade de saúde *</Label>
+            <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-xs"
+              onClick={() => setOpenNovaUnidade(true)}>
+              <Plus className="h-3 w-3 mr-1" /> Nova unidade
+            </Button>
+          </div>
           <Input placeholder="Buscar unidade..." value={unidadeSearch} onChange={(e) => setUnidadeSearch(e.target.value)} />
           <Select value={form.unidade_id} onValueChange={(v) => setForm({ ...form, unidade_id: v })}>
             <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
@@ -658,6 +666,14 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
           </Button>
         </DialogFooter>
       </form>
+      <QuickUnidadeDialog
+        open={openNovaUnidade}
+        onOpenChange={setOpenNovaUnidade}
+        onCreated={(u) => {
+          setUnidades((prev) => [...prev, u].sort((a, b) => a.nome.localeCompare(b.nome)));
+          setForm((f) => ({ ...f, unidade_id: u.id }));
+        }}
+      />
     </DialogContent>
   );
 }

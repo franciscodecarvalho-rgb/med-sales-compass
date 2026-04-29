@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { ESTADOS_BR, UNIDADE_TIPO_LABELS, UnidadeTipo } from "@/lib/crm";
-import { maskCNPJ, maskPhone } from "@/lib/masks";
+import { maskCnpj, maskTelefone } from "@/lib/masks";
 
 interface Props {
   open: boolean;

@@ -547,31 +547,52 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
-    setSaving(true);
-    const { data, error } = await supabase.from("deals").insert({
-      titulo: form.titulo,
-      unidade_id: form.unidade_id,
-      linha_id: form.linha_id,
-      vendedor_id: form.vendedor_id || user.id,
-      valor_total: form.valor_total ? Number(form.valor_total) : 0,
-      data_previsao_fechamento: form.data_previsao_fechamento || null,
-    }).select().single();
-    if (error) { setSaving(false); toast.error(error.message); return; }
-
-    if (equips.length > 0) {
-      const valorPorEquip = form.valor_total ? Number(form.valor_total) / equips.length : 0;
-      const itens = equips.map((eq) => ({
-        deal_id: data.id,
-        descricao: eq.descricao,
-        quantidade: eq.quantidade,
-        valor_unitario: valorPorEquip / Math.max(1, eq.quantidade),
-      }));
-      await supabase.from("deal_equipamentos").insert(itens);
+    e.stopPropagation();
+    if (!user) { toast.error("Sessão expirada. Faça login novamente."); return; }
+    if (!form.titulo.trim() || !form.unidade_id || !form.linha_id) {
+      toast.error("Preencha título, unidade e linha.");
+      return;
     }
-    setSaving(false);
-    toast.success("Deal criado");
-    onSaved(data.id);
+    setSaving(true);
+    try {
+      const payload = {
+        titulo: form.titulo.trim(),
+        unidade_id: form.unidade_id,
+        linha_id: form.linha_id,
+        vendedor_id: form.vendedor_id || user.id,
+        valor_total: form.valor_total ? Number(form.valor_total) : 0,
+        data_previsao_fechamento: form.data_previsao_fechamento || null,
+      };
+      console.log("[NewDeal] inserting", payload);
+      const { data, error } = await supabase.from("deals").insert(payload).select().single();
+      if (error) {
+        console.error("[NewDeal] insert error", error);
+        toast.error(error.message || "Erro ao criar deal");
+        return;
+      }
+      if (!data?.id) {
+        toast.error("Deal criado, mas sem retorno. Verifique permissões.");
+        return;
+      }
+      if (equips.length > 0) {
+        const valorPorEquip = form.valor_total ? Number(form.valor_total) / equips.length : 0;
+        const itens = equips.map((eq) => ({
+          deal_id: data.id,
+          descricao: eq.descricao,
+          quantidade: eq.quantidade,
+          valor_unitario: valorPorEquip / Math.max(1, eq.quantidade),
+        }));
+        const { error: eqErr } = await supabase.from("deal_equipamentos").insert(itens);
+        if (eqErr) console.warn("[NewDeal] equip insert error", eqErr);
+      }
+      toast.success("Deal criado");
+      onSaved(data.id);
+    } catch (err: any) {
+      console.error("[NewDeal] unexpected", err);
+      toast.error(err?.message || "Erro inesperado ao criar deal");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

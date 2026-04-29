@@ -180,7 +180,10 @@ export default function MedicoDetail() {
           </div>
         </TabsContent>
 
-        <TabsContent value="tarefas">
+        <TabsContent value="tarefas" className="space-y-3">
+          <div className="flex justify-end">
+            <NovaTarefaMedicoDialog medicoId={id!} userId={user?.id} onCreated={load} />
+          </div>
           <TarefasList tarefas={tarefas} onChange={load} />
         </TabsContent>
       </Tabs>

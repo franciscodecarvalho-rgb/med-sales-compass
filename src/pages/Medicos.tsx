@@ -17,8 +17,10 @@ import { Plus, Search } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { ExportButton, exportToExcel } from "@/lib/export";
+import { MultiSelectPopover } from "@/components/MultiSelectPopover";
 
 type Lookup = { id: string; nome: string };
+type UnidadeLk = { id: string; nome: string; cidade?: string | null };
 
 export default function Medicos() {
   const { user } = useAuth();

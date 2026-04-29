@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { STAGE_ORDER, STAGE_LABELS, formatCurrency, DealStage, ESTADOS_BR } from "@/lib/crm";
 import { ExportButton, exportToExcel } from "@/lib/export";
 import QuickUnidadeDialog from "@/components/QuickUnidadeDialog";
+import UnidadeCombobox from "@/components/UnidadeCombobox";
 import {
   DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor,
   useDraggable, useDroppable, useSensor, useSensors,
@@ -564,13 +565,7 @@ export function NewDealManutDialog({ linhas, vendedores, defaultLinhaId, default
               <Plus className="h-3 w-3 mr-1" /> Nova unidade
             </Button>
           </div>
-          <Input placeholder="Buscar unidade..." value={unidadeSearch} onChange={(e) => setUnidadeSearch(e.target.value)} />
-          <Select value={form.unidade_id} onValueChange={(v) => setForm({ ...form, unidade_id: v })}>
-            <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-            <SelectContent className="max-h-64">
-              {unidadesFiltradas.map((u) => <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <UnidadeCombobox unidades={unidades} value={form.unidade_id} onChange={(v) => setForm({ ...form, unidade_id: v })} />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">

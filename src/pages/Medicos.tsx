@@ -17,13 +17,16 @@ import { Plus, Search } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { ExportButton, exportToExcel } from "@/lib/export";
+import { MultiSelectPopover } from "@/components/MultiSelectPopover";
 
 type Lookup = { id: string; nome: string };
+type UnidadeLk = { id: string; nome: string; cidade?: string | null };
 
 export default function Medicos() {
   const { user } = useAuth();
   const [items, setItems] = useState<any[]>([]);
   const [especialidades, setEspecialidades] = useState<Lookup[]>([]);
+  const [unidadesLk, setUnidadesLk] = useState<UnidadeLk[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterEsp, setFilterEsp] = useState<string>("all");
@@ -33,17 +36,19 @@ export default function Medicos() {
   useEffect(() => { void load(); }, []);
   async function load() {
     setLoading(true);
-    const [m, esp] = await Promise.all([
+    const [m, esp, un] = await Promise.all([
       supabase.from("medicos").select(`
         *,
         especialidades_medicas(id, nome),
         medico_unidades(unidade_id, unidades_saude(id, nome, cidade))
       `).is("archived_at", null).order("nome"),
       supabase.from("especialidades_medicas").select("id, nome").is("archived_at", null).order("nome"),
+      supabase.from("unidades_saude").select("id, nome, cidade").is("archived_at", null).order("nome"),
     ]);
     if (m.error) toast.error(m.error.message);
     setItems(m.data ?? []);
     setEspecialidades((esp.data ?? []) as Lookup[]);
+    setUnidadesLk((un.data ?? []) as UnidadeLk[]);
     setLoading(false);
   }
 
@@ -85,7 +90,7 @@ export default function Medicos() {
             <DialogTrigger asChild>
               <Button><Plus className="mr-2 h-4 w-4" /> Novo médico</Button>
             </DialogTrigger>
-            <MedicoForm especialidades={especialidades} userId={user?.id}
+            <MedicoForm especialidades={especialidades} unidades={unidadesLk} userId={user?.id}
               onSaved={() => { setOpen(false); void load(); }} />
           </Dialog>
         </div>
@@ -168,17 +173,18 @@ export default function Medicos() {
   );
 }
 
-function MedicoForm({ especialidades, userId, onSaved }: { especialidades: Lookup[]; userId?: string; onSaved: () => void }) {
+function MedicoForm({ especialidades, unidades, userId, onSaved }: { especialidades: Lookup[]; unidades: UnidadeLk[]; userId?: string; onSaved: () => void }) {
   const [form, setForm] = useState({
     nome: "", crm: "", especialidade_id: "", email: "", telefone: "", observacoes: "",
   });
+  const [unidadesSel, setUnidadesSel] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     const espNome = especialidades.find((e) => e.id === form.especialidade_id)?.nome ?? null;
-    const { error } = await supabase.from("medicos").insert({
+    const { data: novo, error } = await supabase.from("medicos").insert({
       nome: form.nome,
       crm: form.crm || null,
       especialidade_id: form.especialidade_id || null,
@@ -187,9 +193,14 @@ function MedicoForm({ especialidades, userId, onSaved }: { especialidades: Looku
       telefone: form.telefone || null,
       observacoes: form.observacoes || null,
       created_by: userId ?? null,
-    });
+    }).select("id").maybeSingle();
+    if (error) { setSaving(false); toast.error(error.message); return; }
+    if (novo && unidadesSel.length > 0) {
+      const rows = unidadesSel.map((uid) => ({ medico_id: novo.id, unidade_id: uid }));
+      const { error: e2 } = await supabase.from("medico_unidades").insert(rows);
+      if (e2) toast.error("Médico criado, mas falha ao vincular unidades: " + e2.message);
+    }
     setSaving(false);
-    if (error) { toast.error(error.message); return; }
     toast.success("Médico cadastrado");
     onSaved();
   };
@@ -228,6 +239,15 @@ function MedicoForm({ especialidades, userId, onSaved }: { especialidades: Looku
             <Input value={form.telefone}
               onChange={(e) => setForm({ ...form, telefone: e.target.value })} />
           </div>
+        </div>
+        <div className="space-y-2">
+          <Label>Unidades de saúde <span className="text-xs text-muted-foreground font-normal">(opcional, recomendado)</span></Label>
+          <MultiSelectPopover
+            items={unidades.map((u) => ({ id: u.id, label: u.nome, sub: u.cidade ?? undefined }))}
+            selected={unidadesSel}
+            onChange={setUnidadesSel}
+            placeholder="Vincular a unidades..."
+          />
         </div>
         <div className="space-y-2">
           <Label>Observações</Label>

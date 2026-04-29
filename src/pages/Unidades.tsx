@@ -20,13 +20,16 @@ import { UNIDADE_CICLO_LABELS, UNIDADE_CICLO_BADGE, UnidadeCiclo } from "@/lib/c
 import { useAuth } from "@/contexts/AuthContext";
 import { ExportButton, exportToExcel } from "@/lib/export";
 import { maskCnpj, maskTelefone, maskCep, isEmailValido } from "@/lib/masks";
+import { MultiSelectPopover } from "@/components/MultiSelectPopover";
 
 type Lookup = { id: string; nome: string; sigla?: string };
+type MedicoLk = { id: string; nome: string; especialidade?: string | null };
 
 export default function Unidades() {
   const [items, setItems] = useState<any[]>([]);
   const [tipos, setTipos] = useState<Lookup[]>([]);
   const [estados, setEstados] = useState<Lookup[]>([]);
+  const [medicosLk, setMedicosLk] = useState<MedicoLk[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterCiclo, setFilterCiclo] = useState<string>("all");
@@ -55,12 +58,14 @@ export default function Unidades() {
       : await query.is("archived_at", null);
     if (error) toast.error(error.message);
     setItems(data ?? []);
-    const [t, e] = await Promise.all([
+    const [t, e, md] = await Promise.all([
       supabase.from("tipos_unidade").select("id, nome").is("archived_at", null).order("nome"),
       supabase.from("estados").select("id, sigla, nome").is("archived_at", null).order("sigla"),
+      supabase.from("medicos").select("id, nome, especialidade").is("archived_at", null).order("nome"),
     ]);
     setTipos((t.data ?? []) as Lookup[]);
     setEstados((e.data ?? []) as Lookup[]);
+    setMedicosLk((md.data ?? []) as MedicoLk[]);
     setLoading(false);
   }
 
@@ -102,7 +107,7 @@ export default function Unidades() {
             <DialogTrigger asChild>
               <Button><Plus className="mr-2 h-4 w-4" /> Nova unidade</Button>
             </DialogTrigger>
-            <UnidadeForm tipos={tipos} estados={estados}
+            <UnidadeForm tipos={tipos} estados={estados} medicos={medicosLk}
               onSaved={() => { setOpen(false); void load(); }} />
           </Dialog>
         </div>
@@ -205,13 +210,14 @@ export default function Unidades() {
   );
 }
 
-function UnidadeForm({ tipos, estados, onSaved }: { tipos: Lookup[]; estados: Lookup[]; onSaved: () => void }) {
+function UnidadeForm({ tipos, estados, medicos, onSaved }: { tipos: Lookup[]; estados: Lookup[]; medicos: MedicoLk[]; onSaved: () => void }) {
   const { user } = useAuth();
   const [form, setForm] = useState({
     nome: "", tipo_id: "", estado_id: "", porte: "",
     cnpj: "", endereco: "", cidade: "", cep: "", telefone: "", email: "", site: "", observacoes: "",
     ciclo: "discovery" as UnidadeCiclo,
   });
+  const [medicosSel, setMedicosSel] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
@@ -223,7 +229,7 @@ function UnidadeForm({ tipos, estados, onSaved }: { tipos: Lookup[]; estados: Lo
       : (tipoSel?.nome ?? "").toLowerCase().includes("clínica") ? "clinica"
       : (tipoSel?.nome ?? "").toLowerCase().includes("ubs") ? "ubs"
       : (tipoSel?.nome ?? "").toLowerCase().includes("labora") ? "laboratorio" : "outro";
-    const { error } = await supabase.from("unidades_saude").insert({
+    const { data: nova, error } = await supabase.from("unidades_saude").insert({
       nome: form.nome,
       tipo: tipoEnum as any,
       tipo_id: form.tipo_id || null,
@@ -240,9 +246,14 @@ function UnidadeForm({ tipos, estados, onSaved }: { tipos: Lookup[]; estados: Lo
       porte: form.porte || null,
       observacoes: form.observacoes || null,
       created_by: user?.id ?? null,
-    });
+    }).select("id").maybeSingle();
+    if (error) { setSaving(false); toast.error(error.message); return; }
+    if (nova && medicosSel.length > 0) {
+      const rows = medicosSel.map((mid) => ({ medico_id: mid, unidade_id: nova.id }));
+      const { error: e2 } = await supabase.from("medico_unidades").insert(rows);
+      if (e2) toast.error("Unidade criada, mas falha ao vincular médicos: " + e2.message);
+    }
     setSaving(false);
-    if (error) { toast.error(error.message); return; }
     toast.success("Unidade criada");
     onSaved();
   };
@@ -327,6 +338,15 @@ function UnidadeForm({ tipos, estados, onSaved }: { tipos: Lookup[]; estados: Lo
         <div className="space-y-2">
           <Label>Endereço</Label>
           <Input value={form.endereco} onChange={(e) => setForm({ ...form, endereco: e.target.value })} />
+        </div>
+        <div className="space-y-2">
+          <Label>Médicos vinculados <span className="text-xs text-muted-foreground font-normal">(opcional, recomendado)</span></Label>
+          <MultiSelectPopover
+            items={medicos.map((m) => ({ id: m.id, label: `Dr. ${m.nome}`, sub: m.especialidade ?? undefined }))}
+            selected={medicosSel}
+            onChange={setMedicosSel}
+            placeholder="Vincular médicos..."
+          />
         </div>
         <div className="space-y-2">
           <Label>Observações</Label>

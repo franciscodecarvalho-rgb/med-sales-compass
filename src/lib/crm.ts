@@ -3,7 +3,8 @@ import { Database } from "@/integrations/supabase/types";
 export type DealStage = Database["public"]["Enums"]["deal_stage"];
 export type DealResultado = Database["public"]["Enums"]["deal_resultado"];
 export type UnidadeTipo = Database["public"]["Enums"]["unidade_tipo"];
-export type UnidadeCiclo = Database["public"]["Enums"]["unidade_ciclo"];
+export type UnidadeStatus = Database["public"]["Enums"]["unidade_status"];
+export type DiscoveryStatus = Database["public"]["Enums"]["discovery_status"];
 export type TarefaStatus = Database["public"]["Enums"]["tarefa_status"];
 export type TarefaPrioridade = Database["public"]["Enums"]["tarefa_prioridade"];
 export type ChamadoPrioridade = Database["public"]["Enums"]["chamado_prioridade"];
@@ -126,17 +127,34 @@ export const UNIDADE_TIPO_LABELS: Record<UnidadeTipo, string> = {
   outro: "Outro",
 };
 
-export const UNIDADE_CICLO_LABELS: Record<UnidadeCiclo, string> = {
-  discovery: "Discovery",
-  lead: "Ativo",
+export const UNIDADE_STATUS_LABELS: Record<UnidadeStatus, string> = {
+  lead: "Lead",
   cliente: "Cliente",
+  inativo: "Inativo",
 };
 
-export const UNIDADE_CICLO_BADGE: Record<UnidadeCiclo, string> = {
-  discovery: "bg-info/15 text-info border-info/30",
-  lead: "bg-success/15 text-success border-success/30",
-  cliente: "bg-primary/15 text-primary border-primary/30",
+export const UNIDADE_STATUS_BADGE: Record<UnidadeStatus, string> = {
+  lead: "bg-info/15 text-info border-info/30",
+  cliente: "bg-warning/15 text-warning border-warning/30",
+  inativo: "bg-muted text-muted-foreground border-border",
 };
+
+export const DISCOVERY_STATUS_LABELS: Record<DiscoveryStatus, string> = {
+  em_pesquisa: "Em Pesquisa",
+  oficializado: "Oficializado",
+  descartado: "Descartado",
+};
+
+export const DISCOVERY_STATUS_BADGE: Record<DiscoveryStatus, string> = {
+  em_pesquisa: "bg-info/15 text-info border-info/30",
+  oficializado: "bg-success/15 text-success border-success/30",
+  descartado: "bg-muted text-muted-foreground border-border",
+};
+
+// Backward-compat aliases (deprecated, prefer *_STATUS_*)
+export type UnidadeCiclo = UnidadeStatus;
+export const UNIDADE_CICLO_LABELS = UNIDADE_STATUS_LABELS;
+export const UNIDADE_CICLO_BADGE = UNIDADE_STATUS_BADGE;
 
 export const TAREFA_STATUS_LABELS: Record<TarefaStatus, string> = {
   pendente: "Aberta",

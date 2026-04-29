@@ -5,7 +5,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-interface Unidade { id: string; nome: string }
+interface Unidade { id: string; nome: string; cidade?: string | null; estado?: string | null; cnpj?: string | null }
+
+const normalizeSearch = (value?: string | null) =>
+  (value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
 
 interface Props {
   unidades: Unidade[];
@@ -21,9 +27,11 @@ export default function UnidadeCombobox({ unidades, value, onChange, placeholder
 
   const selected = useMemo(() => unidades.find((u) => u.id === value), [unidades, value]);
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = normalizeSearch(query.trim());
     if (!q) return unidades;
-    return unidades.filter((u) => u.nome.toLowerCase().includes(q));
+    return unidades.filter((u) =>
+      [u.nome, u.cidade, u.estado, u.cnpj].some((field) => normalizeSearch(field).includes(q))
+    );
   }, [unidades, query]);
 
   return (
@@ -56,7 +64,7 @@ export default function UnidadeCombobox({ unidades, value, onChange, placeholder
         <div className="max-h-64 overflow-y-auto py-1">
           {filtered.length === 0 ? (
             <div className="px-3 py-6 text-center text-sm text-muted-foreground">
-              Nenhuma unidade encontrada
+              {unidades.length === 0 ? "Nenhuma unidade cadastrada" : "Nenhuma unidade encontrada"}
             </div>
           ) : filtered.map((u) => (
             <button
@@ -69,7 +77,14 @@ export default function UnidadeCombobox({ unidades, value, onChange, placeholder
               )}
             >
               <Check className={cn("h-4 w-4", u.id === value ? "opacity-100" : "opacity-0")} />
-              <span className="truncate">{u.nome}</span>
+              <span className="min-w-0">
+                <span className="block truncate">{u.nome}</span>
+                {[u.cidade, u.estado].filter(Boolean).length > 0 && (
+                  <span className="block truncate text-xs text-muted-foreground">
+                    {[u.cidade, u.estado].filter(Boolean).join(" - ")}
+                  </span>
+                )}
+              </span>
             </button>
           ))}
         </div>

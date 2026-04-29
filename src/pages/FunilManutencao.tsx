@@ -489,7 +489,7 @@ export function NewDealManutDialog({ linhas, vendedores, defaultLinhaId, default
   const [openNovaUnidade, setOpenNovaUnidade] = useState(false);
 
   useEffect(() => {
-    supabase.from("unidades_saude").select("id, nome").is("archived_at", null).order("nome")
+    supabase.from("unidades_saude").select("id, nome, cidade, estado, cnpj").is("archived_at", null).order("nome")
       .then(({ data }) => setUnidades(data ?? []));
   }, []);
   useEffect(() => { setForm((f) => ({ ...f, linha_id: defaultLinhaId })); }, [defaultLinhaId]);

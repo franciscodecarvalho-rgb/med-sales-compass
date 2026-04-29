@@ -109,10 +109,15 @@ export default function Discovery() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" disabled title="Em breve">
+          <Button variant="outline" onClick={() => setImportOpen(true)}>
             <Sparkles className="mr-2 h-4 w-4" />
             Importar planilha com IA
           </Button>
+          <ImportarPlanilhaDialog
+            open={importOpen}
+            onOpenChange={setImportOpen}
+            onImported={() => void load()}
+          />
           <Dialog open={novoOpen} onOpenChange={setNovoOpen}>
             <DialogTrigger asChild>
               <Button><Plus className="mr-2 h-4 w-4" /> Novo Discovery</Button>

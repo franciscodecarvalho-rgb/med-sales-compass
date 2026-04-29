@@ -29,6 +29,7 @@ export default function Unidades() {
   const [items, setItems] = useState<any[]>([]);
   const [tipos, setTipos] = useState<Lookup[]>([]);
   const [estados, setEstados] = useState<Lookup[]>([]);
+  const [medicosLk, setMedicosLk] = useState<MedicoLk[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterCiclo, setFilterCiclo] = useState<string>("all");

@@ -103,14 +103,24 @@ export default function FunilVendas() {
         *,
         unidades_saude(id, nome, cidade, estado),
         linhas_produto(nome, cor, limite_verde_dias, limite_amarelo_dias),
-        profiles!deals_vendedor_profile_fkey(nome),
         motivos_perda(nome)
       `)
       .eq("linha_id", linhaId)
       .is("archived_at", null)
       .order("data_entrada_estagio", { ascending: false });
     if (error) { toast.error(error.message); return; }
-    setDeals(data ?? []);
+
+    const rows = data ?? [];
+    const vendedorIds = [...new Set(rows.map((d) => d.vendedor_id).filter(Boolean))];
+    const { data: perfis } = vendedorIds.length
+      ? await supabase.from("profiles").select("id, nome").in("id", vendedorIds)
+      : { data: [] as any[] };
+    const perfisPorId = new Map((perfis ?? []).map((p) => [p.id, p]));
+
+    setDeals(rows.map((d) => ({
+      ...d,
+      profiles: perfisPorId.get(d.vendedor_id) ? { nome: perfisPorId.get(d.vendedor_id)?.nome } : null,
+    })));
   }
 
   const linhaAtual = linhas.find((l) => l.id === linhaId);

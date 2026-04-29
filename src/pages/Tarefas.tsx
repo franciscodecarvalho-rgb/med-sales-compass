@@ -633,10 +633,12 @@ function EditarTarefaDialog({ tarefa, onSaved }: { tarefa: any; onSaved: () => v
           <Label>Descrição *</Label>
           <Input required value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />
         </div>
-        <div className="space-y-2">
-          <Label>Notas</Label>
-          <Textarea rows={2} value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} />
-        </div>
+        {form.descricao && (
+          <div className="space-y-2">
+            <Label>Notas</Label>
+            <Textarea rows={2} value={form.descricao} readOnly disabled className="resize-none bg-muted/50 cursor-not-allowed" />
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
             <Label>Data e hora</Label>

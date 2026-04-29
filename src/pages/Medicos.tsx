@@ -90,7 +90,7 @@ export default function Medicos() {
             <DialogTrigger asChild>
               <Button><Plus className="mr-2 h-4 w-4" /> Novo médico</Button>
             </DialogTrigger>
-            <MedicoForm especialidades={especialidades} userId={user?.id}
+            <MedicoForm especialidades={especialidades} unidades={unidadesLk} userId={user?.id}
               onSaved={() => { setOpen(false); void load(); }} />
           </Dialog>
         </div>

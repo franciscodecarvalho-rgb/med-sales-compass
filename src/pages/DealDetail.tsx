@@ -43,13 +43,13 @@ export default function DealDetail() {
         *,
         unidades_saude(id, nome, cidade, estado),
         linhas_produto(id, nome, cor, limite_verde_dias, limite_amarelo_dias),
-        profiles!deals_vendedor_id_fkey(nome),
+        profiles!deals_vendedor_profile_fkey(nome),
         motivos_perda(nome)
       `).eq("id", id).maybeSingle(),
       supabase.from("equipamentos").select("id, nome, valor_referencia, linha_id").is("archived_at", null),
       supabase.from("deal_equipamentos").select("*, equipamentos(nome)").eq("deal_id", id),
-      supabase.from("deal_stage_history").select("*, profiles!deal_stage_history_changed_by_fkey(nome)").eq("deal_id", id).order("changed_at", { ascending: false }),
-      supabase.from("anotacoes").select("*, profiles!anotacoes_autor_id_fkey(nome)").eq("deal_id", id).is("archived_at", null).order("created_at", { ascending: false }),
+      supabase.from("deal_stage_history").select("*, profiles!deal_stage_history_changed_by_profile_fkey(nome)").eq("deal_id", id).order("changed_at", { ascending: false }),
+      supabase.from("anotacoes").select("*, profiles!anotacoes_autor_profile_fkey(nome)").eq("deal_id", id).is("archived_at", null).order("created_at", { ascending: false }),
       supabase.from("tarefas").select("*").eq("deal_id", id).order("data_vencimento", { ascending: true, nullsFirst: false }),
     ]);
     setDeal(d.data);

@@ -53,6 +53,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "anotacoes_autor_profile_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "anotacoes_deal_id_fkey"
             columns: ["deal_id"]
             isOneToOne: false
@@ -124,7 +131,15 @@ export type Database = {
           unidade_id?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "chamados_tecnico_profile_fkey"
+            columns: ["tecnico_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       config_contador: {
         Row: {
@@ -348,6 +363,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "deal_stage_history_changed_by_profile_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "deal_stage_history_deal_id_fkey"
             columns: ["deal_id"]
             isOneToOne: false
@@ -436,6 +458,13 @@ export type Database = {
             referencedRelation: "unidades_saude"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "deals_vendedor_profile_fkey"
+            columns: ["vendedor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       deals_manutencao: {
@@ -499,7 +528,15 @@ export type Database = {
           valor_total?: number
           vendedor_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "deals_manutencao_vendedor_profile_fkey"
+            columns: ["vendedor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       equipamentos: {
         Row: {
@@ -633,7 +670,15 @@ export type Database = {
           updated_at?: string
           valor_faturado?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "faturamento_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       garantias: {
         Row: {
@@ -732,7 +777,15 @@ export type Database = {
           unidade_id?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "instalacoes_tecnico_profile_fkey"
+            columns: ["tecnico_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       linhas_produto: {
         Row: {
@@ -1164,6 +1217,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "tarefas_criador_profile_fkey"
+            columns: ["criador_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tarefas_deal_id_fkey"
             columns: ["deal_id"]
             isOneToOne: false
@@ -1175,6 +1235,13 @@ export type Database = {
             columns: ["medico_id"]
             isOneToOne: false
             referencedRelation: "medicos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tarefas_responsavel_profile_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1375,7 +1442,15 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_profile_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

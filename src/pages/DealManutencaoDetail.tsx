@@ -35,12 +35,12 @@ export default function DealManutencaoDetail() {
         *,
         unidades_saude(id, nome, cidade, estado),
         linhas_produto(id, nome, cor, limite_verde_dias, limite_amarelo_dias),
-        profiles!deals_manutencao_vendedor_id_fkey(nome),
+        profiles!deals_manutencao_vendedor_profile_fkey(nome),
         motivos_perda(nome),
         garantias!deals_manutencao_garantia_origem_id_fkey(id, descricao_equipamento, data_fim, data_inicio)
       `).eq("id", id).maybeSingle(),
       // Anotações livres de manutenção (sem vínculo com deal de vendas)
-      supabase.from("anotacoes").select("*, profiles!anotacoes_autor_id_fkey(nome)")
+      supabase.from("anotacoes").select("*, profiles!anotacoes_autor_profile_fkey(nome)")
         .is("archived_at", null).is("deal_id", null)
         .like("texto", `%[manut:${id}]%`).order("created_at", { ascending: false }),
     ]);

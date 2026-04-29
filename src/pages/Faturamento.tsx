@@ -34,11 +34,11 @@ export default function Faturamento() {
     setLoading(true);
     const [{ data: f }, { data: dGanhos }] = await Promise.all([
       supabase.from("faturamento")
-        .select(`*, deals!faturamento_deal_id_fkey(id, titulo, valor_total, data_fechamento, unidades_saude(nome), profiles!deals_vendedor_id_fkey(nome))`)
+        .select(`*, deals!faturamento_deal_id_fkey(id, titulo, valor_total, data_fechamento, unidades_saude(nome), profiles!deals_vendedor_profile_fkey(nome))`)
         .is("archived_at", null)
         .order("data_faturamento", { ascending: false }),
       supabase.from("deals")
-        .select(`id, titulo, valor_total, data_fechamento, unidades_saude(nome), profiles!deals_vendedor_id_fkey(nome)`)
+        .select(`id, titulo, valor_total, data_fechamento, unidades_saude(nome), profiles!deals_vendedor_profile_fkey(nome)`)
         .eq("estagio", "finalizado")
         .eq("resultado", "ganho")
         .is("archived_at", null),

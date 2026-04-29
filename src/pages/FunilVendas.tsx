@@ -103,7 +103,7 @@ export default function FunilVendas() {
         *,
         unidades_saude(id, nome, cidade, estado),
         linhas_produto(nome, cor, limite_verde_dias, limite_amarelo_dias),
-        profiles!deals_vendedor_id_fkey(nome),
+        profiles!deals_vendedor_profile_fkey(nome),
         motivos_perda(nome)
       `)
       .eq("linha_id", linhaId)

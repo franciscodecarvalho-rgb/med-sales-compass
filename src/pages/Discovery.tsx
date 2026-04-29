@@ -48,6 +48,7 @@ export default function Discovery() {
 
   // novo discovery (modal simples)
   const [novoOpen, setNovoOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   useEffect(() => { void load(); /* eslint-disable-next-line */ }, [statusFilter, vendedorFilter]);
 

@@ -173,17 +173,18 @@ export default function Medicos() {
   );
 }
 
-function MedicoForm({ especialidades, userId, onSaved }: { especialidades: Lookup[]; userId?: string; onSaved: () => void }) {
+function MedicoForm({ especialidades, unidades, userId, onSaved }: { especialidades: Lookup[]; unidades: UnidadeLk[]; userId?: string; onSaved: () => void }) {
   const [form, setForm] = useState({
     nome: "", crm: "", especialidade_id: "", email: "", telefone: "", observacoes: "",
   });
+  const [unidadesSel, setUnidadesSel] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     const espNome = especialidades.find((e) => e.id === form.especialidade_id)?.nome ?? null;
-    const { error } = await supabase.from("medicos").insert({
+    const { data: novo, error } = await supabase.from("medicos").insert({
       nome: form.nome,
       crm: form.crm || null,
       especialidade_id: form.especialidade_id || null,
@@ -192,9 +193,14 @@ function MedicoForm({ especialidades, userId, onSaved }: { especialidades: Looku
       telefone: form.telefone || null,
       observacoes: form.observacoes || null,
       created_by: userId ?? null,
-    });
+    }).select("id").maybeSingle();
+    if (error) { setSaving(false); toast.error(error.message); return; }
+    if (novo && unidadesSel.length > 0) {
+      const rows = unidadesSel.map((uid) => ({ medico_id: novo.id, unidade_id: uid }));
+      const { error: e2 } = await supabase.from("medico_unidades").insert(rows);
+      if (e2) toast.error("Médico criado, mas falha ao vincular unidades: " + e2.message);
+    }
     setSaving(false);
-    if (error) { toast.error(error.message); return; }
     toast.success("Médico cadastrado");
     onSaved();
   };

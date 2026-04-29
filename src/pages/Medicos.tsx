@@ -26,6 +26,7 @@ export default function Medicos() {
   const { user } = useAuth();
   const [items, setItems] = useState<any[]>([]);
   const [especialidades, setEspecialidades] = useState<Lookup[]>([]);
+  const [unidadesLk, setUnidadesLk] = useState<UnidadeLk[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterEsp, setFilterEsp] = useState<string>("all");
@@ -35,17 +36,19 @@ export default function Medicos() {
   useEffect(() => { void load(); }, []);
   async function load() {
     setLoading(true);
-    const [m, esp] = await Promise.all([
+    const [m, esp, un] = await Promise.all([
       supabase.from("medicos").select(`
         *,
         especialidades_medicas(id, nome),
         medico_unidades(unidade_id, unidades_saude(id, nome, cidade))
       `).is("archived_at", null).order("nome"),
       supabase.from("especialidades_medicas").select("id, nome").is("archived_at", null).order("nome"),
+      supabase.from("unidades_saude").select("id, nome, cidade").is("archived_at", null).order("nome"),
     ]);
     if (m.error) toast.error(m.error.message);
     setItems(m.data ?? []);
     setEspecialidades((esp.data ?? []) as Lookup[]);
+    setUnidadesLk((un.data ?? []) as UnidadeLk[]);
     setLoading(false);
   }
 

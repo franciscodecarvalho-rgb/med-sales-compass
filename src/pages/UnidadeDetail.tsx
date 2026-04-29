@@ -436,7 +436,10 @@ export default function UnidadeDetail() {
           </div>
         </TabsContent>
 
-        <TabsContent value="tarefas">
+        <TabsContent value="tarefas" className="space-y-3">
+          <div className="flex justify-end">
+            <NovaTarefaUnidadeDialog unidadeId={id!} userId={user?.id} onCreated={load} />
+          </div>
           <TarefasList tarefas={tarefas} onChange={load} />
         </TabsContent>
 

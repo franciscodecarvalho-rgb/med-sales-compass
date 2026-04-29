@@ -14,7 +14,7 @@ import { Building2, MapPin, Phone, Mail, Globe, Plus, ArrowLeft, Trash2, Save, S
 import { TarefasList } from "@/components/TarefasList";
 import PosVendaUnidadeTab from "@/components/posvenda/PosVendaUnidadeTab";
 import { toast } from "sonner";
-import { UNIDADE_CICLO_LABELS, UNIDADE_CICLO_BADGE, UnidadeCiclo, TarefaPrioridade } from "@/lib/crm";
+import { UNIDADE_STATUS_LABELS, UNIDADE_STATUS_BADGE, UnidadeStatus, TarefaPrioridade } from "@/lib/crm";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
@@ -91,9 +91,9 @@ export default function UnidadeDetail() {
   async function enviarParaFunil() {
     if (!unidade) return;
     const { error } = await supabase.from("unidades_saude")
-      .update({ ciclo: "lead" as UnidadeCiclo }).eq("id", id!);
+      .update({ status: "lead" as UnidadeStatus }).eq("id", id!);
     if (error) { toast.error(error.message); return; }
-    toast.success("Unidade marcada como Ativa. Crie o deal no Funil de Vendas.");
+    toast.success("Unidade marcada como Lead. Crie o deal no Funil de Vendas.");
     navigate(`/funil-vendas?unidade=${id}`);
   }
 
@@ -114,8 +114,8 @@ export default function UnidadeDetail() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{unidade.nome}</h1>
             <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-              <Badge className={UNIDADE_CICLO_BADGE[unidade.ciclo as UnidadeCiclo]} variant="outline">
-                {UNIDADE_CICLO_LABELS[unidade.ciclo as UnidadeCiclo]}
+              <Badge className={UNIDADE_STATUS_BADGE[unidade.status as UnidadeStatus]} variant="outline">
+                {UNIDADE_STATUS_LABELS[unidade.status as UnidadeStatus]}
               </Badge>
               <span>{unidade.tipos_unidade?.nome ?? "—"}</span>
               {(unidade.cidade || unidade.estados?.sigla) && (
@@ -135,7 +135,7 @@ export default function UnidadeDetail() {
               <div className="text-xs text-muted-foreground">{parque.length} registro(s)</div>
             </CardContent>
           </Card>
-          {unidade.ciclo === "discovery" && (
+          {unidade.status === "lead" && (
             <Button onClick={enviarParaFunil} variant="default">
               <Send className="mr-2 h-4 w-4" /> Enviar para Funil
             </Button>
@@ -457,7 +457,7 @@ function DadosForm({ unidade, tipos, estados, onSaved }: { unidade: any; tipos: 
     cidade: unidade.cidade ?? "", cep: unidade.cep ?? "", telefone: unidade.telefone ?? "",
     email: unidade.email ?? "", site: unidade.site ?? "", porte: unidade.porte ?? "",
     observacoes: unidade.observacoes ?? "", tipo_id: unidade.tipo_id ?? "",
-    estado_id: unidade.estado_id ?? "", ciclo: (unidade.ciclo ?? "discovery") as UnidadeCiclo,
+    estado_id: unidade.estado_id ?? "", ciclo: (unidade.status ?? "lead") as UnidadeStatus,
     archived: !!unidade.archived_at,
   });
   const [saving, setSaving] = useState(false);
@@ -472,7 +472,7 @@ function DadosForm({ unidade, tipos, estados, onSaved }: { unidade: any; tipos: 
       email: form.email || null, site: form.site || null, porte: form.porte || null,
       observacoes: form.observacoes || null, tipo_id: form.tipo_id || null,
       estado_id: form.estado_id || null, estado: estadoSel?.sigla ?? null,
-      ciclo: form.ciclo,
+      status: form.ciclo,
       archived_at: form.archived ? new Date().toISOString() : null,
     }).eq("id", unidade.id);
     setSaving(false);
@@ -498,9 +498,9 @@ function DadosForm({ unidade, tipos, estados, onSaved }: { unidade: any; tipos: 
                 <SelectContent>{tipos.map((t) => <SelectItem key={t.id} value={t.id}>{t.nome}</SelectItem>)}</SelectContent>
               </Select></div>
             <div className="space-y-2"><Label>Status</Label>
-              <Select value={form.ciclo} onValueChange={(v: UnidadeCiclo) => setForm({ ...form, ciclo: v })}>
+              <Select value={form.ciclo} onValueChange={(v: UnidadeStatus) => setForm({ ...form, ciclo: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{Object.entries(UNIDADE_CICLO_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
+                <SelectContent>{Object.entries(UNIDADE_STATUS_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
               </Select></div>
             <div className="space-y-2"><Label>Porte</Label>
               <Select value={form.porte} onValueChange={(v) => setForm({ ...form, porte: v })}>

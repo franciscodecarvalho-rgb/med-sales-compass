@@ -25,6 +25,7 @@ import {
 } from "@dnd-kit/core";
 import { format } from "date-fns";
 import * as XLSX from "xlsx";
+import QuickUnidadeDialog from "@/components/QuickUnidadeDialog";
 
 // ---------- Live counter helpers ----------
 function useNow(intervalMs = 1000) {

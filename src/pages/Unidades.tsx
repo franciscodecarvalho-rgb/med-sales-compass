@@ -210,13 +210,14 @@ export default function Unidades() {
   );
 }
 
-function UnidadeForm({ tipos, estados, onSaved }: { tipos: Lookup[]; estados: Lookup[]; onSaved: () => void }) {
+function UnidadeForm({ tipos, estados, medicos, onSaved }: { tipos: Lookup[]; estados: Lookup[]; medicos: MedicoLk[]; onSaved: () => void }) {
   const { user } = useAuth();
   const [form, setForm] = useState({
     nome: "", tipo_id: "", estado_id: "", porte: "",
     cnpj: "", endereco: "", cidade: "", cep: "", telefone: "", email: "", site: "", observacoes: "",
     ciclo: "discovery" as UnidadeCiclo,
   });
+  const [medicosSel, setMedicosSel] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
@@ -228,7 +229,7 @@ function UnidadeForm({ tipos, estados, onSaved }: { tipos: Lookup[]; estados: Lo
       : (tipoSel?.nome ?? "").toLowerCase().includes("clínica") ? "clinica"
       : (tipoSel?.nome ?? "").toLowerCase().includes("ubs") ? "ubs"
       : (tipoSel?.nome ?? "").toLowerCase().includes("labora") ? "laboratorio" : "outro";
-    const { error } = await supabase.from("unidades_saude").insert({
+    const { data: nova, error } = await supabase.from("unidades_saude").insert({
       nome: form.nome,
       tipo: tipoEnum as any,
       tipo_id: form.tipo_id || null,
@@ -245,9 +246,14 @@ function UnidadeForm({ tipos, estados, onSaved }: { tipos: Lookup[]; estados: Lo
       porte: form.porte || null,
       observacoes: form.observacoes || null,
       created_by: user?.id ?? null,
-    });
+    }).select("id").maybeSingle();
+    if (error) { setSaving(false); toast.error(error.message); return; }
+    if (nova && medicosSel.length > 0) {
+      const rows = medicosSel.map((mid) => ({ medico_id: mid, unidade_id: nova.id }));
+      const { error: e2 } = await supabase.from("medico_unidades").insert(rows);
+      if (e2) toast.error("Unidade criada, mas falha ao vincular médicos: " + e2.message);
+    }
     setSaving(false);
-    if (error) { toast.error(error.message); return; }
     toast.success("Unidade criada");
     onSaved();
   };

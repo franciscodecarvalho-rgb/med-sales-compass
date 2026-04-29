@@ -46,7 +46,7 @@ export default function QuickUnidadeDialog({ open, onOpenChange, onCreated }: Pr
       cidade: form.cidade || null,
       estado: form.estado || null,
       telefone: form.telefone || null,
-      ciclo: "discovery",
+      status: "lead",
     }).select("id, nome").single();
     setSaving(false);
     if (error) { toast.error(error.message); return; }

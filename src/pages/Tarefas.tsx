@@ -76,7 +76,7 @@ export default function Tarefas() {
       .select(`
         *,
         deals(id, titulo, unidades_saude(nome)),
-        unidades_saude(id, nome, ciclo),
+        unidades_saude(id, nome, status),
         medicos(id, nome),
         responsavel:profiles!tarefas_responsavel_profile_fkey(id, nome)
       `)
@@ -142,7 +142,6 @@ export default function Tarefas() {
     const livres: any[] = [];
     for (const t of filtered) {
       if (t.deal_id) { deals.push(t); continue; }
-      if (t.unidade_id && t.unidades_saude?.ciclo === "discovery") { discovery.push(t); continue; }
       if (t.unidade_id || t.medico_id) { relacionamento.push(t); continue; }
       livres.push(t);
     }

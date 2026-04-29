@@ -44,11 +44,11 @@ export function DashboardVendedor() {
       supabase.from("deals_manutencao").select("id, valor_total").eq("vendedor_id", user!.id).eq("resultado", "em_andamento").is("archived_at", null),
       supabase.from("tarefas").select("id", { count: "exact", head: true }).eq("responsavel_id", user!.id).in("status", ["pendente", "em_andamento"]).gte("data_vencimento", inicioHoje).lt("data_vencimento", fimHoje).is("archived_at", null),
       supabase.from("tarefas").select("id", { count: "exact", head: true }).eq("responsavel_id", user!.id).eq("status", "atrasada").is("archived_at", null),
-      supabase.from("unidades_saude").select("id", { count: "exact", head: true }).eq("ciclo", "discovery").is("archived_at", null),
+      supabase.from("discovery").select("id", { count: "exact", head: true }).eq("vendedor_id", user!.id).eq("status", "em_pesquisa").is("archived_at", null),
       supabase.from("tarefas").select("*, deals(titulo), unidades_saude(nome), medicos(nome)").eq("responsavel_id", user!.id).in("status", ["pendente", "em_andamento", "atrasada"]).is("archived_at", null).order("data_vencimento", { ascending: true, nullsFirst: false }).limit(30),
       supabase.from("deals").select("id, titulo, valor_total, estagio, data_entrada_estagio, unidades_saude(nome), linhas_produto(nome, cor, limite_amarelo_dias, limite_verde_dias)").eq("vendedor_id", user!.id).eq("resultado", "em_andamento").is("archived_at", null),
       supabase.from("anotacoes").select("medico_id, unidade_id, created_at").eq("autor_id", user!.id).is("archived_at", null).order("created_at", { ascending: false }).limit(500),
-      supabase.from("unidades_saude").select("id, nome, cidade, estado, porte").eq("ciclo", "discovery").is("archived_at", null).limit(8),
+      supabase.from("discovery").select("id, nome, cidade, porte, estados(sigla)").eq("vendedor_id", user!.id).eq("status", "em_pesquisa").is("archived_at", null).limit(8),
     ]);
 
     const valorVendas = (vendas.data ?? []).reduce((s, d) => s + Number(d.valor_total || 0), 0);

@@ -74,7 +74,7 @@ export default function DiscoveryDetail() {
         .eq("discovery_id", id),
       supabase.from("parque_instalado").select("*, linhas_produto(id, nome, cor)")
         .eq("discovery_id", id).is("archived_at", null).order("created_at"),
-      supabase.from("anotacoes").select("*, profiles:autor_id(nome)")
+      supabase.from("anotacoes").select("*, profiles!anotacoes_autor_profile_fkey(nome)")
         .eq("discovery_id", id).is("archived_at", null).order("created_at", { ascending: false }),
     ]);
     setItem(d.data);

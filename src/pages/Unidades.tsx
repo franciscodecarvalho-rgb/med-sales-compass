@@ -58,12 +58,14 @@ export default function Unidades() {
       : await query.is("archived_at", null);
     if (error) toast.error(error.message);
     setItems(data ?? []);
-    const [t, e] = await Promise.all([
+    const [t, e, md] = await Promise.all([
       supabase.from("tipos_unidade").select("id, nome").is("archived_at", null).order("nome"),
       supabase.from("estados").select("id, sigla, nome").is("archived_at", null).order("sigla"),
+      supabase.from("medicos").select("id, nome, especialidade").is("archived_at", null).order("nome"),
     ]);
     setTipos((t.data ?? []) as Lookup[]);
     setEstados((e.data ?? []) as Lookup[]);
+    setMedicosLk((md.data ?? []) as MedicoLk[]);
     setLoading(false);
   }
 

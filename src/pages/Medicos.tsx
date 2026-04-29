@@ -241,6 +241,15 @@ function MedicoForm({ especialidades, unidades, userId, onSaved }: { especialida
           </div>
         </div>
         <div className="space-y-2">
+          <Label>Unidades de saúde <span className="text-xs text-muted-foreground font-normal">(opcional, recomendado)</span></Label>
+          <MultiSelectPopover
+            items={unidades.map((u) => ({ id: u.id, label: u.nome, sub: u.cidade ?? undefined }))}
+            selected={unidadesSel}
+            onChange={setUnidadesSel}
+            placeholder="Vincular a unidades..."
+          />
+        </div>
+        <div className="space-y-2">
           <Label>Observações</Label>
           <Textarea rows={3} value={form.observacoes}
             onChange={(e) => setForm({ ...form, observacoes: e.target.value })} />

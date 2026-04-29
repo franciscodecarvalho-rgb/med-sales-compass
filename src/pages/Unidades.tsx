@@ -20,8 +20,10 @@ import { UNIDADE_CICLO_LABELS, UNIDADE_CICLO_BADGE, UnidadeCiclo } from "@/lib/c
 import { useAuth } from "@/contexts/AuthContext";
 import { ExportButton, exportToExcel } from "@/lib/export";
 import { maskCnpj, maskTelefone, maskCep, isEmailValido } from "@/lib/masks";
+import { MultiSelectPopover } from "@/components/MultiSelectPopover";
 
 type Lookup = { id: string; nome: string; sigla?: string };
+type MedicoLk = { id: string; nome: string; especialidade?: string | null };
 
 export default function Unidades() {
   const [items, setItems] = useState<any[]>([]);

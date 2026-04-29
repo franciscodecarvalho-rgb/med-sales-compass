@@ -17,6 +17,7 @@ import { Plus, Clock, Search, XCircle, ArrowUpDown, ArrowDown, ArrowUp, Wrench }
 import { toast } from "sonner";
 import { STAGE_ORDER, STAGE_LABELS, formatCurrency, DealStage, ESTADOS_BR } from "@/lib/crm";
 import { ExportButton, exportToExcel } from "@/lib/export";
+import QuickUnidadeDialog from "@/components/QuickUnidadeDialog";
 import {
   DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor,
   useDraggable, useDroppable, useSensor, useSensors,

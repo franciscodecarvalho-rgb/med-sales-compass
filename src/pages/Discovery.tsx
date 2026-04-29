@@ -22,6 +22,7 @@ import {
 } from "@/lib/crm";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import ImportarPlanilhaDialog from "@/components/ImportarPlanilhaDialog";
 
 type Lookup = { id: string; nome: string; sigla?: string };
 type Vendedor = { id: string; nome: string };

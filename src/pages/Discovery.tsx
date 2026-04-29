@@ -22,6 +22,7 @@ import {
 } from "@/lib/crm";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import ImportarPlanilhaDialog from "@/components/ImportarPlanilhaDialog";
 
 type Lookup = { id: string; nome: string; sigla?: string };
 type Vendedor = { id: string; nome: string };
@@ -47,6 +48,7 @@ export default function Discovery() {
 
   // novo discovery (modal simples)
   const [novoOpen, setNovoOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   useEffect(() => { void load(); /* eslint-disable-next-line */ }, [statusFilter, vendedorFilter]);
 
@@ -107,10 +109,15 @@ export default function Discovery() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" disabled title="Em breve">
+          <Button variant="outline" onClick={() => setImportOpen(true)}>
             <Sparkles className="mr-2 h-4 w-4" />
             Importar planilha com IA
           </Button>
+          <ImportarPlanilhaDialog
+            open={importOpen}
+            onOpenChange={setImportOpen}
+            onImported={() => void load()}
+          />
           <Dialog open={novoOpen} onOpenChange={setNovoOpen}>
             <DialogTrigger asChild>
               <Button><Plus className="mr-2 h-4 w-4" /> Novo Discovery</Button>

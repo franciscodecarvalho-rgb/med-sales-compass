@@ -666,6 +666,14 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
           </Button>
         </DialogFooter>
       </form>
+      <QuickUnidadeDialog
+        open={openNovaUnidade}
+        onOpenChange={setOpenNovaUnidade}
+        onCreated={(u) => {
+          setUnidades((prev) => [...prev, u].sort((a, b) => a.nome.localeCompare(b.nome)));
+          setForm((f) => ({ ...f, unidade_id: u.id }));
+        }}
+      />
     </DialogContent>
   );
 }

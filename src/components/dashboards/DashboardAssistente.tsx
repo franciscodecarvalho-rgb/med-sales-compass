@@ -22,7 +22,7 @@ export function DashboardAssistente() {
     setLoading(true);
     const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
     const [ganhos, fats] = await Promise.all([
-      supabase.from("deals").select("id, titulo, valor_total, data_fechamento, vendedor_id, unidades_saude(nome), profiles!deals_vendedor_id_fkey(nome)").eq("resultado", "ganho").is("archived_at", null).limit(200),
+      supabase.from("deals").select("id, titulo, valor_total, data_fechamento, vendedor_id, unidades_saude(nome), profiles!deals_vendedor_profile_fkey(nome)").eq("resultado", "ganho").is("archived_at", null).limit(200),
       supabase.from("faturamento").select("*, deals(titulo, unidades_saude(nome))").is("archived_at", null).order("data_faturamento", { ascending: false }).limit(50),
     ]);
     const faturadosIds = new Set((fats.data ?? []).map((f: any) => f.deal_id));

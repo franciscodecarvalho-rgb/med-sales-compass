@@ -47,14 +47,14 @@ export default function UnidadeDetail() {
       supabase.from("parque_instalado").select("*, linhas_produto(id, nome, cor)").eq("unidade_id", id).is("archived_at", null),
       supabase.from("contatos").select("*, papeis_contato(id, nome)").eq("unidade_id", id).is("archived_at", null),
       supabase.from("medico_unidades").select("*, medicos(id, nome, especialidade, especialidades_medicas(nome)), papeis_contato(id, nome)").eq("unidade_id", id),
-      supabase.from("anotacoes").select("*, profiles!anotacoes_autor_id_fkey(nome)").eq("unidade_id", id).is("archived_at", null).order("created_at", { ascending: false }),
+      supabase.from("anotacoes").select("*, profiles!anotacoes_autor_profile_fkey(nome)").eq("unidade_id", id).is("archived_at", null).order("created_at", { ascending: false }),
       supabase.from("medicos").select("id, nome").is("archived_at", null).order("nome"),
       supabase.from("linhas_produto").select("id, nome, cor").is("archived_at", null).order("nome"),
       supabase.from("tipos_unidade").select("id, nome").is("archived_at", null).order("nome"),
       supabase.from("estados").select("id, sigla, nome").is("archived_at", null).order("sigla"),
       supabase.from("papeis_contato").select("id, nome").is("archived_at", null).order("nome"),
-      supabase.from("deals").select("id, titulo, estagio, resultado, valor_total, data_entrada_estagio, data_previsao_fechamento, linhas_produto(nome, cor), profiles!deals_vendedor_id_fkey(nome)").eq("unidade_id", id).is("archived_at", null).order("created_at", { ascending: false }),
-      supabase.from("deals_manutencao").select("id, titulo, estagio, resultado, valor_total, data_entrada_estagio, data_previsao_fechamento, garantia_origem_id, linhas_produto(nome, cor), profiles!deals_manutencao_vendedor_id_fkey(nome)").eq("unidade_id", id).is("archived_at", null).order("created_at", { ascending: false }),
+      supabase.from("deals").select("id, titulo, estagio, resultado, valor_total, data_entrada_estagio, data_previsao_fechamento, linhas_produto(nome, cor), profiles!deals_vendedor_profile_fkey(nome)").eq("unidade_id", id).is("archived_at", null).order("created_at", { ascending: false }),
+      supabase.from("deals_manutencao").select("id, titulo, estagio, resultado, valor_total, data_entrada_estagio, data_previsao_fechamento, garantia_origem_id, linhas_produto(nome, cor), profiles!deals_manutencao_vendedor_profile_fkey(nome)").eq("unidade_id", id).is("archived_at", null).order("created_at", { ascending: false }),
       supabase.from("tarefas").select("id, titulo, descricao, status, prioridade, data_vencimento").eq("unidade_id", id).is("archived_at", null).order("data_vencimento", { ascending: true, nullsFirst: false }),
     ]);
     setUnidade(u.data);

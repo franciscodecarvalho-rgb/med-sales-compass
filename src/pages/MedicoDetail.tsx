@@ -36,7 +36,7 @@ export default function MedicoDetail() {
     const [m, u, a, ua, pp, esp, tk] = await Promise.all([
       supabase.from("medicos").select("*, especialidades_medicas(id, nome)").eq("id", id).maybeSingle(),
       supabase.from("medico_unidades").select("*, unidades_saude(id, nome, cidade, estado, ciclo, medico_principal_id), papeis_contato(id, nome)").eq("medico_id", id),
-      supabase.from("anotacoes").select("*, profiles!anotacoes_autor_id_fkey(nome)").eq("medico_id", id).is("archived_at", null).order("created_at", { ascending: false }),
+      supabase.from("anotacoes").select("*, profiles!anotacoes_autor_profile_fkey(nome)").eq("medico_id", id).is("archived_at", null).order("created_at", { ascending: false }),
       supabase.from("unidades_saude").select("id, nome").is("archived_at", null).order("nome"),
       supabase.from("papeis_contato").select("id, nome").is("archived_at", null).order("nome"),
       supabase.from("especialidades_medicas").select("id, nome").is("archived_at", null).order("nome"),

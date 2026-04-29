@@ -78,7 +78,7 @@ export default function Tarefas() {
         deals(id, titulo, unidades_saude(nome)),
         unidades_saude(id, nome, ciclo),
         medicos(id, nome),
-        responsavel:profiles!tarefas_responsavel_id_fkey(id, nome)
+        responsavel:profiles!tarefas_responsavel_profile_fkey(id, nome)
       `)
       .is("archived_at", null)
       .order("data_vencimento", { ascending: true, nullsFirst: false });

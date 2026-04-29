@@ -484,6 +484,7 @@ export function NewDealManutDialog({ linhas, vendedores, defaultLinhaId, default
     vendedor_id: user?.id ?? "",
   });
   const [saving, setSaving] = useState(false);
+  const [openNovaUnidade, setOpenNovaUnidade] = useState(false);
 
   useEffect(() => {
     supabase.from("unidades_saude").select("id, nome").is("archived_at", null).order("nome")

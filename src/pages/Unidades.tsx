@@ -340,6 +340,15 @@ function UnidadeForm({ tipos, estados, medicos, onSaved }: { tipos: Lookup[]; es
           <Input value={form.endereco} onChange={(e) => setForm({ ...form, endereco: e.target.value })} />
         </div>
         <div className="space-y-2">
+          <Label>Médicos vinculados <span className="text-xs text-muted-foreground font-normal">(opcional, recomendado)</span></Label>
+          <MultiSelectPopover
+            items={medicos.map((m) => ({ id: m.id, label: `Dr. ${m.nome}`, sub: m.especialidade ?? undefined }))}
+            selected={medicosSel}
+            onChange={setMedicosSel}
+            placeholder="Vincular médicos..."
+          />
+        </div>
+        <div className="space-y-2">
           <Label>Observações</Label>
           <Textarea rows={3} value={form.observacoes}
             onChange={(e) => setForm({ ...form, observacoes: e.target.value })} />

@@ -26,6 +26,7 @@ import {
 import { format } from "date-fns";
 import * as XLSX from "xlsx";
 import QuickUnidadeDialog from "@/components/QuickUnidadeDialog";
+import UnidadeCombobox from "@/components/UnidadeCombobox";
 
 // ---------- Live counter helpers ----------
 function useNow(intervalMs = 1000) {

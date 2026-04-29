@@ -599,29 +599,39 @@ function NovaTarefaDialog({ onSaved }: { onSaved: () => void }) {
 
 // ============= Modal Editar Tarefa =============
 function EditarTarefaDialog({ tarefa, onSaved }: { tarefa: any; onSaved: () => void }) {
+  const { user } = useAuth();
   const [form, setForm] = useState({
     titulo: tarefa.titulo ?? "",
-    descricao: tarefa.descricao ?? "",
     data: tarefa.data_vencimento ? new Date(tarefa.data_vencimento).toISOString().slice(0, 16) : "",
     prioridade: (tarefa.prioridade ?? "media") as TarefaPrioridade,
   });
+  const [novaNota, setNovaNota] = useState("");
   const [saving, setSaving] = useState(false);
+
+  // Histórico acumulado já salvo em descricao
+  const historico = (tarefa.descricao ?? "").trim();
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
+    let descricaoFinal = historico;
+    if (novaNota.trim()) {
+      const stamp = format(new Date(), "dd/MM/yyyy HH:mm", { locale: ptBR });
+      const entrada = `[${stamp}] ${novaNota.trim()}`;
+      descricaoFinal = historico ? `${historico}\n\n${entrada}` : entrada;
+    }
     const { error } = await supabase.from("tarefas").update({
       titulo: form.titulo,
-      descricao: form.descricao || null,
+      descricao: descricaoFinal || null,
       data_vencimento: form.data || null,
       prioridade: form.prioridade,
-      // Se virou data futura, pode reabrir
       status: tarefa.status === "atrasada" && form.data && new Date(form.data) > new Date()
         ? "pendente" as TarefaStatus : tarefa.status,
     }).eq("id", tarefa.id);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Tarefa atualizada");
+    setNovaNota("");
     onSaved();
   };
 
@@ -633,10 +643,21 @@ function EditarTarefaDialog({ tarefa, onSaved }: { tarefa: any; onSaved: () => v
           <Label>Descrição *</Label>
           <Input required value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />
         </div>
-        {form.descricao && (
-          <div className="space-y-2">
-            <Label>Notas</Label>
-            <Textarea rows={2} value={form.descricao} readOnly disabled className="resize-none bg-muted/50 cursor-not-allowed" />
+        <div className="space-y-2">
+          <Label>Adicionar nota</Label>
+          <Textarea
+            rows={2}
+            placeholder="Digite uma nova nota..."
+            value={novaNota}
+            onChange={(e) => setNovaNota(e.target.value)}
+          />
+        </div>
+        {historico && (
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Histórico de notas</Label>
+            <div className="max-h-40 overflow-y-auto rounded-md border bg-muted/30 p-2 text-xs whitespace-pre-wrap">
+              {historico}
+            </div>
           </div>
         )}
         <div className="grid grid-cols-2 gap-3">

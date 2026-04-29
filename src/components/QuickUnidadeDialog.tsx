@@ -81,7 +81,7 @@ export default function QuickUnidadeDialog({ open, onOpenChange, onCreated }: Pr
             <div className="space-y-2">
               <Label>CNPJ</Label>
               <Input value={form.cnpj}
-                onChange={(e) => setForm({ ...form, cnpj: maskCNPJ(e.target.value) })}
+                onChange={(e) => setForm({ ...form, cnpj: maskCnpj(e.target.value) })}
                 placeholder="00.000.000/0000-00" />
             </div>
           </div>
@@ -103,7 +103,7 @@ export default function QuickUnidadeDialog({ open, onOpenChange, onCreated }: Pr
           <div className="space-y-2">
             <Label>Telefone</Label>
             <Input value={form.telefone}
-              onChange={(e) => setForm({ ...form, telefone: maskPhone(e.target.value) })}
+              onChange={(e) => setForm({ ...form, telefone: maskTelefone(e.target.value) })}
               placeholder="(00) 00000-0000" />
           </div>
           <DialogFooter>

@@ -10,6 +10,8 @@ import AuthPage from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Unidades from "./pages/Unidades";
 import UnidadeDetail from "./pages/UnidadeDetail";
+import Discovery from "./pages/Discovery";
+import DiscoveryDetail from "./pages/DiscoveryDetail";
 import Medicos from "./pages/Medicos";
 import MedicoDetail from "./pages/MedicoDetail";
 import Equipamentos from "./pages/Equipamentos";
@@ -37,6 +39,12 @@ const App = () => (
             <Route path="/auth" element={<AuthPage />} />
             <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
               <Route path="/" element={<Dashboard />} />
+              <Route path="/discovery" element={
+                <ProtectedRoute requireRoles={["admin", "gerente", "vendedor"]}><Discovery /></ProtectedRoute>
+              } />
+              <Route path="/discovery/:id" element={
+                <ProtectedRoute requireRoles={["admin", "gerente", "vendedor"]}><DiscoveryDetail /></ProtectedRoute>
+              } />
               <Route path="/unidades" element={<Unidades />} />
               <Route path="/unidades/:id" element={<UnidadeDetail />} />
               <Route path="/medicos" element={<Medicos />} />

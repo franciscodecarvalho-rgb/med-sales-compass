@@ -13,6 +13,7 @@ import {
   Package,
   Wrench,
   Receipt,
+  Search as SearchIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/discovery", label: "Discovery", icon: SearchIcon, roles: ["admin", "gerente", "vendedor"] },
   { to: "/unidades", label: "Unidades de Saúde", icon: Building2 },
   { to: "/medicos", label: "Médicos", icon: UserRound },
   { to: "/funil-vendas", label: "Funil de Vendas", icon: Kanban },

@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/table";
 import { Plus, Search } from "lucide-react";
 import { toast } from "sonner";
-import { UNIDADE_CICLO_LABELS, UNIDADE_CICLO_BADGE, UnidadeCiclo } from "@/lib/crm";
+import { UNIDADE_STATUS_LABELS, UNIDADE_STATUS_BADGE, UnidadeStatus } from "@/lib/crm";
 import { useAuth } from "@/contexts/AuthContext";
 import { ExportButton, exportToExcel } from "@/lib/export";
 import { maskCnpj, maskTelefone, maskCep, isEmailValido } from "@/lib/masks";
@@ -37,7 +37,7 @@ export default function Unidades() {
   const [filterTipo, setFilterTipo] = useState<string>("all");
   const [showInativos, setShowInativos] = useState(false);
   const [open, setOpen] = useState(false);
-  const [sortBy, setSortBy] = useState<"nome" | "score" | "ciclo">("nome");
+  const [sortBy, setSortBy] = useState<"nome" | "score" | "status">("nome");
 
   useEffect(() => { void load(); }, [showInativos]);
 
@@ -46,7 +46,7 @@ export default function Unidades() {
     const query = supabase
       .from("unidades_saude")
       .select(`
-        id, nome, cidade, ciclo, tipo, archived_at,
+        id, nome, cidade, status, tipo, archived_at, cnpj, telefone, email, estado,
         tipos_unidade(id, nome),
         estados(id, sigla),
         medicos:medico_principal_id(id, nome),
@@ -73,7 +73,7 @@ export default function Unidades() {
     const list = items.filter((u) => {
       if (search && !u.nome.toLowerCase().includes(search.toLowerCase()) &&
           !(u.cidade ?? "").toLowerCase().includes(search.toLowerCase())) return false;
-      if (filterCiclo !== "all" && u.ciclo !== filterCiclo) return false;
+      if (filterCiclo !== "all" && u.status !== filterCiclo) return false;
       if (filterEstado !== "all" && u.estados?.sigla !== filterEstado) return false;
       if (filterTipo !== "all" && u.tipos_unidade?.id !== filterTipo) return false;
       return true;
@@ -85,7 +85,7 @@ export default function Unidades() {
     }));
     list.sort((a, b) => {
       if (sortBy === "score") return b._score - a._score;
-      if (sortBy === "ciclo") return (a.ciclo ?? "").localeCompare(b.ciclo ?? "");
+      if (sortBy === "status") return (a.status ?? "").localeCompare(b.status ?? "");
       return a.nome.localeCompare(b.nome);
     });
     return list;
@@ -100,7 +100,7 @@ export default function Unidades() {
         </div>
         <div className="flex gap-2">
           <ExportButton onExport={() => exportToExcel(filtered.map((u: any) => ({
-            Nome: u.nome, CNPJ: u.cnpj, Tipo: u.tipos_unidade?.nome, Ciclo: UNIDADE_CICLO_LABELS[u.ciclo as UnidadeCiclo],
+            Nome: u.nome, CNPJ: u.cnpj, Tipo: u.tipos_unidade?.nome, Status: UNIDADE_STATUS_LABELS[u.status as UnidadeStatus],
             Cidade: u.cidade, Estado: u.estados?.sigla || u.estado, Telefone: u.telefone, Email: u.email,
           })), "unidades-saude", "Unidades")} />
           <Dialog open={open} onOpenChange={setOpen}>
@@ -123,7 +123,7 @@ export default function Unidades() {
           <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os status</SelectItem>
-            {Object.entries(UNIDADE_CICLO_LABELS).map(([k, v]) =>
+            {Object.entries(UNIDADE_STATUS_LABELS).map(([k, v]) =>
               <SelectItem key={k} value={k}>{v}</SelectItem>)}
           </SelectContent>
         </Select>
@@ -146,7 +146,7 @@ export default function Unidades() {
           <SelectContent>
             <SelectItem value="nome">Ordenar: Nome</SelectItem>
             <SelectItem value="score">Ordenar: Score</SelectItem>
-            <SelectItem value="ciclo">Ordenar: Status</SelectItem>
+            <SelectItem value="status">Ordenar: Status</SelectItem>
           </SelectContent>
         </Select>
         <div className="flex items-center gap-2 ml-auto">
@@ -186,8 +186,8 @@ export default function Unidades() {
                     {u.archived_at ? (
                       <Badge variant="outline" className="bg-muted text-muted-foreground">Inativo</Badge>
                     ) : (
-                      <Badge className={UNIDADE_CICLO_BADGE[u.ciclo as UnidadeCiclo]} variant="outline">
-                        {UNIDADE_CICLO_LABELS[u.ciclo as UnidadeCiclo]}
+                      <Badge className={UNIDADE_STATUS_BADGE[u.status as UnidadeStatus]} variant="outline">
+                        {UNIDADE_STATUS_LABELS[u.status as UnidadeStatus]}
                       </Badge>
                     )}
                   </TableCell>
@@ -215,7 +215,7 @@ function UnidadeForm({ tipos, estados, medicos, onSaved }: { tipos: Lookup[]; es
   const [form, setForm] = useState({
     nome: "", tipo_id: "", estado_id: "", porte: "",
     cnpj: "", endereco: "", cidade: "", cep: "", telefone: "", email: "", site: "", observacoes: "",
-    ciclo: "discovery" as UnidadeCiclo,
+    ciclo: "lead" as UnidadeStatus,
   });
   const [medicosSel, setMedicosSel] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -235,7 +235,7 @@ function UnidadeForm({ tipos, estados, medicos, onSaved }: { tipos: Lookup[]; es
       tipo_id: form.tipo_id || null,
       estado_id: form.estado_id || null,
       estado: estadoSel?.sigla ?? null,
-      ciclo: form.ciclo,
+      status: form.ciclo,
       cnpj: form.cnpj || null,
       endereco: form.endereco || null,
       cidade: form.cidade || null,
@@ -279,10 +279,10 @@ function UnidadeForm({ tipos, estados, medicos, onSaved }: { tipos: Lookup[]; es
           </div>
           <div className="space-y-2">
             <Label>Status</Label>
-            <Select value={form.ciclo} onValueChange={(v: UnidadeCiclo) => setForm({ ...form, ciclo: v })}>
+            <Select value={form.ciclo} onValueChange={(v: UnidadeStatus) => setForm({ ...form, ciclo: v })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {Object.entries(UNIDADE_CICLO_LABELS).map(([k, v]) =>
+                {Object.entries(UNIDADE_STATUS_LABELS).map(([k, v]) =>
                   <SelectItem key={k} value={k}>{v}</SelectItem>)}
               </SelectContent>
             </Select>

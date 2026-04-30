@@ -172,8 +172,24 @@ export default function Tarefas() {
     void load();
   }
 
+  // Contadores rápidos
+  const counts = useMemo(() => {
+    const total = filtered.length;
+    let atrasadas = 0, hoje = 0, semana = 0, concluidas = 0;
+    const now = new Date();
+    for (const t of filtered) {
+      if (t.status === "concluida") { concluidas++; continue; }
+      if (!t.data_vencimento) continue;
+      const d = new Date(t.data_vencimento);
+      if (t.status === "atrasada" || (d < now && !isToday(d))) atrasadas++;
+      else if (isToday(d)) hoje++;
+      else if (isThisWeek(d, { weekStartsOn: 1 })) semana++;
+    }
+    return { total, atrasadas, hoje, semana, concluidas };
+  }, [filtered]);
+
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-4 p-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Tarefas</h1>

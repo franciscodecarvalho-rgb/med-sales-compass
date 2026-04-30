@@ -20,6 +20,7 @@ import {
 } from "@/lib/crm";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { EditarTarefaDialog } from "@/components/EditarTarefaDialog";
 
 export default function DealDetail() {
   const { id } = useParams();
@@ -33,6 +34,7 @@ export default function DealDetail() {
   const [novaAnot, setNovaAnot] = useState("");
   const [proxContato, setProxContato] = useState("");
   const [openFinal, setOpenFinal] = useState(false);
+  const [editTarefa, setEditTarefa] = useState<any | null>(null);
 
   useEffect(() => { void load(); }, [id]);
 
@@ -50,7 +52,7 @@ export default function DealDetail() {
       supabase.from("deal_equipamentos").select("*, equipamentos(nome)").eq("deal_id", id),
       supabase.from("deal_stage_history").select("*, profiles!deal_stage_history_changed_by_profile_fkey(nome)").eq("deal_id", id).order("changed_at", { ascending: false }),
       supabase.from("anotacoes").select("*, profiles!anotacoes_autor_profile_fkey(nome)").eq("deal_id", id).is("archived_at", null).order("created_at", { ascending: false }),
-      supabase.from("tarefas").select("*").eq("deal_id", id).order("data_vencimento", { ascending: true, nullsFirst: false }),
+      supabase.from("tarefas").select("*, deals(id, titulo)").eq("deal_id", id).order("data_vencimento", { ascending: true, nullsFirst: false }),
     ]);
     setDeal(d.data);
     setEquipamentos(eq.data ?? []);
@@ -232,7 +234,11 @@ export default function DealDetail() {
 
         <TabsContent value="tarefas" className="space-y-2">
           {tarefas.map((t) => (
-            <Card key={t.id}>
+            <Card
+              key={t.id}
+              className="cursor-pointer hover:bg-accent/30 transition-colors"
+              onClick={() => setEditTarefa(t)}
+            >
               <CardContent className="p-3">
                 <div className="flex items-center justify-between">
                   <div>
@@ -247,6 +253,14 @@ export default function DealDetail() {
             </Card>
           ))}
           {tarefas.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma tarefa.</p>}
+          {editTarefa && (
+            <EditarTarefaDialog
+              tarefa={editTarefa}
+              open={!!editTarefa}
+              onOpenChange={(v) => !v && setEditTarefa(null)}
+              onSaved={() => { setEditTarefa(null); void load(); }}
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="historico" className="space-y-2">

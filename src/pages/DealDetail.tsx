@@ -34,6 +34,7 @@ export default function DealDetail() {
   const [novaAnot, setNovaAnot] = useState("");
   const [proxContato, setProxContato] = useState("");
   const [openFinal, setOpenFinal] = useState(false);
+  const [editTarefa, setEditTarefa] = useState<any | null>(null);
 
   useEffect(() => { void load(); }, [id]);
 

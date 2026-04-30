@@ -468,9 +468,12 @@ function CompactRow({ t, onReabrir, onChanged }: { t: any; onReabrir: (t: any) =
           {t.responsavel?.nome ?? "—"}
         </td>
       </tr>
-      <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <EditarTarefaDialog tarefa={t} onSaved={() => { setOpenEdit(false); onChanged(); }} />
-      </Dialog>
+      <EditarTarefaDialog
+        tarefa={t}
+        open={openEdit}
+        onOpenChange={setOpenEdit}
+        onSaved={() => { setOpenEdit(false); onChanged(); }}
+      />
       <ConcluirTarefaDialog
         open={openConcluir}
         onOpenChange={setOpenConcluir}

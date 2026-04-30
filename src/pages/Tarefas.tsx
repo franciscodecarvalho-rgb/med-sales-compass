@@ -325,7 +325,7 @@ export default function Tarefas() {
       ) : filtered.length === 0 ? (
         <Card><CardContent className="p-6 text-sm text-muted-foreground text-center">Nenhuma tarefa encontrada.</CardContent></Card>
       ) : (
-        <CompactList tarefas={filtered} onToggle={toggleConcluir} onChanged={load} />
+        <CompactList tarefas={filtered} onReabrir={reabrirTarefa} onChanged={load} />
       )}
     </div>
   );

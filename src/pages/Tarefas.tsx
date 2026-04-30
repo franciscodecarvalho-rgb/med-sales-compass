@@ -689,9 +689,12 @@ function TarefaItem({ t, onToggle, onChanged }: { t: any; onToggle: (t: any) => 
           </div>
         </div>
       </div>
-      <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <EditarTarefaDialog tarefa={t} onSaved={() => { setOpenEdit(false); onChanged(); }} />
-      </Dialog>
+      <EditarTarefaDialog
+        tarefa={t}
+        open={openEdit}
+        onOpenChange={setOpenEdit}
+        onSaved={() => { setOpenEdit(false); onChanged(); }}
+      />
     </>
   );
 }

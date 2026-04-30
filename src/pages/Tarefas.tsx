@@ -861,10 +861,31 @@ function EditarTarefaDialog({ tarefa, onSaved }: { tarefa: any; onSaved: () => v
     onSaved();
   };
 
+  // Vínculo da tarefa
+  const vinculo = tarefa.deal_id
+    ? { to: `/deals/${tarefa.deal_id}`, label: tarefa.deals?.titulo ?? "Deal", tipo: "Deal", icon: <Briefcase className="h-3.5 w-3.5" />, cls: TIPO_META.deal.cls }
+    : tarefa.unidade_id
+    ? { to: `/unidades/${tarefa.unidade_id}`, label: tarefa.unidades_saude?.nome ?? "Unidade", tipo: "Unidade", icon: <Building2 className="h-3.5 w-3.5" />, cls: TIPO_META.unidade.cls }
+    : tarefa.medico_id
+    ? { to: `/medicos/${tarefa.medico_id}`, label: tarefa.medicos?.nome ? `Dr. ${tarefa.medicos.nome}` : "Médico", tipo: "Médico", icon: <UserRound className="h-3.5 w-3.5" />, cls: TIPO_META.medico.cls }
+    : null;
+
   return (
     <DialogContent className="max-w-md">
       <DialogHeader><DialogTitle>Editar tarefa</DialogTitle></DialogHeader>
       <form onSubmit={submit} className="space-y-3">
+        {vinculo && (
+          <Link
+            to={vinculo.to}
+            onClick={() => onSaved()}
+            className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:opacity-80 transition-opacity ${vinculo.cls}`}
+          >
+            {vinculo.icon}
+            <span className="text-[10px] uppercase tracking-wider opacity-70">{vinculo.tipo}</span>
+            <span className="font-medium truncate flex-1">{vinculo.label}</span>
+            <span className="text-xs opacity-70">Abrir →</span>
+          </Link>
+        )}
         <div className="space-y-2">
           <Label>Descrição *</Label>
           <Input required value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />

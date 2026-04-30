@@ -234,7 +234,11 @@ export default function DealDetail() {
 
         <TabsContent value="tarefas" className="space-y-2">
           {tarefas.map((t) => (
-            <Card key={t.id}>
+            <Card
+              key={t.id}
+              className="cursor-pointer hover:bg-accent/30 transition-colors"
+              onClick={() => setEditTarefa(t)}
+            >
               <CardContent className="p-3">
                 <div className="flex items-center justify-between">
                   <div>
@@ -249,6 +253,14 @@ export default function DealDetail() {
             </Card>
           ))}
           {tarefas.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma tarefa.</p>}
+          {editTarefa && (
+            <EditarTarefaDialog
+              tarefa={editTarefa}
+              open={!!editTarefa}
+              onOpenChange={(v) => !v && setEditTarefa(null)}
+              onSaved={() => { setEditTarefa(null); void load(); }}
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="historico" className="space-y-2">

@@ -310,57 +310,162 @@ export default function Tarefas() {
         </Card>
       )}
 
+      {/* Contadores rápidos */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+        <CounterPill label="Total" value={counts.total} className="bg-muted/60 text-foreground" />
+        <CounterPill label="Atrasadas" value={counts.atrasadas} className="bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-200" />
+        <CounterPill label="Hoje" value={counts.hoje} className="bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200" />
+        <CounterPill label="Esta semana" value={counts.semana} className="bg-sky-100 text-sky-800 dark:bg-sky-950/40 dark:text-sky-200" />
+        <CounterPill label="Concluídas" value={counts.concluidas} className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200" />
+      </div>
+
       {loading ? (
         <p className="text-sm text-muted-foreground">Carregando...</p>
+      ) : filtered.length === 0 ? (
+        <Card><CardContent className="p-6 text-sm text-muted-foreground text-center">Nenhuma tarefa encontrada.</CardContent></Card>
       ) : (
-        <div className="space-y-6">
-          {/* Seção 1 — DEALS */}
-          <Secao
-            titulo="Tarefas de Deals"
-            icon={<Briefcase className="h-4 w-4" />}
-            highlight
-            tarefas={sections.deals}
-            onToggle={toggleConcluir}
-            onChanged={load}
-            emptyText="Nenhuma tarefa de deal por enquanto."
-          />
-
-          {/* Seção 2 — RELACIONAMENTO */}
-          <Secao
-            titulo="Tarefas de Relacionamento"
-            icon={<UserRound className="h-4 w-4" />}
-            tarefas={sections.relacionamento}
-            onToggle={toggleConcluir}
-            onChanged={load}
-            emptyText="Sem tarefas com médicos ou unidades clientes."
-          />
-
-          {/* Seção 3 — DISCOVERY */}
-          <Secao
-            titulo="Tarefas de Discovery"
-            icon={<Sparkles className="h-4 w-4" />}
-            tarefas={sections.discovery}
-            onToggle={toggleConcluir}
-            onChanged={load}
-            emptyText="Nenhum discovery pendente."
-          />
-
-          {/* Seção 4 — LIVRES */}
-          <Secao
-            titulo="Tarefas Livres"
-            icon={<ListChecks className="h-4 w-4" />}
-            tarefas={sections.livres}
-            onToggle={toggleConcluir}
-            onChanged={load}
-            emptyText="Sem tarefas livres."
-          />
-        </div>
+        <CompactList tarefas={filtered} onToggle={toggleConcluir} onChanged={load} />
       )}
     </div>
   );
 }
 
-// ============= Seção =============
+// ============= Contador =============
+function CounterPill({ label, value, className }: { label: string; value: number; className?: string }) {
+  return (
+    <div className={`rounded-md border px-3 py-2 ${className ?? ""}`}>
+      <div className="text-[10px] uppercase tracking-wider opacity-80">{label}</div>
+      <div className="text-xl font-bold leading-tight">{value}</div>
+    </div>
+  );
+}
+
+// ============= Tipo (cor pastel) =============
+type TipoKey = "deal" | "unidade" | "medico" | "livre";
+const TIPO_META: Record<TipoKey, { label: string; cls: string }> = {
+  deal:     { label: "Deal",     cls: "bg-violet-100 text-violet-800 border-violet-200 dark:bg-violet-950/40 dark:text-violet-200 dark:border-violet-900" },
+  unidade:  { label: "Unidade",  cls: "bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-950/40 dark:text-sky-200 dark:border-sky-900" },
+  medico:   { label: "Médico",   cls: "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-900" },
+  livre:    { label: "Livre",    cls: "bg-stone-100 text-stone-700 border-stone-200 dark:bg-stone-900/40 dark:text-stone-300 dark:border-stone-800" },
+};
+function tipoOf(t: any): TipoKey {
+  if (t.deal_id) return "deal";
+  if (t.unidade_id) return "unidade";
+  if (t.medico_id) return "medico";
+  return "livre";
+}
+
+// ============= Lista compacta (tabela) =============
+function CompactList({ tarefas, onToggle, onChanged }: { tarefas: any[]; onToggle: (t: any) => void; onChanged: () => void }) {
+  const ordenadas = useMemo(() => {
+    const score = (t: any) => {
+      if (t.status === "concluida") return 4;
+      if (!t.data_vencimento) return 3;
+      const d = new Date(t.data_vencimento);
+      if (t.status === "atrasada" || (d < new Date() && !isToday(d))) return 0;
+      if (isToday(d)) return 1;
+      return 2;
+    };
+    return [...tarefas].sort((a, b) => {
+      const sa = score(a), sb = score(b);
+      if (sa !== sb) return sa - sb;
+      const da = a.data_vencimento ? new Date(a.data_vencimento).getTime() : Infinity;
+      const db = b.data_vencimento ? new Date(b.data_vencimento).getTime() : Infinity;
+      return da - db;
+    });
+  }, [tarefas]);
+
+  return (
+    <Card>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
+            <tr>
+              <th className="w-8 px-2 py-2"></th>
+              <th className="w-24 px-2 py-2 text-left">Tipo</th>
+              <th className="px-2 py-2 text-left">Tarefa</th>
+              <th className="w-44 px-2 py-2 text-left">Vínculo</th>
+              <th className="w-36 px-2 py-2 text-left">Vencimento</th>
+              <th className="w-20 px-2 py-2 text-left">Prio.</th>
+              <th className="w-32 px-2 py-2 text-left">Responsável</th>
+            </tr>
+          </thead>
+          <tbody>
+            {ordenadas.map((t) => (
+              <CompactRow key={t.id} t={t} onToggle={onToggle} onChanged={onChanged} />
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  );
+}
+
+function CompactRow({ t, onToggle, onChanged }: { t: any; onToggle: (t: any) => void; onChanged: () => void }) {
+  const [openEdit, setOpenEdit] = useState(false);
+  const concluida = t.status === "concluida";
+  const overdue = t.status === "atrasada" || (!concluida && t.data_vencimento && new Date(t.data_vencimento) < new Date() && !isToday(new Date(t.data_vencimento)));
+  const today = !concluida && t.data_vencimento && isToday(new Date(t.data_vencimento));
+  const tipo = tipoOf(t);
+  const meta = TIPO_META[tipo];
+
+  const link = t.deal_id ? `/deals/${t.deal_id}`
+    : t.unidade_id ? `/unidades/${t.unidade_id}`
+    : t.medico_id ? `/medicos/${t.medico_id}` : null;
+  const linkLabel = t.deals?.titulo
+    || (t.medicos?.nome && `Dr. ${t.medicos.nome}`)
+    || t.unidades_saude?.nome || "—";
+
+  return (
+    <>
+      <tr
+        className={`border-t hover:bg-accent/30 transition-colors ${
+          overdue ? "bg-destructive/5" : today ? "bg-warning/5" : ""
+        } ${concluida ? "opacity-60" : ""}`}
+      >
+        <td className="px-2 py-1.5 align-middle">
+          <Checkbox checked={concluida} onCheckedChange={() => onToggle(t)} className="h-4 w-4" />
+        </td>
+        <td className="px-2 py-1.5 align-middle">
+          <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${meta.cls}`}>
+            {meta.label}
+          </span>
+        </td>
+        <td className="px-2 py-1.5 align-middle cursor-pointer" onClick={() => setOpenEdit(true)}>
+          <div className={`font-medium truncate ${concluida ? "line-through" : ""}`}>{t.titulo}</div>
+        </td>
+        <td className="px-2 py-1.5 align-middle">
+          {link ? (
+            <Link to={link} className="text-primary hover:underline truncate block max-w-[180px]">{linkLabel}</Link>
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          )}
+        </td>
+        <td className="px-2 py-1.5 align-middle whitespace-nowrap">
+          {t.data_vencimento ? (
+            <span className={`inline-flex items-center gap-1 text-xs ${overdue ? "text-destructive font-medium" : today ? "text-warning font-medium" : "text-muted-foreground"}`}>
+              <Calendar className="h-3 w-3" />
+              {format(new Date(t.data_vencimento), "dd/MM HH:mm", { locale: ptBR })}
+            </span>
+          ) : <span className="text-muted-foreground text-xs">—</span>}
+        </td>
+        <td className="px-2 py-1.5 align-middle">
+          <Badge variant="outline" className={`${TAREFA_PRIORIDADE_BADGE[t.prioridade as TarefaPrioridade]} text-[10px] px-1.5 py-0`}>
+            {TAREFA_PRIORIDADE_LABELS[t.prioridade as TarefaPrioridade]}
+          </Badge>
+        </td>
+        <td className="px-2 py-1.5 align-middle text-xs text-muted-foreground truncate max-w-[140px]">
+          {t.responsavel?.nome ?? "—"}
+        </td>
+      </tr>
+      <Dialog open={openEdit} onOpenChange={setOpenEdit}>
+        <EditarTarefaDialog tarefa={t} onSaved={() => { setOpenEdit(false); onChanged(); }} />
+      </Dialog>
+    </>
+  );
+}
+
+// ============= Seção (legacy, mantida caso usada) =============
 function Secao({ titulo, icon, tarefas, onToggle, onChanged, emptyText, highlight }: {
   titulo: string;
   icon: React.ReactNode;
@@ -370,7 +475,6 @@ function Secao({ titulo, icon, tarefas, onToggle, onChanged, emptyText, highligh
   emptyText: string;
   highlight?: boolean;
 }) {
-  // Hierarquia: atrasadas → hoje → futuras → outras (sem data)
   const ordenadas = useMemo(() => {
     const atrasadas: any[] = [];
     const hoje: any[] = [];

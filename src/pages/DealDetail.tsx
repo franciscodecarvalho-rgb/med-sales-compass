@@ -50,7 +50,7 @@ export default function DealDetail() {
       supabase.from("deal_equipamentos").select("*, equipamentos(nome)").eq("deal_id", id),
       supabase.from("deal_stage_history").select("*, profiles!deal_stage_history_changed_by_profile_fkey(nome)").eq("deal_id", id).order("changed_at", { ascending: false }),
       supabase.from("anotacoes").select("*, profiles!anotacoes_autor_profile_fkey(nome)").eq("deal_id", id).is("archived_at", null).order("created_at", { ascending: false }),
-      supabase.from("tarefas").select("*").eq("deal_id", id).order("data_vencimento", { ascending: true, nullsFirst: false }),
+      supabase.from("tarefas").select("*, deals(id, titulo)").eq("deal_id", id).order("data_vencimento", { ascending: true, nullsFirst: false }),
     ]);
     setDeal(d.data);
     setEquipamentos(eq.data ?? []);

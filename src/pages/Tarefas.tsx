@@ -162,13 +162,14 @@ export default function Tarefas() {
     return Array.from(map.values()).sort((a, b) => b.tarefas.length - a.tarefas.length);
   }, [items, isAdminOrGerente]);
 
-  async function toggleConcluir(t: any) {
-    const concluindo = t.status !== "concluida";
+  // Reabrir tarefa (sem comentário). Concluir é feito via ConcluirTarefaDialog.
+  async function reabrirTarefa(t: any) {
     const { error } = await supabase.from("tarefas").update({
-      status: concluindo ? "concluida" : "pendente",
-      concluida_em: concluindo ? new Date().toISOString() : null,
+      status: "pendente",
+      concluida_em: null,
     }).eq("id", t.id);
     if (error) { toast.error(error.message); return; }
+    toast.success("Tarefa reaberta");
     void load();
   }
 
@@ -324,7 +325,7 @@ export default function Tarefas() {
       ) : filtered.length === 0 ? (
         <Card><CardContent className="p-6 text-sm text-muted-foreground text-center">Nenhuma tarefa encontrada.</CardContent></Card>
       ) : (
-        <CompactList tarefas={filtered} onToggle={toggleConcluir} onChanged={load} />
+        <CompactList tarefas={filtered} onReabrir={reabrirTarefa} onChanged={load} />
       )}
     </div>
   );
@@ -356,7 +357,7 @@ function tipoOf(t: any): TipoKey {
 }
 
 // ============= Lista compacta (tabela) =============
-function CompactList({ tarefas, onToggle, onChanged }: { tarefas: any[]; onToggle: (t: any) => void; onChanged: () => void }) {
+function CompactList({ tarefas, onReabrir, onChanged }: { tarefas: any[]; onReabrir: (t: any) => void; onChanged: () => void }) {
   const ordenadas = useMemo(() => {
     const score = (t: any) => {
       if (t.status === "concluida") return 4;
@@ -392,7 +393,7 @@ function CompactList({ tarefas, onToggle, onChanged }: { tarefas: any[]; onToggl
           </thead>
           <tbody>
             {ordenadas.map((t) => (
-              <CompactRow key={t.id} t={t} onToggle={onToggle} onChanged={onChanged} />
+              <CompactRow key={t.id} t={t} onReabrir={onReabrir} onChanged={onChanged} />
             ))}
           </tbody>
         </table>
@@ -401,8 +402,9 @@ function CompactList({ tarefas, onToggle, onChanged }: { tarefas: any[]; onToggl
   );
 }
 
-function CompactRow({ t, onToggle, onChanged }: { t: any; onToggle: (t: any) => void; onChanged: () => void }) {
+function CompactRow({ t, onReabrir, onChanged }: { t: any; onReabrir: (t: any) => void; onChanged: () => void }) {
   const [openEdit, setOpenEdit] = useState(false);
+  const [openConcluir, setOpenConcluir] = useState(false);
   const concluida = t.status === "concluida";
   const overdue = t.status === "atrasada" || (!concluida && t.data_vencimento && new Date(t.data_vencimento) < new Date() && !isToday(new Date(t.data_vencimento)));
   const today = !concluida && t.data_vencimento && isToday(new Date(t.data_vencimento));
@@ -416,6 +418,14 @@ function CompactRow({ t, onToggle, onChanged }: { t: any; onToggle: (t: any) => 
     || (t.medicos?.nome && `Dr. ${t.medicos.nome}`)
     || t.unidades_saude?.nome || "—";
 
+  function handleCheckbox() {
+    if (concluida) {
+      onReabrir(t);
+    } else {
+      setOpenConcluir(true);
+    }
+  }
+
   return (
     <>
       <tr
@@ -424,7 +434,7 @@ function CompactRow({ t, onToggle, onChanged }: { t: any; onToggle: (t: any) => 
         } ${concluida ? "opacity-60" : ""}`}
       >
         <td className="px-2 py-1.5 align-middle">
-          <Checkbox checked={concluida} onCheckedChange={() => onToggle(t)} className="h-4 w-4" />
+          <Checkbox checked={concluida} onCheckedChange={handleCheckbox} className="h-4 w-4" />
         </td>
         <td className="px-2 py-1.5 align-middle">
           <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${meta.cls}`}>
@@ -461,7 +471,104 @@ function CompactRow({ t, onToggle, onChanged }: { t: any; onToggle: (t: any) => 
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
         <EditarTarefaDialog tarefa={t} onSaved={() => { setOpenEdit(false); onChanged(); }} />
       </Dialog>
+      <ConcluirTarefaDialog
+        open={openConcluir}
+        onOpenChange={setOpenConcluir}
+        tarefa={t}
+        onConcluida={() => { setOpenConcluir(false); onChanged(); }}
+      />
     </>
+  );
+}
+
+// ============= Diálogo de conclusão (exige comentário) =============
+function ConcluirTarefaDialog({
+  open, onOpenChange, tarefa, onConcluida,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  tarefa: any;
+  onConcluida: () => void;
+}) {
+  const { user } = useAuth();
+  const [comentario, setComentario] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => { if (!open) setComentario(""); }, [open]);
+
+  async function handleConcluir() {
+    const txt = comentario.trim();
+    if (txt.length < 3) { toast.error("Escreva um comentário descrevendo a conclusão."); return; }
+    if (!user) return;
+    setSaving(true);
+
+    let anotacaoId: string | null = null;
+    const temVinculo = tarefa.deal_id || tarefa.unidade_id || tarefa.medico_id;
+
+    if (temVinculo) {
+      const { data: anot, error: errAnot } = await supabase.from("anotacoes").insert({
+        autor_id: user.id,
+        texto: `[Conclusão tarefa: ${tarefa.titulo}]\n${txt}`,
+        deal_id: tarefa.deal_id ?? null,
+        unidade_id: tarefa.unidade_id ?? null,
+        medico_id: tarefa.medico_id ?? null,
+      }).select("id").single();
+      if (errAnot) { toast.error(errAnot.message); setSaving(false); return; }
+      anotacaoId = anot.id;
+    }
+
+    const updates: any = {
+      status: "concluida",
+      concluida_em: new Date().toISOString(),
+    };
+    if (anotacaoId) updates.anotacao_id = anotacaoId;
+    if (!temVinculo) {
+      // tarefa livre: armazena comentário na descrição
+      updates.descricao = `${tarefa.descricao ? tarefa.descricao + "\n\n" : ""}✓ Concluída: ${txt}`;
+    }
+
+    const { error } = await supabase.from("tarefas").update(updates).eq("id", tarefa.id);
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Tarefa concluída");
+    onConcluida();
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Concluir tarefa</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div className="rounded-md border bg-muted/30 p-3 text-sm">
+            <div className="font-medium">{tarefa.titulo}</div>
+            {tarefa.descricao && <div className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">{tarefa.descricao}</div>}
+          </div>
+          <div>
+            <Label>Comentário de conclusão *</Label>
+            <Textarea
+              value={comentario}
+              onChange={(e) => setComentario(e.target.value)}
+              placeholder="O que foi feito? Qual o resultado? Próximos passos?"
+              rows={5}
+              autoFocus
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              {tarefa.deal_id || tarefa.unidade_id || tarefa.medico_id
+                ? "Será salvo na timeline do vínculo."
+                : "Será salvo na descrição da tarefa."}
+            </p>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>Cancelar</Button>
+          <Button onClick={handleConcluir} disabled={saving || comentario.trim().length < 3}>
+            {saving ? "Salvando..." : "Concluir tarefa"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

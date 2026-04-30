@@ -162,13 +162,14 @@ export default function Tarefas() {
     return Array.from(map.values()).sort((a, b) => b.tarefas.length - a.tarefas.length);
   }, [items, isAdminOrGerente]);
 
-  async function toggleConcluir(t: any) {
-    const concluindo = t.status !== "concluida";
+  // Reabrir tarefa (sem comentário). Concluir é feito via ConcluirTarefaDialog.
+  async function reabrirTarefa(t: any) {
     const { error } = await supabase.from("tarefas").update({
-      status: concluindo ? "concluida" : "pendente",
-      concluida_em: concluindo ? new Date().toISOString() : null,
+      status: "pendente",
+      concluida_em: null,
     }).eq("id", t.id);
     if (error) { toast.error(error.message); return; }
+    toast.success("Tarefa reaberta");
     void load();
   }
 

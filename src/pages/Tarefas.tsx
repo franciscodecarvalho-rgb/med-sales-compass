@@ -25,6 +25,7 @@ import {
   TAREFA_STATUS_LABELS, TAREFA_STATUS_BADGE, TarefaPrioridade, TarefaStatus,
 } from "@/lib/crm";
 import { ExportButton, exportToExcel } from "@/lib/export";
+import { EditarTarefaDialog } from "@/components/EditarTarefaDialog";
 import { format, isToday, isThisWeek, isThisMonth, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 

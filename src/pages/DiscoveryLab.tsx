@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
-type Cnae = { id: string; descricao: string };
+type Cnae = { id: string; descricao: string; codigoBusca: string };
 type Uf = { id: number; sigla: string; nome: string };
 type Municipio = { id: number; nome: string };
 
@@ -62,6 +62,11 @@ type Resultado = {
 };
 
 const PAGE_SIZE = 50;
+const IBGE_API = "https://servicodados.ibge.gov.br/api";
+
+function onlyDigits(value: string) {
+  return value.replace(/\D/g, "");
+}
 
 // ============ SCORE ============
 function scoreBreakdown(r: Resultado) {

@@ -241,12 +241,15 @@ export default function DiscoveryLab() {
     setStage(1); setStageProg({ done: 0, total: 1 });
     let lista: any[] = [];
     try {
+      const municipioId = municipios.find((m) => m.nome === municipio)?.id;
+      if (!municipioId) throw new Error("Selecione uma cidade válida.");
       const r = await callFn({
         action: "search",
         cnae: cnaeSel.map((c) => c.id),
-        uf, municipio, situacao,
+        uf, municipioId, situacao,
       });
       if (r?.error) throw new Error(r.error);
+      if (r?.usage) setUsage(r.usage);
       lista = r.results ?? [];
     } catch (e: any) {
       toast.error(`Falha na busca: ${e.message ?? e}`);
@@ -264,21 +267,32 @@ export default function DiscoveryLab() {
     const base: Resultado[] = lista.map((it: any) => {
       const cnpj = String(it.cnpj ?? it.cnpj_basico ?? "").replace(/\D/g, "");
       const e = elimMap.get(cnpj);
+      const mapped = it._mapped ?? {};
+      const socios: Socio[] = (mapped.socios ?? []).map((m: Socio) => ({ ...m, medico: isMedico(m) }));
       return {
         cnpj,
         razao_social: it.razao_social,
         nome_fantasia: it.nome_fantasia,
         cidade: it.municipio,
         uf: it.uf,
-        cnae_descricao: it.atividade_principal,
-        status_busca: "pendente",
+        cnae_descricao: mapped.cnae_descricao ?? it.atividade_principal,
+        cnae_codigo: mapped.cnae_codigo,
+        capital_social: mapped.capital_social,
+        data_abertura: mapped.data_abertura,
+        porte: mapped.porte,
+        email: mapped.email,
+        telefone: mapped.telefone,
+        telefone_receita: mapped.telefone_receita,
+        endereco: mapped.endereco,
+        socios,
+        status_busca: it._enriched ? "ok" : "pendente",
         eliminado: e ? { motivo: e.motivo, em: e.eliminado_em } : null,
       };
     });
     setResults(base);
 
     setStage(2);
-    const enriquecer = base.map((b, i) => ({ b, i })).filter(({ b }) => !b.eliminado);
+    const enriquecer = base.map((b, i) => ({ b, i })).filter(({ b }) => !b.eliminado && b.status_busca !== "ok");
     setStageProg({ done: 0, total: enriquecer.length });
 
     for (let k = 0; k < enriquecer.length; k++) {
@@ -325,9 +339,10 @@ export default function DiscoveryLab() {
     }
 
     setStage(3);
-    setStageProg({ done: 0, total: enriquecer.length });
-    for (let k = 0; k < enriquecer.length; k++) {
-      const { i } = enriquecer[k];
+    const places = base.map((b, i) => ({ b, i })).filter(({ b }) => !b.eliminado);
+    setStageProg({ done: 0, total: places.length });
+    for (let k = 0; k < places.length; k++) {
+      const { i } = places[k];
       let nome = ""; let cidade = "";
       setResults((prev) => {
         nome = prev[i]?.nome_fantasia || prev[i]?.razao_social || "";
@@ -335,7 +350,7 @@ export default function DiscoveryLab() {
         return prev;
       });
       const q = `${nome} ${cidade}`.trim();
-      if (!q) { setStageProg({ done: k + 1, total: enriquecer.length }); continue; }
+      if (!q) { setStageProg({ done: k + 1, total: places.length }); continue; }
       try {
         const r = await callFn({ action: "places", query: q });
         if (r?.error === "limit_reached") {
@@ -355,7 +370,7 @@ export default function DiscoveryLab() {
           } : x));
         }
       } catch {}
-      setStageProg({ done: k + 1, total: enriquecer.length });
+      setStageProg({ done: k + 1, total: places.length });
       await new Promise((res) => setTimeout(res, 220));
     }
 

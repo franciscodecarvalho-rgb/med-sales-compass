@@ -568,7 +568,7 @@ export default function DiscoveryLab() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="md:col-span-2">
+            <div className="sm:col-span-2 md:col-span-2">
               <Label>Situação</Label>
               <Select value={situacao} onValueChange={setSituacao}>
                 <SelectTrigger><SelectValue /></SelectTrigger>

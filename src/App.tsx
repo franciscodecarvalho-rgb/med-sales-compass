@@ -43,6 +43,9 @@ const App = () => (
               <Route path="/discovery" element={
                 <ProtectedRoute requireRoles={["admin", "gerente", "vendedor"]}><Discovery /></ProtectedRoute>
               } />
+              <Route path="/discovery/lab" element={
+                <ProtectedRoute requireRoles={["admin", "gerente", "vendedor"]}><DiscoveryLab /></ProtectedRoute>
+              } />
               <Route path="/discovery/:id" element={
                 <ProtectedRoute requireRoles={["admin", "gerente", "vendedor"]}><DiscoveryDetail /></ProtectedRoute>
               } />

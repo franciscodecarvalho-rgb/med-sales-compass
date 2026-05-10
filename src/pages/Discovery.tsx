@@ -14,7 +14,7 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Plus, Search as SearchIcon, Sparkles, ExternalLink } from "lucide-react";
+import { Plus, Search as SearchIcon, Sparkles, ExternalLink, FlaskConical } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -109,6 +109,17 @@ export default function Discovery() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button
+            asChild
+            size="lg"
+            className="relative overflow-hidden rounded-xl bg-gradient-to-br from-orange-500 via-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/30 transition-all hover:scale-[1.02] hover:from-orange-600 hover:to-orange-700 hover:shadow-orange-500/50"
+          >
+            <Link to="/discovery/lab">
+              <FlaskConical className="mr-2 h-5 w-5" />
+              <span className="font-bold tracking-wide">LAB</span>
+              <span className="ml-2 hidden text-xs font-normal opacity-90 sm:inline">Laboratório de Prospecção</span>
+            </Link>
+          </Button>
           <Button variant="outline" onClick={() => setImportOpen(true)}>
             <Sparkles className="mr-2 h-4 w-4" />
             Importar planilha com IA

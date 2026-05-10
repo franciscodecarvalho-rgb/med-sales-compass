@@ -895,6 +895,60 @@ export type Database = {
           },
         ]
       }
+      lab_config: {
+        Row: {
+          chamadas_mes_atual: number
+          id: string
+          limite_mensal: number
+          mes_referencia: string
+          updated_at: string
+        }
+        Insert: {
+          chamadas_mes_atual?: number
+          id?: string
+          limite_mensal?: number
+          mes_referencia?: string
+          updated_at?: string
+        }
+        Update: {
+          chamadas_mes_atual?: number
+          id?: string
+          limite_mensal?: number
+          mes_referencia?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      lab_eliminados: {
+        Row: {
+          cnpj: string
+          created_at: string
+          eliminado_em: string
+          eliminado_por: string | null
+          id: string
+          motivo: string | null
+          razao_social: string | null
+        }
+        Insert: {
+          cnpj: string
+          created_at?: string
+          eliminado_em?: string
+          eliminado_por?: string | null
+          id?: string
+          motivo?: string | null
+          razao_social?: string | null
+        }
+        Update: {
+          cnpj?: string
+          created_at?: string
+          eliminado_em?: string
+          eliminado_por?: string | null
+          id?: string
+          motivo?: string | null
+          razao_social?: string | null
+        }
+        Relationships: []
+      }
       linhas_produto: {
         Row: {
           archived_at: string | null
@@ -1647,6 +1701,22 @@ export type Database = {
         Returns: boolean
       }
       is_admin_or_gerente: { Args: { _user_id: string }; Returns: boolean }
+      lab_increment_chamadas: {
+        Args: { _n: number }
+        Returns: {
+          chamadas_mes_atual: number
+          id: string
+          limite_mensal: number
+          mes_referencia: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "lab_config"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       marcar_tarefas_atrasadas: { Args: never; Returns: number }
     }
     Enums: {

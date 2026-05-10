@@ -14,7 +14,7 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Plus, Search as SearchIcon, Sparkles, ExternalLink } from "lucide-react";
+import { Plus, Search as SearchIcon, Sparkles, ExternalLink, FlaskConical } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import {

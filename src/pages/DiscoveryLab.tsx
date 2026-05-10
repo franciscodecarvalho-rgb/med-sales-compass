@@ -23,9 +23,10 @@ import {
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   ArrowLeft, FlaskConical, Search, Star, ExternalLink, Loader2, X, Check,
-  Eye, Trash2, Stethoscope, Send, MapPin,
+  Eye, Stethoscope, Send, MapPin, Inbox,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";

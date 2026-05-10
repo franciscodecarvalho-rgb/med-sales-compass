@@ -12,7 +12,8 @@ import {
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Archive, ArchiveRestore, Settings as SettingsIcon, Layers, Timer } from "lucide-react";
+import { Plus, Pencil, Archive, ArchiveRestore, Settings as SettingsIcon, Layers, Timer, FlaskConical, RotateCcw, Save } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -60,6 +61,9 @@ export default function Configuracoes() {
         <TabsList className="flex flex-wrap h-auto">
           <TabsTrigger value="linhas">Linhas de Produto</TabsTrigger>
           <TabsTrigger value="contador">Contador</TabsTrigger>
+          <TabsTrigger value="lab" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white">
+            <FlaskConical className="mr-1 h-4 w-4" /> LAB
+          </TabsTrigger>
           {SIMPLE_TABLES.map((t) => (
             <TabsTrigger key={t.key} value={t.key}>{t.label}</TabsTrigger>
           ))}
@@ -68,6 +72,7 @@ export default function Configuracoes() {
 
         <TabsContent value="linhas"><LinhasSection /></TabsContent>
         <TabsContent value="contador"><ContadorSection /></TabsContent>
+        <TabsContent value="lab"><LabSection /></TabsContent>
         {SIMPLE_TABLES.map((t) => (
           <TabsContent key={t.key} value={t.key}>
             <SimpleSection table={t.key} title={t.label} description={t.description} />
@@ -482,6 +487,90 @@ function EstadosSection() {
               </Button>
             </div>
           ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ---------------- LAB ----------------
+function LabSection() {
+  const [cfg, setCfg] = useState<{ id: string; limite_mensal: number; chamadas_mes_atual: number; mes_referencia: string } | null>(null);
+  const [limite, setLimite] = useState(1300);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => { void load(); }, []);
+  async function load() {
+    const { data } = await supabase
+      .from("lab_config").select("*")
+      .order("updated_at", { ascending: false }).limit(1).maybeSingle();
+    if (data) { setCfg(data as any); setLimite(data.limite_mensal); }
+  }
+
+  async function salvarLimite() {
+    if (!cfg) return;
+    setBusy(true);
+    const { error } = await supabase.from("lab_config")
+      .update({ limite_mensal: limite, updated_at: new Date().toISOString() })
+      .eq("id", cfg.id);
+    setBusy(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Limite atualizado"); void load();
+  }
+
+  async function resetar() {
+    if (!cfg) return;
+    if (!confirm("Resetar contador para 0? Use apenas para testes.")) return;
+    setBusy(true);
+    const { error } = await supabase.from("lab_config")
+      .update({ chamadas_mes_atual: 0, updated_at: new Date().toISOString() })
+      .eq("id", cfg.id);
+    setBusy(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Contador resetado"); void load();
+  }
+
+  const pct = cfg ? Math.round((cfg.chamadas_mes_atual / cfg.limite_mensal) * 100) : 0;
+
+  return (
+    <Card className="border-orange-200">
+      <CardHeader className="bg-gradient-to-r from-orange-50 to-orange-100/50">
+        <CardTitle className="flex items-center gap-2">
+          <FlaskConical className="h-5 w-5 text-orange-600" />
+          LAB — Laboratório de Prospecção
+        </CardTitle>
+        <CardDescription>
+          Configuração de chaves de API e limite mensal de chamadas.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6 pt-6">
+        <div className="rounded-lg border bg-muted/30 p-4">
+          <h4 className="mb-2 text-sm font-semibold">🔑 Chaves de API</h4>
+          <p className="text-xs text-muted-foreground mb-3">
+            As chaves <code>CNPJA_API_KEY</code> e <code>GOOGLE_PLACES_API_KEY</code> são gerenciadas pelo Lovable Cloud.
+            Para atualizá-las, peça ao Lovable: <em>"atualize as chaves CNPJA_API_KEY e GOOGLE_PLACES_API_KEY"</em>.
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          <Label>Limite mensal de chamadas</Label>
+          <div className="flex gap-2">
+            <Input type="number" min={1} value={limite} onChange={(e) => setLimite(Number(e.target.value))} className="max-w-[200px]" />
+            <Button onClick={salvarLimite} disabled={busy || !cfg}>
+              <Save className="mr-2 h-4 w-4" /> Salvar
+            </Button>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="font-medium">Uso do mês {cfg?.mes_referencia ?? ""}</span>
+            <span className="font-mono">{cfg?.chamadas_mes_atual ?? 0} / {cfg?.limite_mensal ?? 0}</span>
+          </div>
+          <Progress value={pct} className="h-3" />
+          <Button variant="outline" size="sm" onClick={resetar} disabled={busy || !cfg}>
+            <RotateCcw className="mr-2 h-4 w-4" /> Resetar contador
+          </Button>
         </div>
       </CardContent>
     </Card>

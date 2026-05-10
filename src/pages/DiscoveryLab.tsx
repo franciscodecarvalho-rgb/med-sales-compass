@@ -502,11 +502,11 @@ export default function DiscoveryLab() {
         </div>
       </div>
 
-      <div className="space-y-6 p-6">
+      <div className="space-y-4 p-3 sm:space-y-6 sm:p-6">
         {/* Filtros */}
-        <div className="rounded-xl border bg-card p-4 shadow-sm">
-          <div className="grid gap-3 md:grid-cols-12">
-            <div className="md:col-span-5">
+        <div className="rounded-xl border bg-card p-3 shadow-sm sm:p-4">
+          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-12">
+            <div className="sm:col-span-2 md:col-span-5">
               <Label>CNAE *</Label>
               <Popover open={cnaeOpen} onOpenChange={setCnaeOpen}>
                 <PopoverTrigger asChild>
@@ -514,7 +514,7 @@ export default function DiscoveryLab() {
                     {cnaeSel.length ? `${cnaeSel.length} CNAE(s) selecionado(s)` : "Selecionar CNAE..."}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[480px] p-0" align="start">
+                <PopoverContent className="w-[min(480px,calc(100vw-1.5rem))] p-0" align="start">
                   <Command shouldFilter={false}>
                     <CommandInput placeholder="Buscar por código ou descrição..." value={cnaeQuery} onValueChange={setCnaeQuery} />
                     <CommandList>

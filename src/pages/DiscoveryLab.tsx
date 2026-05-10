@@ -120,6 +120,7 @@ export default function DiscoveryLab() {
   const [cnaeSel, setCnaeSel] = useState<Cnae[]>([]);
   const [cnaeOpen, setCnaeOpen] = useState(false);
   const [cnaeQuery, setCnaeQuery] = useState("");
+  const cnaeQueryDeferred = useDeferredValue(cnaeQuery);
   const [uf, setUf] = useState<string>("");
   const [municipio, setMunicipio] = useState<string>("");
   const [situacao, setSituacao] = useState<string>("ATIVA");
@@ -173,17 +174,20 @@ export default function DiscoveryLab() {
   async function loadInitial() {
     const [u, ufRes, cnaeRes] = await Promise.all([
       callFn({ action: "usage" }),
-      fetch("https://servicosdados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome").then((r) => r.json()),
-      fetch("https://servicosdados.ibge.gov.br/api/v2/cnae/subclasses").then((r) => r.json()),
+      fetch(`${IBGE_API}/v1/localidades/estados?orderBy=nome`).then((r) => r.json()),
+      fetch(`${IBGE_API}/v2/cnae/subclasses`).then((r) => r.json()),
     ]);
     if (u?.usage) setUsage(u.usage);
     setUfs(ufRes ?? []);
-    setCnaeList((cnaeRes ?? []).map((c: any) => ({ id: String(c.id), descricao: c.descricao })));
+    setCnaeList((cnaeRes ?? []).map((c: any) => {
+      const id = String(c.id);
+      return { id, descricao: c.descricao, codigoBusca: onlyDigits(id) };
+    }));
   }
 
   useEffect(() => {
     if (!uf) { setMunicipios([]); setMunicipio(""); return; }
-    fetch(`https://servicosdados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`)
+    fetch(`${IBGE_API}/v1/localidades/estados/${uf}/municipios`)
       .then((r) => r.json()).then((d) => setMunicipios(d ?? []));
     setMunicipio("");
   }, [uf]);
@@ -202,12 +206,12 @@ export default function DiscoveryLab() {
   }
 
   const cnaeFiltered = useMemo(() => {
-    const q = cnaeQuery.toLowerCase().trim();
+    const q = onlyDigits(cnaeQueryDeferred);
     if (!q) return cnaeList.slice(0, 50);
     return cnaeList
-      .filter((c) => c.id.includes(q))
+      .filter((c) => c.codigoBusca.includes(q))
       .slice(0, 100);
-  }, [cnaeQuery, cnaeList]);
+  }, [cnaeQueryDeferred, cnaeList]);
 
   const usagePct = usage ? Math.round((usage.chamadas_mes_atual / usage.limite_mensal) * 100) : 0;
   const usageColor = usagePct >= 95 ? "bg-destructive" : usagePct >= 80 ? "bg-yellow-500" : "bg-emerald-500";

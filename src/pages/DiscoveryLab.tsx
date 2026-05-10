@@ -384,10 +384,58 @@ export default function DiscoveryLab() {
     });
   }
 
-  const selectedNonElim = useMemo(
-    () => results.filter((r) => selected.has(r.cnpj) && !r.eliminado),
-    [results, selected]
-  );
+    setStage(0);
+    toast.success(`Busca concluída — ${base.length} empresas`);
+
+    // Persistir pendentes (excluindo eliminados) na lista de espera
+    const upRows = base
+      .map((b, i) => ({ ...b, ...((results[i] as any) ?? {}) }))
+      .filter((b) => !b.eliminado);
+    // como `results` no estado pode estar atrasado, lemos via callback
+    setResults((cur) => {
+      const upsertRows = cur.filter((r) => !r.eliminado).map((r) => {
+        const sb = scoreBreakdown(r);
+        return {
+          cnpj: r.cnpj,
+          razao_social: r.razao_social ?? null,
+          nome_fantasia: r.nome_fantasia ?? null,
+          cidade: r.cidade ?? null,
+          uf: r.uf ?? null,
+          endereco: r.endereco ?? null,
+          cnae_codigo: r.cnae_codigo ?? null,
+          cnae_descricao: r.cnae_descricao ?? null,
+          capital_social: r.capital_social ?? null,
+          data_abertura: r.data_abertura ?? null,
+          porte: r.porte ?? null,
+          email: r.email ?? null,
+          telefone: r.telefone ?? null,
+          site: r.site ?? null,
+          socios: r.socios ?? [],
+          rating: r.rating ?? null,
+          reviews: r.reviews ?? null,
+          score: Number(sb.total.toFixed(2)),
+          pesquisado_por: user?.id ?? null,
+        };
+      });
+      if (upsertRows.length > 0) {
+        void supabase
+          .from("lab_pendentes")
+          .upsert(upsertRows, { onConflict: "cnpj" })
+          .then(({ error }) => {
+            if (error) toast.error(`Falha ao salvar lista de espera: ${error.message}`);
+            else { void loadPendentes(); setTab("espera"); }
+          });
+      }
+      return cur;
+    });
+  }
+
+  // ordenação por score (maior primeiro), eliminados ao final
+  const ordered = useMemo(() => {
+    const withScore = pendentes.map((r) => ({ r, s: scoreBreakdown(r).total }));
+    withScore.sort((a, b) => b.s - a.s);
+    return withScore;
+  }, [pendentes]);
 
   // ========== Eliminação ==========
   async function confirmarEliminar(targets: Resultado[], motivo: string) {

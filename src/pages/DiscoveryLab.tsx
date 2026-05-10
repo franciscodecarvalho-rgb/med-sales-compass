@@ -582,10 +582,10 @@ export default function DiscoveryLab() {
               </Select>
             </div>
           </div>
-          <div className="mt-4 flex justify-end">
+          <div className="mt-4 flex justify-stretch sm:justify-end">
             <Button
               size="lg"
-              className="bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md hover:from-orange-600 hover:to-orange-700"
+              className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md hover:from-orange-600 hover:to-orange-700 sm:w-auto"
               disabled={limitReached || stage !== 0}
               onClick={pesquisar}
               title={limitReached ? "Limite de 1.300 chamadas mensais atingido" : ""}

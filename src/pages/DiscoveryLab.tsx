@@ -429,29 +429,24 @@ export default function DiscoveryLab() {
     [pendentes, selected]
   );
 
-  // ========== Eliminação ==========
-  async function confirmarEliminar(targets: Resultado[], motivo: string) {
+  // ========== Eliminação (uma por vez) ==========
+  async function confirmarEliminar(target: Resultado, motivo: string) {
     if (!user) return;
-    const rows = targets.map((t) => ({
-      cnpj: t.cnpj,
-      razao_social: t.razao_social ?? t.nome_fantasia ?? null,
-      motivo: motivo.trim() || null,
-      eliminado_por: user.id,
-    }));
-    const { error } = await supabase
+    const { error: e1 } = await supabase
       .from("lab_eliminados")
-      .upsert(rows, { onConflict: "cnpj" });
-    if (error) { toast.error(error.message); return; }
-    const cnpjs = new Set(targets.map((t) => t.cnpj));
-    setResults((prev) => prev.map((r) =>
-      cnpjs.has(r.cnpj)
-        ? { ...r, eliminado: { motivo: motivo.trim() || undefined, em: new Date().toISOString() } }
-        : r,
-    ));
-    setSelected((prev) => {
-      const next = new Set(prev); cnpjs.forEach((c) => next.delete(c)); return next;
-    });
-    toast.success(`${targets.length} empresa(s) eliminada(s)`);
+      .upsert([{
+        cnpj: target.cnpj,
+        razao_social: target.razao_social ?? target.nome_fantasia ?? null,
+        motivo: motivo.trim() || null,
+        eliminado_por: user.id,
+      }], { onConflict: "cnpj" });
+    if (e1) { toast.error(e1.message); return; }
+    const { error: e2 } = await supabase
+      .from("lab_pendentes").delete().eq("cnpj", target.cnpj);
+    if (e2) { toast.error(e2.message); return; }
+    setPendentes((prev) => prev.filter((r) => r.cnpj !== target.cnpj));
+    setSelected((prev) => { const n = new Set(prev); n.delete(target.cnpj); return n; });
+    toast.success("Empresa descartada");
     setEliminarTarget(null);
   }
 

@@ -167,7 +167,7 @@ export default function DiscoveryLab() {
     const cnpjsNorm = lista.map((x) => String(x.cnpj ?? x.cnpj_basico ?? "").replace(/\D/g, "")).filter(Boolean);
     const { data: elim } = await supabase
       .from("lab_eliminados")
-      .select("cnpj, motivo, eliminado_em, eliminado_por, profiles:eliminado_por (nome)" as any)
+      .select("cnpj, motivo, eliminado_em, eliminado_por")
       .in("cnpj", cnpjsNorm);
     const elimMap = new Map<string, any>();
     (elim ?? []).forEach((e: any) => elimMap.set(e.cnpj, e));

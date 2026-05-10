@@ -12,7 +12,8 @@ import {
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Archive, ArchiveRestore, Settings as SettingsIcon, Layers, Timer } from "lucide-react";
+import { Plus, Pencil, Archive, ArchiveRestore, Settings as SettingsIcon, Layers, Timer, FlaskConical, RotateCcw, Save } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 

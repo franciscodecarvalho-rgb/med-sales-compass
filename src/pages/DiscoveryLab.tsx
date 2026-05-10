@@ -351,47 +351,8 @@ export default function DiscoveryLab() {
     }
 
     setStage(0);
-    toast.success(`Busca concluída — ${base.length} empresas`);
-  }
 
-  // ordenação por score (maior primeiro), eliminados ao final
-  const ordered = useMemo(() => {
-    const withScore = results.map((r) => ({ r, s: scoreBreakdown(r).total }));
-    withScore.sort((a, b) => {
-      const aE = a.r.eliminado ? 1 : 0; const bE = b.r.eliminado ? 1 : 0;
-      if (aE !== bE) return aE - bE;
-      return b.s - a.s;
-    });
-    return withScore;
-  }, [results]);
-
-  const totalPages = Math.max(1, Math.ceil(ordered.length / PAGE_SIZE));
-  const pageRows = ordered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-
-  const selectableOnPage = pageRows.filter(({ r }) => !r.eliminado).map(({ r }) => r.cnpj);
-  const allPageSelected = selectableOnPage.length > 0 && selectableOnPage.every((c) => selected.has(c));
-  function togglePageAll() {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (allPageSelected) selectableOnPage.forEach((c) => next.delete(c));
-      else selectableOnPage.forEach((c) => next.add(c));
-      return next;
-    });
-  }
-  function toggleOne(cnpj: string) {
-    setSelected((prev) => {
-      const next = new Set(prev); next.has(cnpj) ? next.delete(cnpj) : next.add(cnpj); return next;
-    });
-  }
-
-    setStage(0);
-    toast.success(`Busca concluída — ${base.length} empresas`);
-
-    // Persistir pendentes (excluindo eliminados) na lista de espera
-    const upRows = base
-      .map((b, i) => ({ ...b, ...((results[i] as any) ?? {}) }))
-      .filter((b) => !b.eliminado);
-    // como `results` no estado pode estar atrasado, lemos via callback
+    // Persistir pendentes na lista de espera
     setResults((cur) => {
       const upsertRows = cur.filter((r) => !r.eliminado).map((r) => {
         const sb = scoreBreakdown(r);
@@ -422,20 +383,51 @@ export default function DiscoveryLab() {
           .from("lab_pendentes")
           .upsert(upsertRows, { onConflict: "cnpj" })
           .then(({ error }) => {
-            if (error) toast.error(`Falha ao salvar lista de espera: ${error.message}`);
-            else { void loadPendentes(); setTab("espera"); }
+            if (error) {
+              toast.error(`Falha ao salvar lista de espera: ${error.message}`);
+            } else {
+              toast.success(`${upsertRows.length} empresa(s) adicionada(s) à lista de espera`);
+              void loadPendentes();
+              setTab("espera");
+            }
           });
+      } else {
+        toast.success("Busca concluída — nenhuma empresa nova");
       }
       return cur;
     });
   }
 
-  // ordenação por score (maior primeiro), eliminados ao final
+  // ordenação por score (maior primeiro)
   const ordered = useMemo(() => {
     const withScore = pendentes.map((r) => ({ r, s: scoreBreakdown(r).total }));
     withScore.sort((a, b) => b.s - a.s);
     return withScore;
   }, [pendentes]);
+
+  const totalPages = Math.max(1, Math.ceil(ordered.length / PAGE_SIZE));
+  const pageRows = ordered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const selectableOnPage = pageRows.map(({ r }) => r.cnpj);
+  const allPageSelected = selectableOnPage.length > 0 && selectableOnPage.every((c) => selected.has(c));
+  function togglePageAll() {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (allPageSelected) selectableOnPage.forEach((c) => next.delete(c));
+      else selectableOnPage.forEach((c) => next.add(c));
+      return next;
+    });
+  }
+  function toggleOne(cnpj: string) {
+    setSelected((prev) => {
+      const next = new Set(prev); next.has(cnpj) ? next.delete(cnpj) : next.add(cnpj); return next;
+    });
+  }
+
+  const selectedNonElim = useMemo(
+    () => pendentes.filter((r) => selected.has(r.cnpj)),
+    [pendentes, selected]
+  );
 
   // ========== Eliminação ==========
   async function confirmarEliminar(targets: Resultado[], motivo: string) {

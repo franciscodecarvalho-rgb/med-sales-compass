@@ -12,6 +12,7 @@ import Unidades from "./pages/Unidades";
 import UnidadeDetail from "./pages/UnidadeDetail";
 import Discovery from "./pages/Discovery";
 import DiscoveryDetail from "./pages/DiscoveryDetail";
+import DiscoveryLab from "./pages/DiscoveryLab";
 import Medicos from "./pages/Medicos";
 import MedicoDetail from "./pages/MedicoDetail";
 import Equipamentos from "./pages/Equipamentos";

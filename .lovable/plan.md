@@ -1,82 +1,51 @@
-# CRM VitaTech — Plano Completo
+## Lista de Espera do LAB ("Segunda Chance")
 
-CRM customizado para a VitaTech (equipamentos médicos) com fluxo de venda, pós-venda e relacionamento com médicos. ~15 usuários, 5 perfis distintos, nada é deletado (apenas finalizado/arquivado), histórico sempre acessível.
+Hoje os resultados do LAB existem só na memória da página: ao sair, atualizar ou rodar nova busca, tudo se perde. Vamos transformar a tabela de resultados numa **lista de espera persistente**, compartilhada entre todos os vendedores, ordenada por prioridade (score). Empresas só saem da lista de duas formas: enviadas ao Discovery, ou descartadas individualmente (com motivo opcional).
 
-## Decisões assumidas (podem ser ajustadas a qualquer momento)
+### Comportamento
 
-- **Fase 1** entrega **Fundação + Funil de Vendas** (auth, perfis, cadastros completos e Kanban de vendas funcionando).
-- **Contador de tempo do deal** mede tempo parado no estágio atual do Kanban (mostra gargalos).
-- **Limites de cor** (verde/amarelo/vermelho) configuráveis por linha de produto, com defaults sensatos (7d / 14d / +14d).
-- **Score da unidade** = soma do valor financeiro do parque instalado, mostrado também como contagem de equipamentos.
+- Toda empresa pesquisada no LAB é salva no banco automaticamente, com todos os dados enriquecidos (CNPJ, sócios, capital, Google, score etc.).
+- O LAB ganha **duas abas** no topo:
+  1. **Buscar** — formulário atual de CNAE + UF + Cidade + botão Pesquisar (fluxo idêntico ao de hoje, mas o resultado vai para a lista de espera ao invés de ficar só em tela).
+  2. **Aguardando (N)** — a lista de espera completa, ordenada por score (maior → menor), com paginação. Eliminadas aparecem no fim, em vermelho.
+- Ao rodar uma nova busca, os CNPJs já existentes na lista são **atualizados** (não duplicados); novos entram com o score recalculado.
+- Todos os vendedores veem a mesma lista; admin/gerente também. (Pós-venda, técnico e assistente continuam sem acesso ao LAB.)
+- **Descarte:** botão "Descartar" em cada linha → abre modal pedindo motivo (opcional, texto livre). Sem ação em lote para descarte. Eliminação fica registrada em `lab_eliminados` (já existe).
+- **Enviar para Discovery:** mantém seleção em lote (checkbox) e botão verde flutuante. Ao enviar com sucesso, a empresa é **removida** da lista de espera (e fica registrada no Discovery normalmente).
+- Detalhes (modal "Eye") e configurações continuam iguais.
 
----
+### Mudanças no banco
 
-## Roadmap em fases
+Nova tabela `lab_pendentes` para guardar a lista de espera:
 
-### Fase 1 — Fundação + Funil de Vendas
-Base do sistema e entrega de valor imediato para o time comercial.
+- `cnpj` (PK, único — evita duplicidade entre buscas)
+- `razao_social`, `nome_fantasia`, `cidade`, `uf`, `endereco`
+- `cnae_codigo`, `cnae_descricao`, `capital_social`, `data_abertura`, `porte`
+- `email`, `telefone`, `site`
+- `socios` (jsonb — lista com nome, qualificação, entrada, flag médico)
+- `rating`, `reviews` (Google)
+- `score` (numérico, calculado no momento da inserção, usado para ordenação no servidor)
+- `pesquisado_por` (uuid do vendedor que rodou a busca; informativo)
+- `pesquisado_em`, `atualizado_em`
 
-- **Autenticação** com email/senha (Lovable Cloud) e os 5 perfis: Admin, Gerente, Vendedor, Pós-Venda/Técnico, Assistente de Vendas.
-- **Controle de acesso** por perfil em todas as páginas e ações (vendedor só vê seus deals, assistente só vê deals em Fechamento+, etc.).
-- **Cadastros base**:
-  - Linhas de produto (marcas/famílias configuráveis: Microtech, R. Wolf, etc.)
-  - Equipamentos (catálogo, vinculados a uma linha)
-  - Unidades de saúde com ciclo Discovery → Lead → Cliente, parque instalado, score automático, médico principal, contatos não-médicos
-  - Médicos como entidade independente, vinculados a múltiplas unidades com papel definido em cada
-  - Contatos não-médicos vinculados à unidade (compras, eng. clínica, admin)
-- **Funil de Vendas (Kanban)** por linha de produto:
-  - 7 estágios: Prospecção → Qualificação → Demonstração → Negociação → Decisão → Fechamento → Finalizado (ganho/perdido)
-  - Drag-and-drop entre estágios, avança e regride livremente
-  - Contador de tempo no estágio atual com cores verde/amarelo/vermelho
-  - Botão "encerrar" disponível em qualquer estágio
-  - Motivo de perda obrigatório ao marcar como perdido
-  - Visão tabela alternativa ao Kanban com filtros (vendedor, estado, cidade, linha, status)
-- **Detalhe do deal**: equipamentos vinculados, valor total, vendedor responsável, histórico de movimentações, anotações e tarefas vinculadas.
-- **Anotações** (texto livre vinculadas a deal/médico/unidade) com campo opcional de "data do próximo contato" que gera tarefa automaticamente.
-- **Tarefas** básicas vinculadas a deal/médico/unidade, com hierarquia de prioridade (deals > relacionamento > discovery).
-- **Dashboard inicial** por perfil (lista de tarefas do dia + meus deals em andamento).
-- **Exportação Excel** das listas para o Gerente.
+RLS:
+- SELECT: qualquer usuário autenticado com papel `admin`, `gerente` ou `vendedor`.
+- INSERT/UPDATE/DELETE: mesmos papéis. (Sem restrição por dono — lista compartilhada.)
 
-### Fase 2 — Médicos, Tarefas e Relacionamento
-Aprofundar o lado relacional e operacional do dia a dia.
+A tabela `lab_eliminados` já existe e continua sendo usada como histórico de descartes; ao descartar, removemos da `lab_pendentes` e gravamos em `lab_eliminados`.
 
-- **Tela completa de Médicos** com ficha rica: especialidade, unidades vinculadas e papel em cada, histórico de interações, anotações, próximas ações.
-- **Hub central de Tarefas**: visão consolidada (hoje, atrasadas, próximas), filtros, marcação como concluída, snooze.
-- **Geração automática de tarefas de relacionamento** quando uma anotação tem data de próximo contato, ou quando um médico fica X dias sem contato.
-- **Linha do tempo unificada** por unidade e por médico (todas as interações cronologicamente).
+### Mudanças no frontend (`src/pages/DiscoveryLab.tsx`)
 
-### Fase 3 — Pós-Venda
-Operação técnica completa após deal ganho.
+- Adicionar `Tabs` (Buscar / Aguardando).
+- Após `pesquisar()`, fazer `upsert` em `lab_pendentes` com cada resultado (já com score).
+- Aba "Aguardando" carrega `lab_pendentes` direto do banco (não depende de busca em tela), ordenado por `score desc`.
+- Renderizar a tabela de espera reaproveitando o componente atual (linhas, modal de detalhes, checkbox, score badge).
+- Botão "Descartar" por linha → modal com textarea de motivo opcional → grava em `lab_eliminados` + remove de `lab_pendentes`.
+- Botão "Enviar para Discovery" (lote) → após sucesso, remove os CNPJs enviados de `lab_pendentes`.
+- Remover ação de descarte em lote.
 
-- **Chamados técnicos** vinculados a unidade + equipamento, status (aberto → em atendimento → resolvido → fechado), contador de tempo, histórico.
-- **Instalação e Aplicação** geradas automaticamente quando deal é ganho, com upload de PDF, status (pendente → em andamento → concluído).
-- **Contratos de manutenção**: vigência, valor, cobertura, alertas de vencimento.
-- **Garantia por equipamento**, com vencimento que gera oportunidade automática no funil de manutenção.
-- **NPS**: registro periódico de satisfação por unidade.
-- **Faturamento**: registrado pelo Assistente de Vendas (NF, data, valor) ao final do deal.
+### Fora de escopo (não muda)
 
-### Fase 4 — Funil de Manutenção e Configurações Avançadas
-- **Funil de manutenção** separado por linha (mesmos 7 estágios, mesma mecânica do funil de vendas) para vender contratos de manutenção, especialmente quando garantia vence.
-- **Tela de Configurações (admin)**: linhas de produto, estágios e limites de tempo/cor por linha, motivos de perda, especialidades médicas, papéis de contato.
-- **Gerenciamento de Usuários (admin)**: criar/desativar usuários, atribuir perfis, transferir carteira de deals entre vendedores.
-
-### Fase 5 — Inteligência e Relatórios
-- **Dashboards executivos** por perfil (Gerente: pipeline por vendedor/estado/linha, taxa de conversão por estágio, ciclo médio; Admin: visão geral; Vendedor: meus números).
-- **Relatórios exportáveis** (Excel) com filtros avançados.
-- **Alertas inteligentes** (deal parado, garantia vencendo, NPS baixo, médico sem contato).
-- **Arquivamento e filtros de histórico** consolidados (já que nada é deletado).
-
----
-
-## Notas técnicas
-
-- **Stack**: React + TypeScript + Vite + Tailwind + shadcn/ui (já configurado no projeto).
-- **Backend**: Lovable Cloud (Supabase gerenciado) — auth, Postgres, Storage para PDFs de instalação, RLS por perfil.
-- **State**: TanStack Query (já no projeto) para cache e sincronização com o backend.
-- **Roles**: tabela separada `user_roles` com enum `app_role` e função `has_role` SECURITY DEFINER (padrão seguro, evita escalonamento de privilégio).
-- **Soft delete em tudo**: campo `archived_at` ou `status` em todas as tabelas; nenhum DELETE no código.
-- **Auditoria**: tabela de eventos para rastrear mudanças de estágio, atribuições e ações sensíveis.
-- **Storage**: bucket privado para PDFs de instalação/aplicação.
-- **Realtime opcional** (Fase 2+) para Kanban colaborativo.
-
-Ao aprovar, começo pela **Fase 1**. As fases seguintes são planejadas mas só executadas quando você der sinal verde.
+- Edge function `lab-search` continua igual.
+- Configurações do LAB (limite mensal, contador de chamadas) continuam iguais.
+- Discovery em si não muda.

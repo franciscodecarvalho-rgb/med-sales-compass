@@ -949,6 +949,81 @@ export type Database = {
         }
         Relationships: []
       }
+      lab_pendentes: {
+        Row: {
+          atualizado_em: string
+          capital_social: number | null
+          cidade: string | null
+          cnae_codigo: string | null
+          cnae_descricao: string | null
+          cnpj: string
+          data_abertura: string | null
+          email: string | null
+          endereco: string | null
+          id: string
+          nome_fantasia: string | null
+          pesquisado_em: string
+          pesquisado_por: string | null
+          porte: string | null
+          rating: number | null
+          razao_social: string | null
+          reviews: number | null
+          score: number
+          site: string | null
+          socios: Json
+          telefone: string | null
+          uf: string | null
+        }
+        Insert: {
+          atualizado_em?: string
+          capital_social?: number | null
+          cidade?: string | null
+          cnae_codigo?: string | null
+          cnae_descricao?: string | null
+          cnpj: string
+          data_abertura?: string | null
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nome_fantasia?: string | null
+          pesquisado_em?: string
+          pesquisado_por?: string | null
+          porte?: string | null
+          rating?: number | null
+          razao_social?: string | null
+          reviews?: number | null
+          score?: number
+          site?: string | null
+          socios?: Json
+          telefone?: string | null
+          uf?: string | null
+        }
+        Update: {
+          atualizado_em?: string
+          capital_social?: number | null
+          cidade?: string | null
+          cnae_codigo?: string | null
+          cnae_descricao?: string | null
+          cnpj?: string
+          data_abertura?: string | null
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nome_fantasia?: string | null
+          pesquisado_em?: string
+          pesquisado_por?: string | null
+          porte?: string | null
+          rating?: number | null
+          razao_social?: string | null
+          reviews?: number | null
+          score?: number
+          site?: string | null
+          socios?: Json
+          telefone?: string | null
+          uf?: string | null
+        }
+        Relationships: []
+      }
       linhas_produto: {
         Row: {
           archived_at: string | null

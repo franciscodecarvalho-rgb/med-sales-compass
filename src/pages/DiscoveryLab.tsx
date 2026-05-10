@@ -183,7 +183,7 @@ export default function DiscoveryLab() {
         uf: it.uf,
         cnae_descricao: it.atividade_principal,
         status_busca: "pendente",
-        eliminado: e ? { motivo: e.motivo, em: e.eliminado_em, por: e.profiles?.nome } : null,
+        eliminado: e ? { motivo: e.motivo, em: e.eliminado_em } : null,
       };
     });
     setResults(base);

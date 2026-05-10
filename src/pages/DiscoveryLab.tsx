@@ -1007,25 +1007,22 @@ function DetalhesModal({ r, onClose }: { r: Resultado | null; onClose: () => voi
 function EliminarModal({
   target, onClose, onConfirm,
 }: {
-  target: Resultado | Resultado[] | null;
+  target: Resultado | null;
   onClose: () => void;
-  onConfirm: (targets: Resultado[], motivo: string) => void;
+  onConfirm: (target: Resultado, motivo: string) => Promise<void>;
 }) {
   const [motivo, setMotivo] = useState("");
   const [busy, setBusy] = useState(false);
   useEffect(() => { if (target) setMotivo(""); }, [target]);
   if (!target) return null;
-  const arr = Array.isArray(target) ? target : [target];
-  const titulo = arr.length === 1
-    ? `Eliminar "${arr[0].nome_fantasia || arr[0].razao_social}"?`
-    : `Eliminar ${arr.length} empresas?`;
+  const titulo = `Descartar "${target.nome_fantasia || target.razao_social}"?`;
   return (
     <Dialog open={!!target} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{titulo}</DialogTitle>
           <DialogDescription>
-            {arr.length === 1 ? "Esta empresa" : "Estas empresas"} não aparecerão mais em buscas futuras para nenhum vendedor.
+            Esta empresa sai da lista de espera e não voltará em buscas futuras (fica registrada como descartada).
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-2">
@@ -1041,16 +1038,17 @@ function EliminarModal({
           <Button
             variant="destructive"
             disabled={busy}
-            onClick={async () => { setBusy(true); await onConfirm(arr, motivo); setBusy(false); }}
+            onClick={async () => { setBusy(true); await onConfirm(target, motivo); setBusy(false); }}
           >
             {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Confirmar eliminação
+            Confirmar descarte
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
+
 
 function EnviarDialog({
   open, count, onClose, onConfirm,

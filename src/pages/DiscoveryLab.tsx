@@ -339,9 +339,10 @@ export default function DiscoveryLab() {
     }
 
     setStage(3);
-    setStageProg({ done: 0, total: enriquecer.length });
-    for (let k = 0; k < enriquecer.length; k++) {
-      const { i } = enriquecer[k];
+    const places = base.map((b, i) => ({ b, i })).filter(({ b }) => !b.eliminado);
+    setStageProg({ done: 0, total: places.length });
+    for (let k = 0; k < places.length; k++) {
+      const { i } = places[k];
       let nome = ""; let cidade = "";
       setResults((prev) => {
         nome = prev[i]?.nome_fantasia || prev[i]?.razao_social || "";

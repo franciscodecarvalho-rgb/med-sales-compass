@@ -200,7 +200,7 @@ export default function DiscoveryLab() {
     const q = cnaeQuery.toLowerCase().trim();
     if (!q) return cnaeList.slice(0, 50);
     return cnaeList
-      .filter((c) => c.id.includes(q) || c.descricao.toLowerCase().includes(q))
+      .filter((c) => c.id.includes(q))
       .slice(0, 100);
   }, [cnaeQuery, cnaeList]);
 
@@ -606,7 +606,7 @@ export default function DiscoveryLab() {
                     </PopoverTrigger>
                     <PopoverContent className="w-[min(480px,calc(100vw-1.5rem))] p-0" align="start">
                       <Command shouldFilter={false}>
-                        <CommandInput placeholder="Buscar por código ou descrição..." value={cnaeQuery} onValueChange={setCnaeQuery} />
+                        <CommandInput placeholder="Digite o código CNAE..." value={cnaeQuery} onValueChange={setCnaeQuery} />
                         <CommandList>
                           <CommandEmpty>Nenhum CNAE encontrado</CommandEmpty>
                           <CommandGroup>

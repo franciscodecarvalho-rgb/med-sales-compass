@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
-type Cnae = { id: string; descricao: string };
+type Cnae = { id: string; descricao: string; codigoBusca: string };
 type Uf = { id: number; sigla: string; nome: string };
 type Municipio = { id: number; nome: string };
 
@@ -62,6 +62,11 @@ type Resultado = {
 };
 
 const PAGE_SIZE = 50;
+const IBGE_API = "https://servicodados.ibge.gov.br/api";
+
+function onlyDigits(value: string) {
+  return value.replace(/\D/g, "");
+}
 
 // ============ SCORE ============
 function scoreBreakdown(r: Resultado) {
@@ -115,6 +120,7 @@ export default function DiscoveryLab() {
   const [cnaeSel, setCnaeSel] = useState<Cnae[]>([]);
   const [cnaeOpen, setCnaeOpen] = useState(false);
   const [cnaeQuery, setCnaeQuery] = useState("");
+  const cnaeQueryDeferred = useDeferredValue(cnaeQuery);
   const [uf, setUf] = useState<string>("");
   const [municipio, setMunicipio] = useState<string>("");
   const [situacao, setSituacao] = useState<string>("ATIVA");
@@ -168,17 +174,20 @@ export default function DiscoveryLab() {
   async function loadInitial() {
     const [u, ufRes, cnaeRes] = await Promise.all([
       callFn({ action: "usage" }),
-      fetch("https://servicosdados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome").then((r) => r.json()),
-      fetch("https://servicosdados.ibge.gov.br/api/v2/cnae/subclasses").then((r) => r.json()),
+      fetch(`${IBGE_API}/v1/localidades/estados?orderBy=nome`).then((r) => r.json()),
+      fetch(`${IBGE_API}/v2/cnae/subclasses`).then((r) => r.json()),
     ]);
     if (u?.usage) setUsage(u.usage);
     setUfs(ufRes ?? []);
-    setCnaeList((cnaeRes ?? []).map((c: any) => ({ id: String(c.id), descricao: c.descricao })));
+    setCnaeList((cnaeRes ?? []).map((c: any) => {
+      const id = String(c.id);
+      return { id, descricao: c.descricao, codigoBusca: onlyDigits(id) };
+    }));
   }
 
   useEffect(() => {
     if (!uf) { setMunicipios([]); setMunicipio(""); return; }
-    fetch(`https://servicosdados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`)
+    fetch(`${IBGE_API}/v1/localidades/estados/${uf}/municipios`)
       .then((r) => r.json()).then((d) => setMunicipios(d ?? []));
     setMunicipio("");
   }, [uf]);
@@ -197,12 +206,12 @@ export default function DiscoveryLab() {
   }
 
   const cnaeFiltered = useMemo(() => {
-    const q = cnaeQuery.toLowerCase().trim();
+    const q = onlyDigits(cnaeQueryDeferred);
     if (!q) return cnaeList.slice(0, 50);
     return cnaeList
-      .filter((c) => c.id.includes(q))
+      .filter((c) => c.codigoBusca.includes(q))
       .slice(0, 100);
-  }, [cnaeQuery, cnaeList]);
+  }, [cnaeQueryDeferred, cnaeList]);
 
   const usagePct = usage ? Math.round((usage.chamadas_mes_atual / usage.limite_mensal) * 100) : 0;
   const usageColor = usagePct >= 95 ? "bg-destructive" : usagePct >= 80 ? "bg-yellow-500" : "bg-emerald-500";
@@ -606,7 +615,7 @@ export default function DiscoveryLab() {
                     </PopoverTrigger>
                     <PopoverContent className="w-[min(480px,calc(100vw-1.5rem))] p-0" align="start">
                       <Command shouldFilter={false}>
-                        <CommandInput placeholder="Digite o código CNAE..." value={cnaeQuery} onValueChange={setCnaeQuery} />
+                        <CommandInput placeholder="Digite o código CNAE: 8640-2/09" value={cnaeQuery} onValueChange={setCnaeQuery} />
                         <CommandList>
                           <CommandEmpty>Nenhum CNAE encontrado</CommandEmpty>
                           <CommandGroup>

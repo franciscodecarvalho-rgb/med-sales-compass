@@ -580,284 +580,264 @@ export default function DiscoveryLab() {
       </div>
 
       <div className="space-y-4 p-3 sm:space-y-6 sm:p-6">
-        {/* Filtros */}
-        <div className="rounded-xl border bg-card p-3 shadow-sm sm:p-4">
-          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-12">
-            <div className="sm:col-span-2 md:col-span-5">
-              <Label>CNAE *</Label>
-              <Popover open={cnaeOpen} onOpenChange={setCnaeOpen}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start font-normal">
-                    {cnaeSel.length ? `${cnaeSel.length} CNAE(s) selecionado(s)` : "Selecionar CNAE..."}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[min(480px,calc(100vw-1.5rem))] p-0" align="start">
-                  <Command shouldFilter={false}>
-                    <CommandInput placeholder="Buscar por código ou descrição..." value={cnaeQuery} onValueChange={setCnaeQuery} />
-                    <CommandList>
-                      <CommandEmpty>Nenhum CNAE encontrado</CommandEmpty>
-                      <CommandGroup>
-                        {cnaeFiltered.map((c) => {
-                          const sel = cnaeSel.some((x) => x.id === c.id);
-                          return (
-                            <CommandItem key={c.id} onSelect={() => {
-                              setCnaeSel((prev) => sel ? prev.filter((x) => x.id !== c.id) : [...prev, c]);
-                            }}>
-                              <Check className={cn("mr-2 h-4 w-4", sel ? "opacity-100" : "opacity-0")} />
-                              <span className="font-mono text-xs mr-2">{c.id}</span>
-                              <span className="truncate">{c.descricao}</span>
-                            </CommandItem>
-                          );
-                        })}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-              {cnaeSel.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {cnaeSel.map((c) => (
-                    <Badge key={c.id} variant="secondary" className="gap-1">
-                      <span className="font-mono">{c.id}</span>
-                      <button onClick={() => setCnaeSel((prev) => prev.filter((x) => x.id !== c.id))}>
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  ))}
+        <Tabs value={tab} onValueChange={(v) => setTab(v as "buscar" | "espera")}>
+          <TabsList className="grid w-full grid-cols-2 sm:inline-grid sm:w-auto">
+            <TabsTrigger value="espera">
+              <Inbox className="mr-2 h-4 w-4" />
+              Aguardando ({pendentes.length})
+            </TabsTrigger>
+            <TabsTrigger value="buscar">
+              <Search className="mr-2 h-4 w-4" />
+              Buscar
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="buscar" className="space-y-4 sm:space-y-6">
+            {/* Filtros */}
+            <div className="rounded-xl border bg-card p-3 shadow-sm sm:p-4">
+              <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-12">
+                <div className="sm:col-span-2 md:col-span-5">
+                  <Label>CNAE *</Label>
+                  <Popover open={cnaeOpen} onOpenChange={setCnaeOpen}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start font-normal">
+                        {cnaeSel.length ? `${cnaeSel.length} CNAE(s) selecionado(s)` : "Selecionar CNAE..."}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[min(480px,calc(100vw-1.5rem))] p-0" align="start">
+                      <Command shouldFilter={false}>
+                        <CommandInput placeholder="Buscar por código ou descrição..." value={cnaeQuery} onValueChange={setCnaeQuery} />
+                        <CommandList>
+                          <CommandEmpty>Nenhum CNAE encontrado</CommandEmpty>
+                          <CommandGroup>
+                            {cnaeFiltered.map((c) => {
+                              const sel = cnaeSel.some((x) => x.id === c.id);
+                              return (
+                                <CommandItem key={c.id} onSelect={() => {
+                                  setCnaeSel((prev) => sel ? prev.filter((x) => x.id !== c.id) : [...prev, c]);
+                                }}>
+                                  <Check className={cn("mr-2 h-4 w-4", sel ? "opacity-100" : "opacity-0")} />
+                                  <span className="font-mono text-xs mr-2">{c.id}</span>
+                                  <span className="truncate">{c.descricao}</span>
+                                </CommandItem>
+                              );
+                            })}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  {cnaeSel.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {cnaeSel.map((c) => (
+                        <Badge key={c.id} variant="secondary" className="gap-1">
+                          <span className="font-mono">{c.id}</span>
+                          <button onClick={() => setCnaeSel((prev) => prev.filter((x) => x.id !== c.id))}>
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
+                <div className="md:col-span-2">
+                  <Label>UF *</Label>
+                  <Select value={uf} onValueChange={setUf}>
+                    <SelectTrigger><SelectValue placeholder="UF" /></SelectTrigger>
+                    <SelectContent>
+                      {ufs.map((u) => <SelectItem key={u.id} value={u.sigla}>{u.sigla} — {u.nome}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="md:col-span-3">
+                  <Label>Cidade *</Label>
+                  <Select value={municipio} onValueChange={setMunicipio} disabled={!uf}>
+                    <SelectTrigger><SelectValue placeholder={uf ? "Cidade" : "Escolha a UF"} /></SelectTrigger>
+                    <SelectContent>
+                      {municipios.map((m) => <SelectItem key={m.id} value={m.nome}>{m.nome}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="sm:col-span-2 md:col-span-2">
+                  <Label>Situação</Label>
+                  <Select value={situacao} onValueChange={setSituacao}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ATIVA">Ativa</SelectItem>
+                      <SelectItem value="TODAS">Todas</SelectItem>
+                      <SelectItem value="BAIXADA">Baixada</SelectItem>
+                      <SelectItem value="INAPTA">Inapta</SelectItem>
+                      <SelectItem value="SUSPENSA">Suspensa</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="mt-4 flex justify-stretch sm:justify-end">
+                <Button
+                  size="lg"
+                  className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md hover:from-orange-600 hover:to-orange-700 sm:w-auto"
+                  disabled={limitReached || stage !== 0}
+                  onClick={pesquisar}
+                  title={limitReached ? "Limite de 1.300 chamadas mensais atingido" : ""}
+                >
+                  {stage === 0 ? <Search className="mr-2 h-5 w-5" /> : <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+                  Pesquisar
+                </Button>
+              </div>
             </div>
-            <div className="md:col-span-2">
-              <Label>UF *</Label>
-              <Select value={uf} onValueChange={setUf}>
-                <SelectTrigger><SelectValue placeholder="UF" /></SelectTrigger>
-                <SelectContent>
-                  {ufs.map((u) => <SelectItem key={u.id} value={u.sigla}>{u.sigla} — {u.nome}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="md:col-span-3">
-              <Label>Cidade *</Label>
-              <Select value={municipio} onValueChange={setMunicipio} disabled={!uf}>
-                <SelectTrigger><SelectValue placeholder={uf ? "Cidade" : "Escolha a UF"} /></SelectTrigger>
-                <SelectContent>
-                  {municipios.map((m) => <SelectItem key={m.id} value={m.nome}>{m.nome}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="sm:col-span-2 md:col-span-2">
-              <Label>Situação</Label>
-              <Select value={situacao} onValueChange={setSituacao}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ATIVA">Ativa</SelectItem>
-                  <SelectItem value="TODAS">Todas</SelectItem>
-                  <SelectItem value="BAIXADA">Baixada</SelectItem>
-                  <SelectItem value="INAPTA">Inapta</SelectItem>
-                  <SelectItem value="SUSPENSA">Suspensa</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="mt-4 flex justify-stretch sm:justify-end">
-            <Button
-              size="lg"
-              className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md hover:from-orange-600 hover:to-orange-700 sm:w-auto"
-              disabled={limitReached || stage !== 0}
-              onClick={pesquisar}
-              title={limitReached ? "Limite de 1.300 chamadas mensais atingido" : ""}
-            >
-              {stage === 0 ? <Search className="mr-2 h-5 w-5" /> : <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-              Pesquisar
-            </Button>
-          </div>
-        </div>
 
-        {/* Progresso */}
-        {stage !== 0 && (
-          <div className="rounded-xl border bg-card p-4">
-            <div className="mb-3 flex items-center justify-between text-sm">
-              <span className="font-medium">
-                {stage === 1 && "Etapa 1/3 — Buscando empresas..."}
-                {stage === 2 && `Etapa 2/3 — Enriquecendo dados (${stageProg.done}/${stageProg.total})`}
-                {stage === 3 && `Etapa 3/3 — Buscando avaliações (${stageProg.done}/${stageProg.total})`}
-              </span>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {[1, 2, 3].map((s) => (
-                <Progress
-                  key={s}
-                  value={s < stage ? 100 : s === stage ? (stageProg.total ? (stageProg.done / stageProg.total) * 100 : 30) : 0}
-                  className="h-2"
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Barra de ações em lote */}
-        {selectedNonElim.length > 0 && (
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border-2 border-orange-300 bg-orange-50 p-3 shadow-sm animate-in slide-in-from-top-2">
-            <span className="text-sm font-medium">
-              {selectedNonElim.length} empresa(s) selecionada(s)
-            </span>
-            <div className="flex gap-2">
-              <Button variant="ghost" size="sm" onClick={() => setSelected(new Set())}>
-                Limpar seleção
-              </Button>
-              <Button
-                variant="destructive" size="sm"
-                onClick={() => setEliminarTarget(selectedNonElim)}
-              >
-                <Trash2 className="mr-1 h-4 w-4" /> Eliminar Selecionados
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Resultados */}
-        {results.length > 0 && (
-          <div className="overflow-hidden rounded-xl border bg-card">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-8">
-                      <Checkbox checked={allPageSelected} onCheckedChange={togglePageAll} />
-                    </TableHead>
-                    <TableHead className="w-24">Ranking</TableHead>
-                    <TableHead>Empresa</TableHead>
-                    <TableHead>CNPJ</TableHead>
-                    <TableHead>Cidade/UF</TableHead>
-                    <TableHead>CNAE</TableHead>
-                    <TableHead>Capital</TableHead>
-                    <TableHead>Idade</TableHead>
-                    <TableHead>Porte</TableHead>
-                    <TableHead>Sócios</TableHead>
-                    <TableHead>Google</TableHead>
-                    <TableHead>Site</TableHead>
-                    <TableHead>Tel.</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="w-20 text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pageRows.map(({ r, s }, idx) => {
-                    const elim = !!r.eliminado;
-                    const idade = r.data_abertura
-                      ? `${Math.floor((Date.now() - new Date(r.data_abertura).getTime()) / (365.25 * 86400000))} anos`
-                      : "—";
-                    const medicos = r.socios?.filter((x) => x.medico).length ?? 0;
-                    const ranking = (page - 1) * PAGE_SIZE + idx + 1;
-                    return (
-                      <TableRow
-                        key={r.cnpj + idx}
-                        className={cn(
-                          elim ? "bg-red-50 hover:bg-red-100/70" : (idx % 2 ? "bg-muted/30" : ""),
-                        )}
-                      >
-                        <TableCell>
-                          <Checkbox
-                            disabled={elim}
-                            checked={selected.has(r.cnpj)}
-                            onCheckedChange={() => toggleOne(r.cnpj)}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-muted-foreground">#{ranking}</span>
-                            <Badge variant="outline" className={cn("font-mono text-xs", scoreColor(s))}>
-                              {s.toFixed(0)}
-                            </Badge>
-                          </div>
-                        </TableCell>
-                        <TableCell className="max-w-[220px]">
-                          <div className="font-medium truncate">{r.nome_fantasia || r.razao_social || "—"}</div>
-                          {r.razao_social && r.nome_fantasia && (
-                            <div className="text-xs text-muted-foreground truncate">{r.razao_social}</div>
-                          )}
-                        </TableCell>
-                        <TableCell className="font-mono text-xs">{r.cnpj}</TableCell>
-                        <TableCell className="text-xs">{[r.cidade, r.uf].filter(Boolean).join(" / ")}</TableCell>
-                        <TableCell className="max-w-[180px] truncate text-xs">{r.cnae_descricao ?? "—"}</TableCell>
-                        <TableCell className="text-xs">
-                          {r.capital_social != null
-                            ? r.capital_social.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 })
-                            : "—"}
-                        </TableCell>
-                        <TableCell className="text-xs">{idade}</TableCell>
-                        <TableCell className="text-xs">{r.porte ?? "—"}</TableCell>
-                        <TableCell className="text-xs">
-                          {r.socios?.length ?? 0}
-                          {medicos > 0 && (
-                            <Badge variant="outline" className="ml-1 border-purple-300 bg-purple-50 text-purple-700">
-                              <Stethoscope className="mr-0.5 h-3 w-3" /> {medicos}
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-xs">
-                          {r.rating != null ? (
-                            <span className="inline-flex items-center gap-1">
-                              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                              {r.rating.toFixed(1)}
-                              <span className="text-muted-foreground">({r.reviews ?? 0})</span>
-                            </span>
-                          ) : "—"}
-                        </TableCell>
-                        <TableCell>
-                          {r.site ? (
-                            <a href={r.site} target="_blank" rel="noreferrer" className="inline-flex items-center text-xs text-primary hover:underline">
-                              site <ExternalLink className="ml-1 h-3 w-3" />
-                            </a>
-                          ) : "—"}
-                        </TableCell>
-                        <TableCell className="text-xs">{r.telefone ?? "—"}</TableCell>
-                        <TableCell>
-                          {elim ? (
-                            <Badge variant="outline" className="border-red-400 bg-red-100 text-red-700" title={r.eliminado?.motivo ?? ""}>
-                              JÁ ELIMINADO
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="border-blue-300 bg-blue-50 text-blue-700">Novo</Badge>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-1">
-                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setDetail(r)} title="Ver detalhes">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            {!elim && (
-                              <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setEliminarTarget(r)} title="Eliminar">
-                                <X className="h-4 w-4" />
-                              </Button>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between border-t p-3 text-sm">
-                <span className="text-muted-foreground">
-                  Página {page} de {totalPages} · {ordered.length} resultados
-                </span>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>Anterior</Button>
-                  <Button size="sm" variant="outline" disabled={page === totalPages} onClick={() => setPage((p) => p + 1)}>Próxima</Button>
+            {/* Progresso */}
+            {stage !== 0 && (
+              <div className="rounded-xl border bg-card p-4">
+                <div className="mb-3 flex items-center justify-between text-sm">
+                  <span className="font-medium">
+                    {stage === 1 && "Etapa 1/3 — Buscando empresas..."}
+                    {stage === 2 && `Etapa 2/3 — Enriquecendo dados (${stageProg.done}/${stageProg.total})`}
+                    {stage === 3 && `Etapa 3/3 — Buscando avaliações (${stageProg.done}/${stageProg.total})`}
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {[1, 2, 3].map((s) => (
+                    <Progress
+                      key={s}
+                      value={s < stage ? 100 : s === stage ? (stageProg.total ? (stageProg.done / stageProg.total) * 100 : 30) : 0}
+                      className="h-2"
+                    />
+                  ))}
                 </div>
               </div>
             )}
-          </div>
-        )}
 
-        {results.length === 0 && stage === 0 && (
-          <div className="rounded-xl border-2 border-dashed border-orange-200 bg-orange-50/40 p-10 text-center text-sm text-muted-foreground">
-            Configure os filtros acima e clique em <strong>Pesquisar</strong> para iniciar.
-          </div>
-        )}
+            <p className="text-xs text-muted-foreground">
+              Os resultados são salvos automaticamente na aba <strong>Aguardando</strong> e ficam disponíveis para todos os vendedores.
+            </p>
+          </TabsContent>
+
+          <TabsContent value="espera" className="space-y-4 sm:space-y-6">
+            {/* Lista de espera */}
+            {pendentes.length > 0 ? (
+              <div className="overflow-hidden rounded-xl border bg-card">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-8">
+                          <Checkbox checked={allPageSelected} onCheckedChange={togglePageAll} />
+                        </TableHead>
+                        <TableHead className="w-24">Ranking</TableHead>
+                        <TableHead>Empresa</TableHead>
+                        <TableHead>CNPJ</TableHead>
+                        <TableHead>Cidade/UF</TableHead>
+                        <TableHead>CNAE</TableHead>
+                        <TableHead>Capital</TableHead>
+                        <TableHead>Idade</TableHead>
+                        <TableHead>Porte</TableHead>
+                        <TableHead>Sócios</TableHead>
+                        <TableHead>Google</TableHead>
+                        <TableHead>Site</TableHead>
+                        <TableHead>Tel.</TableHead>
+                        <TableHead className="w-20 text-right">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {pageRows.map(({ r, s }, idx) => {
+                        const idade = r.data_abertura
+                          ? `${Math.floor((Date.now() - new Date(r.data_abertura).getTime()) / (365.25 * 86400000))} anos`
+                          : "—";
+                        const medicos = r.socios?.filter((x) => x.medico).length ?? 0;
+                        const ranking = (page - 1) * PAGE_SIZE + idx + 1;
+                        return (
+                          <TableRow key={r.cnpj} className={idx % 2 ? "bg-muted/30" : ""}>
+                            <TableCell>
+                              <Checkbox
+                                checked={selected.has(r.cnpj)}
+                                onCheckedChange={() => toggleOne(r.cnpj)}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-muted-foreground">#{ranking}</span>
+                                <Badge variant="outline" className={cn("font-mono text-xs", scoreColor(s))}>
+                                  {s.toFixed(0)}
+                                </Badge>
+                              </div>
+                            </TableCell>
+                            <TableCell className="max-w-[220px]">
+                              <div className="font-medium truncate">{r.nome_fantasia || r.razao_social || "—"}</div>
+                              {r.razao_social && r.nome_fantasia && (
+                                <div className="text-xs text-muted-foreground truncate">{r.razao_social}</div>
+                              )}
+                            </TableCell>
+                            <TableCell className="font-mono text-xs">{r.cnpj}</TableCell>
+                            <TableCell className="text-xs">{[r.cidade, r.uf].filter(Boolean).join(" / ")}</TableCell>
+                            <TableCell className="max-w-[180px] truncate text-xs">{r.cnae_descricao ?? "—"}</TableCell>
+                            <TableCell className="text-xs">
+                              {r.capital_social != null
+                                ? r.capital_social.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 })
+                                : "—"}
+                            </TableCell>
+                            <TableCell className="text-xs">{idade}</TableCell>
+                            <TableCell className="text-xs">{r.porte ?? "—"}</TableCell>
+                            <TableCell className="text-xs">
+                              {r.socios?.length ?? 0}
+                              {medicos > 0 && (
+                                <Badge variant="outline" className="ml-1 border-purple-300 bg-purple-50 text-purple-700">
+                                  <Stethoscope className="mr-0.5 h-3 w-3" /> {medicos}
+                                </Badge>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-xs">
+                              {r.rating != null ? (
+                                <span className="inline-flex items-center gap-1">
+                                  <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                  {r.rating.toFixed(1)}
+                                  <span className="text-muted-foreground">({r.reviews ?? 0})</span>
+                                </span>
+                              ) : "—"}
+                            </TableCell>
+                            <TableCell>
+                              {r.site ? (
+                                <a href={r.site} target="_blank" rel="noreferrer" className="inline-flex items-center text-xs text-primary hover:underline">
+                                  site <ExternalLink className="ml-1 h-3 w-3" />
+                                </a>
+                              ) : "—"}
+                            </TableCell>
+                            <TableCell className="text-xs">{r.telefone ?? "—"}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-1">
+                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setDetail(r)} title="Ver detalhes">
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setEliminarTarget(r)} title="Descartar">
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between border-t p-3 text-sm">
+                    <span className="text-muted-foreground">
+                      Página {page} de {totalPages} · {ordered.length} resultados
+                    </span>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>Anterior</Button>
+                      <Button size="sm" variant="outline" disabled={page === totalPages} onClick={() => setPage((p) => p + 1)}>Próxima</Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="rounded-xl border-2 border-dashed border-orange-200 bg-orange-50/40 p-10 text-center text-sm text-muted-foreground">
+                Nenhuma empresa aguardando. Vá para a aba <strong>Buscar</strong> e rode uma pesquisa para popular esta lista.
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Sticky bottom — Enviar para Discovery */}

@@ -122,15 +122,48 @@ export default function DiscoveryLab() {
   const [stage, setStage] = useState<0 | 1 | 2 | 3>(0);
   const [stageProg, setStageProg] = useState({ done: 0, total: 0 });
   const [results, setResults] = useState<Resultado[]>([]);
+  const [pendentes, setPendentes] = useState<Resultado[]>([]);
+  const [tab, setTab] = useState<"buscar" | "espera">("espera");
   const [page, setPage] = useState(1);
 
   // seleção e modais
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [detail, setDetail] = useState<Resultado | null>(null);
-  const [eliminarTarget, setEliminarTarget] = useState<Resultado | Resultado[] | null>(null);
+  const [eliminarTarget, setEliminarTarget] = useState<Resultado | null>(null);
   const [enviarOpen, setEnviarOpen] = useState(false);
 
-  useEffect(() => { void loadInitial(); /* eslint-disable-next-line */ }, []);
+  useEffect(() => { void loadInitial(); void loadPendentes(); /* eslint-disable-next-line */ }, []);
+
+  async function loadPendentes() {
+    const { data, error } = await supabase
+      .from("lab_pendentes")
+      .select("*")
+      .order("score", { ascending: false })
+      .limit(2000);
+    if (error) { toast.error(error.message); return; }
+    const mapped: Resultado[] = (data ?? []).map((row: any) => ({
+      cnpj: row.cnpj,
+      razao_social: row.razao_social ?? undefined,
+      nome_fantasia: row.nome_fantasia ?? undefined,
+      cidade: row.cidade ?? undefined,
+      uf: row.uf ?? undefined,
+      endereco: row.endereco ?? undefined,
+      cnae_codigo: row.cnae_codigo ?? undefined,
+      cnae_descricao: row.cnae_descricao ?? undefined,
+      capital_social: row.capital_social ?? undefined,
+      data_abertura: row.data_abertura ?? undefined,
+      porte: row.porte ?? undefined,
+      email: row.email ?? undefined,
+      telefone: row.telefone ?? undefined,
+      site: row.site ?? undefined,
+      socios: (row.socios ?? []) as Socio[],
+      rating: row.rating ?? null,
+      reviews: row.reviews ?? null,
+      status_busca: "ok",
+      eliminado: null,
+    }));
+    setPendentes(mapped);
+  }
 
   async function loadInitial() {
     const [u, ufRes, cnaeRes] = await Promise.all([

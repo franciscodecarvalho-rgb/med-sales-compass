@@ -615,7 +615,7 @@ export default function DiscoveryLab() {
                     </PopoverTrigger>
                     <PopoverContent className="w-[min(480px,calc(100vw-1.5rem))] p-0" align="start">
                       <Command shouldFilter={false}>
-                        <CommandInput placeholder="Digite o código CNAE..." value={cnaeQuery} onValueChange={setCnaeQuery} />
+                        <CommandInput placeholder="Digite o código CNAE: 8640-2/09" value={cnaeQuery} onValueChange={setCnaeQuery} />
                         <CommandList>
                           <CommandEmpty>Nenhum CNAE encontrado</CommandEmpty>
                           <CommandGroup>

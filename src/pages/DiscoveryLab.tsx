@@ -350,7 +350,7 @@ export default function DiscoveryLab() {
         return prev;
       });
       const q = `${nome} ${cidade}`.trim();
-      if (!q) { setStageProg({ done: k + 1, total: enriquecer.length }); continue; }
+      if (!q) { setStageProg({ done: k + 1, total: places.length }); continue; }
       try {
         const r = await callFn({ action: "places", query: q });
         if (r?.error === "limit_reached") {

@@ -370,7 +370,7 @@ export default function DiscoveryLab() {
           } : x));
         }
       } catch {}
-      setStageProg({ done: k + 1, total: enriquecer.length });
+      setStageProg({ done: k + 1, total: places.length });
       await new Promise((res) => setTimeout(res, 220));
     }
 

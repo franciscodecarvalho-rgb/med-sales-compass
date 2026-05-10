@@ -68,6 +68,16 @@ function onlyDigits(value: string) {
   return value.replace(/\D/g, "");
 }
 
+function mapCnae(item: any): Cnae | null {
+  const id = String(item?.id ?? "").trim();
+  if (!id) return null;
+  return {
+    id,
+    descricao: String(item?.descricao ?? ""),
+    codigoBusca: onlyDigits(id),
+  };
+}
+
 // ============ SCORE ============
 function scoreBreakdown(r: Resultado) {
   // Google
@@ -121,6 +131,8 @@ export default function DiscoveryLab() {
   const [cnaeOpen, setCnaeOpen] = useState(false);
   const [cnaeQuery, setCnaeQuery] = useState("");
   const cnaeQueryDeferred = useDeferredValue(cnaeQuery);
+  const [cnaeDirect, setCnaeDirect] = useState<Cnae | null>(null);
+  const [cnaeLoading, setCnaeLoading] = useState(false);
   const [uf, setUf] = useState<string>("");
   const [municipio, setMunicipio] = useState<string>("");
   const [situacao, setSituacao] = useState<string>("ATIVA");
@@ -172,18 +184,41 @@ export default function DiscoveryLab() {
   }
 
   async function loadInitial() {
-    const [u, ufRes, cnaeRes] = await Promise.all([
+    const [usageRes, ufRes, cnaeRes] = await Promise.allSettled([
       callFn({ action: "usage" }),
       fetch(`${IBGE_API}/v1/localidades/estados?orderBy=nome`).then((r) => r.json()),
       fetch(`${IBGE_API}/v2/cnae/subclasses`).then((r) => r.json()),
     ]);
+    const u = usageRes.status === "fulfilled" ? usageRes.value : null;
     if (u?.usage) setUsage(u.usage);
-    setUfs(ufRes ?? []);
-    setCnaeList((cnaeRes ?? []).map((c: any) => {
-      const id = String(c.id);
-      return { id, descricao: c.descricao, codigoBusca: onlyDigits(id) };
-    }));
+    if (ufRes.status === "fulfilled") setUfs(ufRes.value ?? []);
+    if (cnaeRes.status === "fulfilled") {
+      setCnaeList((cnaeRes.value ?? []).map(mapCnae).filter(Boolean) as Cnae[]);
+    }
   }
+
+  useEffect(() => {
+    const q = onlyDigits(cnaeQueryDeferred);
+    if (q.length !== 7 || cnaeList.some((c) => c.codigoBusca === q)) {
+      setCnaeDirect(null);
+      setCnaeLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    setCnaeLoading(true);
+    fetch(`${IBGE_API}/v2/cnae/subclasses/${q}`, { signal: controller.signal })
+      .then(async (r) => (r.ok ? r.json() : null))
+      .then((data) => setCnaeDirect(data ? mapCnae(data) : null))
+      .catch((error) => {
+        if (error?.name !== "AbortError") setCnaeDirect(null);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setCnaeLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [cnaeQueryDeferred, cnaeList]);
 
   useEffect(() => {
     if (!uf) { setMunicipios([]); setMunicipio(""); return; }
@@ -208,10 +243,14 @@ export default function DiscoveryLab() {
   const cnaeFiltered = useMemo(() => {
     const q = onlyDigits(cnaeQueryDeferred);
     if (!q) return cnaeList.slice(0, 50);
-    return cnaeList
+    const local = cnaeList
       .filter((c) => c.codigoBusca.includes(q))
       .slice(0, 100);
-  }, [cnaeQueryDeferred, cnaeList]);
+    if (!cnaeDirect || cnaeDirect.codigoBusca !== q || local.some((c) => c.id === cnaeDirect.id)) {
+      return local;
+    }
+    return [cnaeDirect, ...local].slice(0, 100);
+  }, [cnaeQueryDeferred, cnaeList, cnaeDirect]);
 
   const usagePct = usage ? Math.round((usage.chamadas_mes_atual / usage.limite_mensal) * 100) : 0;
   const usageColor = usagePct >= 95 ? "bg-destructive" : usagePct >= 80 ? "bg-yellow-500" : "bg-emerald-500";
@@ -632,7 +671,7 @@ export default function DiscoveryLab() {
                       <Command shouldFilter={false}>
                         <CommandInput placeholder="Digite o código CNAE: 8640-2/09" value={cnaeQuery} onValueChange={setCnaeQuery} />
                         <CommandList>
-                          <CommandEmpty>Nenhum CNAE encontrado</CommandEmpty>
+                          <CommandEmpty>{cnaeLoading ? "Buscando CNAE..." : "Nenhum CNAE encontrado"}</CommandEmpty>
                           <CommandGroup>
                             {cnaeFiltered.map((c) => {
                               const sel = cnaeSel.some((x) => x.id === c.id);

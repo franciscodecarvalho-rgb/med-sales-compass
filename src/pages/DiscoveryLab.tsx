@@ -671,7 +671,7 @@ export default function DiscoveryLab() {
                       <Command shouldFilter={false}>
                         <CommandInput placeholder="Digite o código CNAE: 8640-2/09" value={cnaeQuery} onValueChange={setCnaeQuery} />
                         <CommandList>
-                          <CommandEmpty>Nenhum CNAE encontrado</CommandEmpty>
+                          <CommandEmpty>{cnaeLoading ? "Buscando CNAE..." : "Nenhum CNAE encontrado"}</CommandEmpty>
                           <CommandGroup>
                             {cnaeFiltered.map((c) => {
                               const sel = cnaeSel.some((x) => x.id === c.id);

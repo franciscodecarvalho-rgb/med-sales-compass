@@ -200,7 +200,7 @@ export default function DiscoveryLab() {
     const q = cnaeQuery.toLowerCase().trim();
     if (!q) return cnaeList.slice(0, 50);
     return cnaeList
-      .filter((c) => c.id.includes(q) || c.descricao.toLowerCase().includes(q))
+      .filter((c) => c.id.includes(q))
       .slice(0, 100);
   }, [cnaeQuery, cnaeList]);
 

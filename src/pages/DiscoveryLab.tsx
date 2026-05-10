@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -20,7 +21,11 @@ import {
   Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
 } from "@/components/ui/command";
 import {
+  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
+import {
   ArrowLeft, FlaskConical, Search, Star, ExternalLink, Loader2, X, Check,
+  Eye, Trash2, Stethoscope, Send, MapPin,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,6 +35,8 @@ type Cnae = { id: string; descricao: string };
 type Uf = { id: number; sigla: string; nome: string };
 type Municipio = { id: number; nome: string };
 
+type Socio = { nome: string; qualificacao?: string; entrada?: string; medico?: boolean };
+
 type Resultado = {
   cnpj: string;
   razao_social?: string;
@@ -37,20 +44,61 @@ type Resultado = {
   cidade?: string;
   uf?: string;
   cnae_descricao?: string;
+  cnae_codigo?: string;
   capital_social?: number;
   data_abertura?: string;
   porte?: string;
-  socios?: { nome: string; qualificacao?: string; entrada?: string; medico?: boolean }[];
+  email?: string;
+  socios?: Socio[];
   rating?: number | null;
   reviews?: number | null;
   site?: string | null;
   telefone?: string | null;
+  telefone_receita?: string | null;
   endereco?: string;
   eliminado?: { por?: string; em?: string; motivo?: string } | null;
   status_busca: "pendente" | "ok" | "erro";
 };
 
 const PAGE_SIZE = 50;
+
+// ============ SCORE ============
+function scoreBreakdown(r: Resultado) {
+  // Google
+  let google = 0;
+  if (r.rating != null && r.rating > 0) {
+    const reviews = r.reviews ?? 0;
+    google = r.rating * 2 + (reviews > 0 ? Math.log10(reviews) * 3 : 0);
+  }
+  // Tempo
+  let tempo = 0;
+  let anos = 0;
+  if (r.data_abertura) {
+    anos = (Date.now() - new Date(r.data_abertura).getTime()) / (365.25 * 86400000);
+    tempo = anos > 10 ? 10 : anos >= 5 ? 7 : anos >= 2 ? 4 : 1;
+  }
+  // Capital
+  let capital = 0;
+  if (r.capital_social != null) {
+    const c = r.capital_social;
+    capital = c > 1_000_000 ? 10 : c >= 500_000 ? 7 : c >= 100_000 ? 4 : 1;
+  }
+  // Médico
+  const medicos = r.socios?.filter((s) => s.medico).length ?? 0;
+  const medico = medicos > 0 ? 15 : 0;
+  // Porte
+  const p = (r.porte ?? "").toLowerCase();
+  const porte = /demais|grande/.test(p) ? 8 : /epp/.test(p) ? 5 : /\bme\b/.test(p) ? 2 : 0;
+
+  const total = google + tempo + capital + medico + porte;
+  return { google, tempo, capital, medico, porte, total, anos };
+}
+
+function scoreColor(total: number) {
+  if (total >= 30) return "border-emerald-400 bg-emerald-100 text-emerald-700";
+  if (total >= 15) return "border-yellow-400 bg-yellow-100 text-yellow-800";
+  return "border-muted bg-muted text-muted-foreground";
+}
 
 export default function DiscoveryLab() {
   const { user, roles } = useAuth();
@@ -70,10 +118,16 @@ export default function DiscoveryLab() {
   const [municipio, setMunicipio] = useState<string>("");
   const [situacao, setSituacao] = useState<string>("ATIVA");
 
-  const [stage, setStage] = useState<0 | 1 | 2 | 3>(0); // 0 idle
+  const [stage, setStage] = useState<0 | 1 | 2 | 3>(0);
   const [stageProg, setStageProg] = useState({ done: 0, total: 0 });
   const [results, setResults] = useState<Resultado[]>([]);
   const [page, setPage] = useState(1);
+
+  // seleção e modais
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [detail, setDetail] = useState<Resultado | null>(null);
+  const [eliminarTarget, setEliminarTarget] = useState<Resultado | Resultado[] | null>(null);
+  const [enviarOpen, setEnviarOpen] = useState(false);
 
   useEffect(() => { void loadInitial(); /* eslint-disable-next-line */ }, []);
 
@@ -98,14 +152,10 @@ export default function DiscoveryLab() {
   async function callFn(body: any) {
     const { data, error } = await supabase.functions.invoke("lab-search", { body });
     if (error) {
-      // edge func may have returned 4xx with payload
       const ctx = (error as any).context;
       try {
         const txt = await ctx?.text?.();
-        if (txt) {
-          const j = JSON.parse(txt);
-          return j;
-        }
+        if (txt) return JSON.parse(txt);
       } catch {}
       throw error;
     }
@@ -127,17 +177,15 @@ export default function DiscoveryLab() {
 
   function isMedico(s: { nome?: string; qualificacao?: string }) {
     const txt = `${s.nome ?? ""} ${s.qualificacao ?? ""}`.toLowerCase();
-    return /m[ée]dic|crm|cirurgi/.test(txt);
+    return /m[ée]dic|crm|cir(u|ú)rgi|cl[íi]nica m[ée]dica/.test(txt);
   }
 
   async function pesquisar() {
     if (!cnaeSel.length || !uf || !municipio) {
-      toast.error("Preencha CNAE, UF e Cidade");
-      return;
+      toast.error("Preencha CNAE, UF e Cidade"); return;
     }
     if (limitReached) return;
 
-    // Confirmação consumo estimado
     const estimado = 200;
     if (usage && usageRest < estimado) {
       const ok = confirm(
@@ -146,8 +194,7 @@ export default function DiscoveryLab() {
       if (!ok) return;
     }
 
-    setResults([]); setPage(1);
-    // ---------- Etapa 1
+    setResults([]); setPage(1); setSelected(new Set());
     setStage(1); setStageProg({ done: 0, total: 1 });
     let lista: any[] = [];
     try {
@@ -163,7 +210,6 @@ export default function DiscoveryLab() {
       setStage(0); return;
     }
 
-    // Pré-carrega eliminados
     const cnpjsNorm = lista.map((x) => String(x.cnpj ?? x.cnpj_basico ?? "").replace(/\D/g, "")).filter(Boolean);
     const { data: elim } = await supabase
       .from("lab_eliminados")
@@ -188,7 +234,6 @@ export default function DiscoveryLab() {
     });
     setResults(base);
 
-    // ---------- Etapa 2: enriquecimento (pula eliminados)
     setStage(2);
     const enriquecer = base.map((b, i) => ({ b, i })).filter(({ b }) => !b.eliminado);
     setStageProg({ done: 0, total: enriquecer.length });
@@ -205,11 +250,12 @@ export default function DiscoveryLab() {
         if (r?.usage) setUsage(r.usage);
         const d = r?.data ?? {};
         const company = d.company ?? {};
-        const members = (company.members ?? []).map((m: any) => ({
+        const members: Socio[] = (company.members ?? []).map((m: any) => ({
           nome: m?.person?.name ?? m?.name,
           qualificacao: m?.role?.text ?? m?.qualification,
           entrada: m?.since,
         }));
+        const tel = d.phones?.[0] ? `${d.phones[0].area}${d.phones[0].number}` : null;
         const enriched: Partial<Resultado> = {
           razao_social: company.name ?? b.razao_social,
           nome_fantasia: d.alias ?? b.nome_fantasia,
@@ -221,27 +267,25 @@ export default function DiscoveryLab() {
           data_abertura: d.founded,
           porte: company.size?.text,
           cnae_descricao: d.mainActivity?.text ?? b.cnae_descricao,
-          telefone: d.phones?.[0] ? `${d.phones[0].area}${d.phones[0].number}` : null,
-          socios: members.map((m: any) => ({ ...m, medico: isMedico(m) })),
+          cnae_codigo: d.mainActivity?.id ? String(d.mainActivity.id) : undefined,
+          email: d.emails?.[0]?.address,
+          telefone: tel, telefone_receita: tel,
+          socios: members.map((m) => ({ ...m, medico: isMedico(m) })),
           status_busca: "ok",
         };
         setResults((prev) => prev.map((x, idx) => idx === i ? { ...x, ...enriched } : x));
-      } catch (e) {
+      } catch {
         setResults((prev) => prev.map((x, idx) => idx === i ? { ...x, status_busca: "erro" } : x));
       }
       setStageProg({ done: k + 1, total: enriquecer.length });
       await new Promise((res) => setTimeout(res, 220));
     }
 
-    // ---------- Etapa 3: Google Places
     setStage(3);
     setStageProg({ done: 0, total: enriquecer.length });
     for (let k = 0; k < enriquecer.length; k++) {
       const { i } = enriquecer[k];
-      const cur = (results as any) as Resultado[]; // snapshot via setResults below
-      // pega do estado atual via callback para evitar stale
-      let nome = "";
-      let cidade = "";
+      let nome = ""; let cidade = "";
       setResults((prev) => {
         nome = prev[i]?.nome_fantasia || prev[i]?.razao_social || "";
         cidade = prev[i]?.cidade || "";
@@ -276,13 +320,145 @@ export default function DiscoveryLab() {
     toast.success(`Busca concluída — ${base.length} empresas`);
   }
 
-  // ordena: não eliminados primeiro
-  const ordered = useMemo(
-    () => [...results].sort((a, b) => Number(!!a.eliminado) - Number(!!b.eliminado)),
-    [results]
-  );
+  // ordenação por score (maior primeiro), eliminados ao final
+  const ordered = useMemo(() => {
+    const withScore = results.map((r) => ({ r, s: scoreBreakdown(r).total }));
+    withScore.sort((a, b) => {
+      const aE = a.r.eliminado ? 1 : 0; const bE = b.r.eliminado ? 1 : 0;
+      if (aE !== bE) return aE - bE;
+      return b.s - a.s;
+    });
+    return withScore;
+  }, [results]);
+
   const totalPages = Math.max(1, Math.ceil(ordered.length / PAGE_SIZE));
   const pageRows = ordered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const selectableOnPage = pageRows.filter(({ r }) => !r.eliminado).map(({ r }) => r.cnpj);
+  const allPageSelected = selectableOnPage.length > 0 && selectableOnPage.every((c) => selected.has(c));
+  function togglePageAll() {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (allPageSelected) selectableOnPage.forEach((c) => next.delete(c));
+      else selectableOnPage.forEach((c) => next.add(c));
+      return next;
+    });
+  }
+  function toggleOne(cnpj: string) {
+    setSelected((prev) => {
+      const next = new Set(prev); next.has(cnpj) ? next.delete(cnpj) : next.add(cnpj); return next;
+    });
+  }
+
+  const selectedNonElim = useMemo(
+    () => results.filter((r) => selected.has(r.cnpj) && !r.eliminado),
+    [results, selected]
+  );
+
+  // ========== Eliminação ==========
+  async function confirmarEliminar(targets: Resultado[], motivo: string) {
+    if (!user) return;
+    const rows = targets.map((t) => ({
+      cnpj: t.cnpj,
+      razao_social: t.razao_social ?? t.nome_fantasia ?? null,
+      motivo: motivo.trim() || null,
+      eliminado_por: user.id,
+    }));
+    const { error } = await supabase
+      .from("lab_eliminados")
+      .upsert(rows, { onConflict: "cnpj" });
+    if (error) { toast.error(error.message); return; }
+    const cnpjs = new Set(targets.map((t) => t.cnpj));
+    setResults((prev) => prev.map((r) =>
+      cnpjs.has(r.cnpj)
+        ? { ...r, eliminado: { motivo: motivo.trim() || undefined, em: new Date().toISOString() } }
+        : r,
+    ));
+    setSelected((prev) => {
+      const next = new Set(prev); cnpjs.forEach((c) => next.delete(c)); return next;
+    });
+    toast.success(`${targets.length} empresa(s) eliminada(s)`);
+    setEliminarTarget(null);
+  }
+
+  // ========== Enviar para Discovery ==========
+  async function confirmarEnviar() {
+    if (!user) return;
+    if (selectedNonElim.length === 0) return;
+    const { data: estados } = await supabase.from("estados").select("id, sigla");
+    const ufMap = new Map((estados ?? []).map((e: any) => [e.sigla, e.id]));
+
+    let okCount = 0;
+    for (const r of selectedNonElim) {
+      const sb = scoreBreakdown(r);
+      const idadeAnos = sb.anos ? Math.floor(sb.anos) : null;
+      const dataAbertura = r.data_abertura
+        ? new Date(r.data_abertura).toLocaleDateString("pt-BR") : null;
+      const ratingTxt = r.rating != null
+        ? `${r.rating.toFixed(1)} estrelas (${r.reviews ?? 0} reviews)` : "—";
+      const sociosLista = (r.socios ?? []).map((s) => {
+        const since = s.entrada ? ` — desde ${new Date(s.entrada).toLocaleDateString("pt-BR")}` : "";
+        const med = s.medico ? " ⚕️" : "";
+        return `- ${s.nome}${s.qualificacao ? ` (${s.qualificacao})` : ""}${since}${med}`;
+      }).join("\n");
+      const possiveisMedicos = (r.socios ?? []).filter((s) => s.medico);
+      const notaMedicos = possiveisMedicos.map((s) => `⚕️ Sócio ${s.nome} identificado como possível médico`).join("\n");
+
+      const info =
+        `=== DADOS DO LAB ===\n` +
+        `Capital Social: ${r.capital_social != null ? r.capital_social.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "—"}\n` +
+        `Porte: ${r.porte ?? "—"}\n` +
+        `Tempo de Atividade: ${idadeAnos != null ? `${idadeAnos} anos` : "—"}${dataAbertura ? ` (desde ${dataAbertura})` : ""}\n` +
+        `CNAE: ${r.cnae_codigo ?? ""} ${r.cnae_codigo ? "- " : ""}${r.cnae_descricao ?? "—"}\n` +
+        `Avaliação Google: ${ratingTxt}\n` +
+        `Score LAB: ${sb.total.toFixed(1)} pontos\n\n` +
+        `=== SÓCIOS ===\n${sociosLista || "—"}` +
+        (notaMedicos ? `\n\n${notaMedicos}` : "");
+
+      const { data: disc, error } = await supabase.from("discovery").insert({
+        nome: r.nome_fantasia || r.razao_social || "Sem nome",
+        cnpj: r.cnpj,
+        endereco: r.endereco ?? null,
+        cidade: r.cidade ?? null,
+        estado_id: r.uf ? ufMap.get(r.uf) ?? null : null,
+        telefone: r.telefone ?? r.telefone_receita ?? null,
+        email: r.email ?? null,
+        site: r.site ?? null,
+        informacoes_adicionais: info,
+        vendedor_id: user.id,
+        created_by: user.id,
+        status: "em_pesquisa",
+      }).select("id").single();
+
+      if (error) {
+        console.error(error);
+        toast.error(`Falha em ${r.cnpj}: ${error.message}`);
+        continue;
+      }
+      okCount++;
+
+      // possíveis médicos
+      for (const s of possiveisMedicos) {
+        const { data: medExist } = await supabase
+          .from("medicos").select("id").ilike("nome", s.nome).maybeSingle();
+        let medId = medExist?.id;
+        if (!medId) {
+          const { data: novo } = await supabase.from("medicos").insert({
+            nome: s.nome, created_by: user.id,
+            observacoes: `Identificado via LAB como possível sócio médico${s.qualificacao ? ` (${s.qualificacao})` : ""}`,
+          }).select("id").single();
+          medId = novo?.id;
+        }
+        if (medId && disc?.id) {
+          await supabase.from("medico_discovery").insert({ medico_id: medId, discovery_id: disc.id });
+        }
+      }
+    }
+
+    toast.success(`${okCount} empresa(s) enviada(s) para o Discovery!`);
+    setEnviarOpen(false);
+    nav("/discovery");
+  }
 
   if (!podeUsar) {
     return (
@@ -296,7 +472,7 @@ export default function DiscoveryLab() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50/40 via-background to-background">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50/40 via-background to-background pb-24">
       {/* Header */}
       <div className="sticky top-0 z-20 border-b bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg">
         <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-4">
@@ -398,7 +574,7 @@ export default function DiscoveryLab() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ATIVA">Ativa</SelectItem>
-                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value="TODAS">Todas</SelectItem>
                   <SelectItem value="BAIXADA">Baixada</SelectItem>
                   <SelectItem value="INAPTA">Inapta</SelectItem>
                   <SelectItem value="SUSPENSA">Suspensa</SelectItem>
@@ -442,6 +618,26 @@ export default function DiscoveryLab() {
           </div>
         )}
 
+        {/* Barra de ações em lote */}
+        {selectedNonElim.length > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border-2 border-orange-300 bg-orange-50 p-3 shadow-sm animate-in slide-in-from-top-2">
+            <span className="text-sm font-medium">
+              {selectedNonElim.length} empresa(s) selecionada(s)
+            </span>
+            <div className="flex gap-2">
+              <Button variant="ghost" size="sm" onClick={() => setSelected(new Set())}>
+                Limpar seleção
+              </Button>
+              <Button
+                variant="destructive" size="sm"
+                onClick={() => setEliminarTarget(selectedNonElim)}
+              >
+                <Trash2 className="mr-1 h-4 w-4" /> Eliminar Selecionados
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Resultados */}
         {results.length > 0 && (
           <div className="overflow-hidden rounded-xl border bg-card">
@@ -449,7 +645,10 @@ export default function DiscoveryLab() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-8"><Checkbox /></TableHead>
+                    <TableHead className="w-8">
+                      <Checkbox checked={allPageSelected} onCheckedChange={togglePageAll} />
+                    </TableHead>
+                    <TableHead className="w-24">Ranking</TableHead>
                     <TableHead>Empresa</TableHead>
                     <TableHead>CNPJ</TableHead>
                     <TableHead>Cidade/UF</TableHead>
@@ -460,17 +659,19 @@ export default function DiscoveryLab() {
                     <TableHead>Sócios</TableHead>
                     <TableHead>Google</TableHead>
                     <TableHead>Site</TableHead>
-                    <TableHead>Telefone</TableHead>
+                    <TableHead>Tel.</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead className="w-20 text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {pageRows.map((r, idx) => {
+                  {pageRows.map(({ r, s }, idx) => {
                     const elim = !!r.eliminado;
                     const idade = r.data_abertura
                       ? `${Math.floor((Date.now() - new Date(r.data_abertura).getTime()) / (365.25 * 86400000))} anos`
                       : "—";
-                    const medicos = r.socios?.filter((s) => s.medico).length ?? 0;
+                    const medicos = r.socios?.filter((x) => x.medico).length ?? 0;
+                    const ranking = (page - 1) * PAGE_SIZE + idx + 1;
                     return (
                       <TableRow
                         key={r.cnpj + idx}
@@ -478,7 +679,21 @@ export default function DiscoveryLab() {
                           elim ? "bg-red-50 hover:bg-red-100/70" : (idx % 2 ? "bg-muted/30" : ""),
                         )}
                       >
-                        <TableCell><Checkbox disabled={elim} /></TableCell>
+                        <TableCell>
+                          <Checkbox
+                            disabled={elim}
+                            checked={selected.has(r.cnpj)}
+                            onCheckedChange={() => toggleOne(r.cnpj)}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground">#{ranking}</span>
+                            <Badge variant="outline" className={cn("font-mono text-xs", scoreColor(s))}>
+                              {s.toFixed(0)}
+                            </Badge>
+                          </div>
+                        </TableCell>
                         <TableCell className="max-w-[220px]">
                           <div className="font-medium truncate">{r.nome_fantasia || r.razao_social || "—"}</div>
                           {r.razao_social && r.nome_fantasia && (
@@ -498,8 +713,8 @@ export default function DiscoveryLab() {
                         <TableCell className="text-xs">
                           {r.socios?.length ?? 0}
                           {medicos > 0 && (
-                            <Badge variant="outline" className="ml-1 border-emerald-300 bg-emerald-50 text-emerald-700">
-                              {medicos} méd.
+                            <Badge variant="outline" className="ml-1 border-purple-300 bg-purple-50 text-purple-700">
+                              <Stethoscope className="mr-0.5 h-3 w-3" /> {medicos}
                             </Badge>
                           )}
                         </TableCell>
@@ -523,11 +738,23 @@ export default function DiscoveryLab() {
                         <TableCell>
                           {elim ? (
                             <Badge variant="outline" className="border-red-400 bg-red-100 text-red-700" title={r.eliminado?.motivo ?? ""}>
-                              JÁ ELIMINADO{r.eliminado?.por ? ` · ${r.eliminado.por}` : ""}
+                              JÁ ELIMINADO
                             </Badge>
                           ) : (
                             <Badge variant="outline" className="border-blue-300 bg-blue-50 text-blue-700">Novo</Badge>
                           )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1">
+                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setDetail(r)} title="Ver detalhes">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            {!elim && (
+                              <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setEliminarTarget(r)} title="Eliminar">
+                                <X className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
@@ -555,6 +782,247 @@ export default function DiscoveryLab() {
           </div>
         )}
       </div>
+
+      {/* Sticky bottom — Enviar para Discovery */}
+      {selectedNonElim.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-30 border-t bg-background/95 p-4 shadow-2xl backdrop-blur animate-in slide-in-from-bottom">
+          <div className="mx-auto flex max-w-5xl items-center justify-between gap-4">
+            <div className="text-sm">
+              <span className="font-semibold">{selectedNonElim.length}</span> empresa(s) prontas para enviar ao Discovery
+            </div>
+            <Button
+              size="lg"
+              onClick={() => setEnviarOpen(true)}
+              className="bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 hover:bg-emerald-600"
+            >
+              <Send className="mr-2 h-5 w-5" />
+              Enviar {selectedNonElim.length} empresa(s) para Discovery →
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Modais */}
+      <DetalhesModal r={detail} onClose={() => setDetail(null)} />
+      <EliminarModal
+        target={eliminarTarget}
+        onClose={() => setEliminarTarget(null)}
+        onConfirm={confirmarEliminar}
+      />
+      <EnviarDialog
+        open={enviarOpen}
+        count={selectedNonElim.length}
+        onClose={() => setEnviarOpen(false)}
+        onConfirm={confirmarEnviar}
+      />
     </div>
+  );
+}
+
+// ============ Modais ============
+function DetalhesModal({ r, onClose }: { r: Resultado | null; onClose: () => void }) {
+  if (!r) return null;
+  const sb = scoreBreakdown(r);
+  const cnpjFmt = r.cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+  const items = [
+    { label: "Google", v: sb.google },
+    { label: "Tempo", v: sb.tempo },
+    { label: "Capital", v: sb.capital },
+    { label: "Médico", v: sb.medico },
+    { label: "Porte", v: sb.porte },
+  ];
+  const max = Math.max(15, ...items.map((i) => i.v));
+  return (
+    <Dialog open={!!r} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            {r.nome_fantasia || r.razao_social}
+            <Badge variant="outline" className={cn("font-mono", scoreColor(sb.total))}>
+              Score {sb.total.toFixed(1)}
+            </Badge>
+          </DialogTitle>
+          <DialogDescription>{r.razao_social} · {cnpjFmt}</DialogDescription>
+        </DialogHeader>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="rounded-lg border p-3">
+            <h4 className="mb-2 text-sm font-semibold">📍 Endereço & Contato</h4>
+            <div className="space-y-1 text-xs">
+              <div className="flex items-start gap-1"><MapPin className="mt-0.5 h-3 w-3" /> {r.endereco ?? "—"}</div>
+              <div>📞 {r.telefone ?? "—"}</div>
+              {r.telefone_receita && r.telefone !== r.telefone_receita && (
+                <div className="text-muted-foreground">Receita: {r.telefone_receita}</div>
+              )}
+              <div>✉️ {r.email ?? "—"}</div>
+              {r.site && <div>🌐 <a className="text-primary hover:underline" href={r.site} target="_blank" rel="noreferrer">{r.site}</a></div>}
+            </div>
+          </div>
+
+          <div className="rounded-lg border p-3">
+            <h4 className="mb-2 text-sm font-semibold">💰 Financeiro</h4>
+            <div className="space-y-1 text-xs">
+              <div>Capital social: <strong>{r.capital_social != null ? r.capital_social.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "—"}</strong></div>
+              <div>Porte: <strong>{r.porte ?? "—"}</strong></div>
+              <div>Tempo de atividade: <strong>{sb.anos ? `${Math.floor(sb.anos)} anos` : "—"}</strong></div>
+              {r.data_abertura && <div className="text-muted-foreground">Aberta em {new Date(r.data_abertura).toLocaleDateString("pt-BR")}</div>}
+            </div>
+          </div>
+
+          <div className="rounded-lg border p-3 md:col-span-2">
+            <h4 className="mb-2 text-sm font-semibold">🏷️ Atividade</h4>
+            <div className="text-xs">
+              <span className="font-mono mr-2">{r.cnae_codigo ?? ""}</span>
+              {r.cnae_descricao ?? "—"}
+            </div>
+          </div>
+
+          <div className="rounded-lg border p-3 md:col-span-2">
+            <h4 className="mb-2 text-sm font-semibold">⭐ Google</h4>
+            {r.rating != null ? (
+              <div className="text-xs flex items-center gap-2">
+                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                <strong>{r.rating.toFixed(1)}</strong>
+                <span className="text-muted-foreground">({r.reviews ?? 0} avaliações)</span>
+                <a
+                  className="ml-auto text-primary hover:underline"
+                  target="_blank" rel="noreferrer"
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((r.nome_fantasia || r.razao_social || "") + " " + (r.cidade ?? ""))}`}
+                >
+                  abrir no Google Maps →
+                </a>
+              </div>
+            ) : <p className="text-xs text-muted-foreground">Sem avaliação encontrada</p>}
+          </div>
+
+          <div className="rounded-lg border p-3 md:col-span-2">
+            <h4 className="mb-2 text-sm font-semibold">👥 Sócios ({r.socios?.length ?? 0})</h4>
+            {r.socios?.length ? (
+              <Table>
+                <TableHeader><TableRow>
+                  <TableHead>Nome</TableHead><TableHead>Qualificação</TableHead><TableHead>Entrada</TableHead>
+                </TableRow></TableHeader>
+                <TableBody>
+                  {r.socios.map((s, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="text-xs flex items-center gap-1">
+                        {s.medico && <Stethoscope className="h-3 w-3 text-purple-600" />}
+                        {s.nome}
+                      </TableCell>
+                      <TableCell className="text-xs">{s.qualificacao ?? "—"}</TableCell>
+                      <TableCell className="text-xs">
+                        {s.entrada ? new Date(s.entrada).toLocaleDateString("pt-BR") : "—"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : <p className="text-xs text-muted-foreground">Sem informações de sócios</p>}
+          </div>
+
+          <div className="rounded-lg border p-3 md:col-span-2">
+            <h4 className="mb-2 text-sm font-semibold">📊 Breakdown do Score: {sb.total.toFixed(1)}</h4>
+            <div className="space-y-2">
+              {items.map((i) => (
+                <div key={i.label} className="grid grid-cols-12 items-center gap-2 text-xs">
+                  <div className="col-span-2">{i.label}</div>
+                  <div className="col-span-9 h-3 rounded bg-muted overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-orange-400 to-orange-600"
+                      style={{ width: `${(i.v / max) * 100}%` }}
+                    />
+                  </div>
+                  <div className="col-span-1 text-right font-mono">{i.v.toFixed(1)}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Fechar</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EliminarModal({
+  target, onClose, onConfirm,
+}: {
+  target: Resultado | Resultado[] | null;
+  onClose: () => void;
+  onConfirm: (targets: Resultado[], motivo: string) => void;
+}) {
+  const [motivo, setMotivo] = useState("");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { if (target) setMotivo(""); }, [target]);
+  if (!target) return null;
+  const arr = Array.isArray(target) ? target : [target];
+  const titulo = arr.length === 1
+    ? `Eliminar "${arr[0].nome_fantasia || arr[0].razao_social}"?`
+    : `Eliminar ${arr.length} empresas?`;
+  return (
+    <Dialog open={!!target} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>{titulo}</DialogTitle>
+          <DialogDescription>
+            {arr.length === 1 ? "Esta empresa" : "Estas empresas"} não aparecerão mais em buscas futuras para nenhum vendedor.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-2">
+          <Label>Motivo (opcional)</Label>
+          <Textarea
+            value={motivo} onChange={(e) => setMotivo(e.target.value)}
+            placeholder="Ex.: já é cliente, fora do perfil, etc."
+            rows={3}
+          />
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={busy}>Cancelar</Button>
+          <Button
+            variant="destructive"
+            disabled={busy}
+            onClick={async () => { setBusy(true); await onConfirm(arr, motivo); setBusy(false); }}
+          >
+            {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Confirmar eliminação
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EnviarDialog({
+  open, count, onClose, onConfirm,
+}: {
+  open: boolean; count: number; onClose: () => void; onConfirm: () => Promise<void>;
+}) {
+  const [busy, setBusy] = useState(false);
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Enviar {count} empresa(s) para Discovery</DialogTitle>
+          <DialogDescription>
+            Cada empresa virará um item de Discovery atribuído a você, com todos os dados do LAB no campo de informações.
+            Sócios identificados como possíveis médicos serão criados no cadastro de médicos e vinculados.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={busy}>Cancelar</Button>
+          <Button
+            className="bg-emerald-500 hover:bg-emerald-600"
+            disabled={busy}
+            onClick={async () => { setBusy(true); try { await onConfirm(); } finally { setBusy(false); } }}
+          >
+            {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Send className="mr-2 h-4 w-4" /> Confirmar envio
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

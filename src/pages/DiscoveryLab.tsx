@@ -524,6 +524,14 @@ export default function DiscoveryLab() {
       }
     }
 
+    // remove enviados da lista de espera
+    const sentCnpjs = selectedNonElim.map((r) => r.cnpj);
+    if (sentCnpjs.length > 0) {
+      await supabase.from("lab_pendentes").delete().in("cnpj", sentCnpjs);
+      setPendentes((prev) => prev.filter((r) => !sentCnpjs.includes(r.cnpj)));
+      setSelected(new Set());
+    }
+
     toast.success(`${okCount} empresa(s) enviada(s) para o Discovery!`);
     setEnviarOpen(false);
     nav("/discovery");

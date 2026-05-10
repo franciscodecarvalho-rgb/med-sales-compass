@@ -475,20 +475,20 @@ export default function DiscoveryLab() {
     <div className="min-h-screen bg-gradient-to-br from-orange-50/40 via-background to-background pb-24">
       {/* Header */}
       <div className="sticky top-0 z-20 border-b bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg">
-        <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-4">
-          <div className="flex items-center gap-3">
-            <Button variant="secondary" size="sm" onClick={() => nav("/discovery")}>
-              <ArrowLeft className="mr-1 h-4 w-4" /> Voltar ao Discovery
+        <div className="flex flex-wrap items-center justify-between gap-3 px-3 py-3 sm:px-6 sm:py-4">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+            <Button variant="secondary" size="sm" onClick={() => nav("/discovery")} className="shrink-0">
+              <ArrowLeft className="h-4 w-4 sm:mr-1" /> <span className="hidden sm:inline">Voltar ao Discovery</span>
             </Button>
-            <div className="flex items-center gap-2">
-              <FlaskConical className="h-7 w-7" />
-              <div>
-                <h1 className="text-xl font-bold leading-tight">LAB — Laboratório de Prospecção</h1>
-                <p className="text-xs text-orange-100">Busca inteligente · CNAE · cidade · enriquecimento</p>
+            <div className="flex min-w-0 items-center gap-2">
+              <FlaskConical className="h-6 w-6 shrink-0 sm:h-7 sm:w-7" />
+              <div className="min-w-0">
+                <h1 className="truncate text-base font-bold leading-tight sm:text-xl">LAB — Laboratório de Prospecção</h1>
+                <p className="hidden text-xs text-orange-100 sm:block">Busca inteligente · CNAE · cidade · enriquecimento</p>
               </div>
             </div>
           </div>
-          <div className="min-w-[260px] rounded-lg bg-white/10 p-3 backdrop-blur">
+          <div className="w-full rounded-lg bg-white/10 p-2 backdrop-blur sm:w-auto sm:min-w-[260px] sm:p-3">
             <div className="mb-1 flex items-center justify-between text-xs">
               <span>Uso mensal de chamadas</span>
               <span className="font-semibold">
@@ -502,11 +502,11 @@ export default function DiscoveryLab() {
         </div>
       </div>
 
-      <div className="space-y-6 p-6">
+      <div className="space-y-4 p-3 sm:space-y-6 sm:p-6">
         {/* Filtros */}
-        <div className="rounded-xl border bg-card p-4 shadow-sm">
-          <div className="grid gap-3 md:grid-cols-12">
-            <div className="md:col-span-5">
+        <div className="rounded-xl border bg-card p-3 shadow-sm sm:p-4">
+          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-12">
+            <div className="sm:col-span-2 md:col-span-5">
               <Label>CNAE *</Label>
               <Popover open={cnaeOpen} onOpenChange={setCnaeOpen}>
                 <PopoverTrigger asChild>
@@ -514,7 +514,7 @@ export default function DiscoveryLab() {
                     {cnaeSel.length ? `${cnaeSel.length} CNAE(s) selecionado(s)` : "Selecionar CNAE..."}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[480px] p-0" align="start">
+                <PopoverContent className="w-[min(480px,calc(100vw-1.5rem))] p-0" align="start">
                   <Command shouldFilter={false}>
                     <CommandInput placeholder="Buscar por código ou descrição..." value={cnaeQuery} onValueChange={setCnaeQuery} />
                     <CommandList>
@@ -568,7 +568,7 @@ export default function DiscoveryLab() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="md:col-span-2">
+            <div className="sm:col-span-2 md:col-span-2">
               <Label>Situação</Label>
               <Select value={situacao} onValueChange={setSituacao}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -582,10 +582,10 @@ export default function DiscoveryLab() {
               </Select>
             </div>
           </div>
-          <div className="mt-4 flex justify-end">
+          <div className="mt-4 flex justify-stretch sm:justify-end">
             <Button
               size="lg"
-              className="bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md hover:from-orange-600 hover:to-orange-700"
+              className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md hover:from-orange-600 hover:to-orange-700 sm:w-auto"
               disabled={limitReached || stage !== 0}
               onClick={pesquisar}
               title={limitReached ? "Limite de 1.300 chamadas mensais atingido" : ""}

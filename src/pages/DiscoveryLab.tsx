@@ -292,7 +292,7 @@ export default function DiscoveryLab() {
     setResults(base);
 
     setStage(2);
-    const enriquecer = base.map((b, i) => ({ b, i })).filter(({ b }) => !b.eliminado);
+    const enriquecer = base.map((b, i) => ({ b, i })).filter(({ b }) => !b.eliminado && b.status_busca !== "ok");
     setStageProg({ done: 0, total: enriquecer.length });
 
     for (let k = 0; k < enriquecer.length; k++) {

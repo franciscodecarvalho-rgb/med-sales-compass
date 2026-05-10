@@ -61,6 +61,9 @@ export default function Configuracoes() {
         <TabsList className="flex flex-wrap h-auto">
           <TabsTrigger value="linhas">Linhas de Produto</TabsTrigger>
           <TabsTrigger value="contador">Contador</TabsTrigger>
+          <TabsTrigger value="lab" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white">
+            <FlaskConical className="mr-1 h-4 w-4" /> LAB
+          </TabsTrigger>
           {SIMPLE_TABLES.map((t) => (
             <TabsTrigger key={t.key} value={t.key}>{t.label}</TabsTrigger>
           ))}
@@ -69,6 +72,7 @@ export default function Configuracoes() {
 
         <TabsContent value="linhas"><LinhasSection /></TabsContent>
         <TabsContent value="contador"><ContadorSection /></TabsContent>
+        <TabsContent value="lab"><LabSection /></TabsContent>
         {SIMPLE_TABLES.map((t) => (
           <TabsContent key={t.key} value={t.key}>
             <SimpleSection table={t.key} title={t.label} description={t.description} />

@@ -91,29 +91,48 @@ Deno.serve(async (req) => {
 
       const MAX_RECORDS = 150;
       const out: any[] = [];
-      let cursor: string | null = null;
-      for (let page = 0; page < 5 && out.length < MAX_RECORDS; page++) {
-        const params = new URLSearchParams();
-        params.set("limit", "30");
-        params.set("mainActivity.id.in", cnaeArr.join(","));
-        params.set("address.state.in", String(uf));
-        params.set("address.municipality.in", String(municipioId));
-        if (statusParam) params.set("status.id.in", statusParam);
-        if (cursor) params.set("token", cursor);
+      const seen = new Set<string>();
 
-        const r = await fetch(`https://api.cnpja.com/office?${params}`, {
-          headers: { Authorization: CNPJA_KEY },
-        });
-        if (!r.ok) {
-          const text = await r.text();
-          return json({ error: `CNPJa ${r.status}: ${text}` }, 502);
+      // Busca em CNAE principal e secundário (dois filtros independentes, deduplicando)
+      const filters: Array<{ key: string; label: string }> = [
+        { key: "mainActivity.id.in", label: "main" },
+        { key: "sideActivities.id.in", label: "side" },
+      ];
+
+      for (const flt of filters) {
+        if (out.length >= MAX_RECORDS) break;
+        let cursor: string | null = null;
+        for (let page = 0; page < 5 && out.length < MAX_RECORDS; page++) {
+          const params = new URLSearchParams();
+          params.set("limit", "30");
+          params.set(flt.key, cnaeArr.join(","));
+          params.set("address.state.in", String(uf));
+          params.set("address.municipality.in", String(municipioId));
+          if (statusParam) params.set("status.id.in", statusParam);
+          if (cursor) params.set("token", cursor);
+
+          const r = await fetch(`https://api.cnpja.com/office?${params}`, {
+            headers: { Authorization: CNPJA_KEY },
+          });
+          if (!r.ok) {
+            const text = await r.text();
+            // Se o filtro secundário falhar, segue só com o principal
+            if (flt.label === "side") { console.warn("side activity search failed", r.status, text); break; }
+            return json({ error: `CNPJa ${r.status}: ${text}` }, 502);
+          }
+          const data = await r.json();
+          const list: any[] = data?.records ?? [];
+          if (!list.length) break;
+          for (const item of list) {
+            const id = String(item?.taxId ?? "");
+            if (!id || seen.has(id)) continue;
+            seen.add(id);
+            out.push(item);
+            if (out.length >= MAX_RECORDS) break;
+          }
+          cursor = data?.next ?? null;
+          if (!cursor) break;
         }
-        const data = await r.json();
-        const list: any[] = data?.records ?? [];
-        if (!list.length) break;
-        out.push(...list);
-        cursor = data?.next ?? null;
-        if (!cursor) break;
       }
 
       // Cobra uso pela quantidade de registros retornados

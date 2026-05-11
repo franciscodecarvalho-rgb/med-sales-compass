@@ -435,6 +435,21 @@ export default function DiscoveryDetail() {
                   </Select></div>
               </div>
               <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2"><Label>Pasta</Label>
+                  <Select
+                    value={item.pasta_id ?? "__none__"}
+                    onValueChange={(v) => setItem({ ...item, pasta_id: v === "__none__" ? null : v })}
+                    disabled={readOnly}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Sem pasta" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">Sem pasta</SelectItem>
+                      {pastas.map((p) => <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2"><Label>Cidade</Label>
                   <Input value={item.cidade ?? ""} onChange={(e) => setItem({ ...item, cidade: e.target.value })} disabled={readOnly} /></div>
                 <div className="space-y-2"><Label>Endereço</Label>

@@ -42,6 +42,7 @@ export default function DiscoveryDetail() {
   const [papeis, setPapeis] = useState<any[]>([]);
   const [linhas, setLinhas] = useState<any[]>([]);
   const [medicosAll, setMedicosAll] = useState<any[]>([]);
+  const [pastas, setPastas] = useState<any[]>([]);
 
   const [contatos, setContatos] = useState<any[]>([]);
   const [medicosVinc, setMedicosVinc] = useState<any[]>([]);

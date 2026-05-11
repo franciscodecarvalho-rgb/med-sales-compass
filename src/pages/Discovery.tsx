@@ -206,6 +206,47 @@ export default function Discovery() {
         </div>
       </div>
 
+      {/* Pastas (abas) */}
+      <div className="flex flex-wrap items-center gap-1 border-b border-border pb-1">
+        <PastaTab
+          active={pastaFilter === "all"}
+          onClick={() => setPastaFilter("all")}
+          icon={<FolderOpen className="h-3.5 w-3.5" />}
+          label="Todas"
+          count={countByPasta.all}
+        />
+        <PastaTab
+          active={pastaFilter === "none"}
+          onClick={() => setPastaFilter("none")}
+          icon={<Folder className="h-3.5 w-3.5" />}
+          label="Sem pasta"
+          count={countByPasta.none}
+        />
+        {pastas.map((p) => (
+          <PastaTab
+            key={p.id}
+            active={pastaFilter === p.id}
+            onClick={() => setPastaFilter(p.id)}
+            icon={<Folder className="h-3.5 w-3.5" style={{ color: p.cor ?? undefined }} />}
+            label={p.nome}
+            count={countByPasta.map.get(p.id) ?? 0}
+            onEdit={isAdminGerente ? () => { setPastaEditando(p); setPastaDialogOpen(true); } : undefined}
+            onDelete={isAdminGerente ? () => setPastaParaExcluir(p) : undefined}
+          />
+        ))}
+        {isAdminGerente && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 gap-1 text-muted-foreground"
+            onClick={() => { setPastaEditando(null); setPastaDialogOpen(true); }}
+          >
+            <PlusIcon className="h-3.5 w-3.5" />
+            Nova pasta
+          </Button>
+        )}
+      </div>
+
       {/* Filtros */}
       <div className="flex flex-wrap gap-2 items-center">
         <div className="relative flex-1 min-w-[220px]">

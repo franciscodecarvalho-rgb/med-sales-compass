@@ -269,6 +269,23 @@ function EditUserDialog({
   const [telefone, setTelefone] = useState(user.telefone ?? "");
   const [linhaIds, setLinhaIds] = useState<string[]>(selectedLinhaIds);
   const [saving, setSaving] = useState(false);
+  const [novaSenha, setNovaSenha] = useState("");
+  const [resetando, setResetando] = useState(false);
+
+  async function resetSenha() {
+    if (novaSenha.length < 6) { toast.error("Senha deve ter ao menos 6 caracteres"); return; }
+    setResetando(true);
+    const { data, error } = await supabase.functions.invoke("admin-update-password", {
+      body: { user_id: user.id, password: novaSenha },
+    });
+    setResetando(false);
+    if (error || (data as any)?.error) {
+      toast.error((data as any)?.error || error?.message || "Erro ao alterar senha");
+      return;
+    }
+    toast.success("Senha atualizada");
+    setNovaSenha("");
+  }
 
   function toggle(id: string) {
     setLinhaIds((arr) => arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id]);

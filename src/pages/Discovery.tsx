@@ -41,6 +41,7 @@ export default function Discovery() {
   const [vendedores, setVendedores] = useState<Vendedor[]>([]);
   const [tipos, setTipos] = useState<Lookup[]>([]);
   const [estados, setEstados] = useState<Lookup[]>([]);
+  const [pastas, setPastas] = useState<Pasta[]>([]);
   const [loading, setLoading] = useState(true);
 
   // filtros
@@ -51,6 +52,13 @@ export default function Discovery() {
   );
   const [estadoFilter, setEstadoFilter] = useState<string>("all");
   const [tipoFilter, setTipoFilter] = useState<string>("all");
+  // pastaFilter: "all" (todas) | "none" (sem pasta) | <pasta_id>
+  const [pastaFilter, setPastaFilter] = useState<string>("all");
+
+  // diálogos pasta
+  const [pastaDialogOpen, setPastaDialogOpen] = useState(false);
+  const [pastaEditando, setPastaEditando] = useState<Pasta | null>(null);
+  const [pastaParaExcluir, setPastaParaExcluir] = useState<Pasta | null>(null);
 
   // novo discovery (modal simples)
   const [novoOpen, setNovoOpen] = useState(false);

@@ -104,12 +104,16 @@ Deno.serve(async (req) => {
         let cursor: string | null = null;
         for (let page = 0; page < 5 && out.length < MAX_RECORDS; page++) {
           const params = new URLSearchParams();
-          params.set("limit", "30");
-          params.set(flt.key, cnaeArr.join(","));
-          params.set("address.state.in", String(uf));
-          params.set("address.municipality.in", String(municipioId));
-          if (statusParam) params.set("status.id.in", statusParam);
-          if (cursor) params.set("token", cursor);
+          if (cursor) {
+            // token é mutuamente exclusivo com outros filtros
+            params.set("token", cursor);
+          } else {
+            params.set("limit", "30");
+            params.set(flt.key, cnaeArr.join(","));
+            params.set("address.state.in", String(uf));
+            params.set("address.municipality.in", String(municipioId));
+            if (statusParam) params.set("status.id.in", statusParam);
+          }
 
           const r = await fetch(`https://api.cnpja.com/office?${params}`, {
             headers: { Authorization: CNPJA_KEY },

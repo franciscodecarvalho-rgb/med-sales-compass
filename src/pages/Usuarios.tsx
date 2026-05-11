@@ -335,6 +335,7 @@ function EditUserDialog({
                   {l.nome}
                 </label>
               ))}
+            </div>
           </div>
           <div className="space-y-2 rounded-md border p-3">
             <Label>Redefinir senha</Label>

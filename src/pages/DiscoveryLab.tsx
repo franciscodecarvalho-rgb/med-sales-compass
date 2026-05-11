@@ -667,7 +667,19 @@ export default function DiscoveryLab() {
                         {cnaeSel.length ? `${cnaeSel.length} CNAE(s) selecionado(s)` : "Selecionar CNAE..."}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[min(480px,calc(100vw-1.5rem))] p-0" align="start">
+                    <PopoverContent
+                      className="w-[min(480px,calc(100vw-1.5rem))] p-0"
+                      align="start"
+                      onCloseAutoFocus={(e) => e.preventDefault()}
+                      onInteractOutside={(e) => {
+                        // Permite que o clique fora também acione o próximo controle
+                        // (ex.: abrir o Select de UF na primeira tentativa)
+                        const target = e.target as HTMLElement | null;
+                        if (target?.closest("[data-radix-popper-content-wrapper]")) return;
+                        e.preventDefault();
+                        setCnaeOpen(false);
+                      }}
+                    >
                       <Command shouldFilter={false}>
                         <CommandInput placeholder="Digite o código CNAE: 8640-2/09" value={cnaeQuery} onValueChange={setCnaeQuery} />
                         <CommandList>

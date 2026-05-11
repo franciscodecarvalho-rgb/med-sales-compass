@@ -299,6 +299,7 @@ export default function Discovery() {
                 <TableHead>Nome</TableHead>
                 <TableHead>Cidade / UF</TableHead>
                 <TableHead>Tipo</TableHead>
+                <TableHead>Pasta</TableHead>
                 <TableHead>Vendedor</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Criado em</TableHead>

@@ -71,7 +71,7 @@ export default function Discovery() {
     setLoading(true);
 
     let q = supabase.from("discovery").select(`
-      id, nome, cidade, status, created_at, vendedor_id,
+      id, nome, cidade, status, created_at, vendedor_id, pasta_id,
       tipos_unidade(id, nome),
       estados(id, sigla),
       unidade_gerada_id
@@ -82,11 +82,13 @@ export default function Discovery() {
     if (vendedorFilter === "eu") q = q.eq("vendedor_id", user.id);
     else if (vendedorFilter !== "todos") q = q.eq("vendedor_id", vendedorFilter);
 
-    const [d, v, t, e] = await Promise.all([
+    const [d, v, t, e, p] = await Promise.all([
       q,
       supabase.from("profiles").select("id, nome").eq("ativo", true).order("nome"),
       supabase.from("tipos_unidade").select("id, nome").is("archived_at", null).order("nome"),
       supabase.from("estados").select("id, sigla, nome").is("archived_at", null).order("sigla"),
+      (supabase as any).from("discovery_pastas").select("id, nome, cor, ordem")
+        .is("archived_at", null).order("ordem").order("nome"),
     ]);
 
     if (d.error) toast.error(d.error.message);
@@ -94,6 +96,7 @@ export default function Discovery() {
     setVendedores((v.data ?? []) as Vendedor[]);
     setTipos((t.data ?? []) as Lookup[]);
     setEstados((e.data ?? []) as Lookup[]);
+    setPastas((p?.data ?? []) as Pasta[]);
     setLoading(false);
   }
 
@@ -104,8 +107,59 @@ export default function Discovery() {
     }
     if (estadoFilter !== "all" && it.estados?.sigla !== estadoFilter) return false;
     if (tipoFilter !== "all" && it.tipos_unidade?.id !== tipoFilter) return false;
+    if (pastaFilter === "none" && it.pasta_id) return false;
+    if (pastaFilter !== "all" && pastaFilter !== "none" && it.pasta_id !== pastaFilter) return false;
     return true;
-  }), [items, search, estadoFilter, tipoFilter]);
+  }), [items, search, estadoFilter, tipoFilter, pastaFilter]);
+
+  const countByPasta = useMemo(() => {
+    const all = items.length;
+    const none = items.filter((it) => !it.pasta_id).length;
+    const map = new Map<string, number>();
+    items.forEach((it) => {
+      if (it.pasta_id) map.set(it.pasta_id, (map.get(it.pasta_id) ?? 0) + 1);
+    });
+    return { all, none, map };
+  }, [items]);
+
+  async function salvarPasta(nome: string, cor: string | null) {
+    if (!nome.trim()) return;
+    if (pastaEditando) {
+      const { error } = await (supabase as any).from("discovery_pastas")
+        .update({ nome: nome.trim(), cor }).eq("id", pastaEditando.id);
+      if (error) { toast.error(error.message); return; }
+      toast.success("Pasta atualizada");
+    } else {
+      const ordem = pastas.length;
+      const { error } = await (supabase as any).from("discovery_pastas")
+        .insert({ nome: nome.trim(), cor, ordem, created_by: user?.id });
+      if (error) { toast.error(error.message); return; }
+      toast.success("Pasta criada");
+    }
+    setPastaDialogOpen(false);
+    setPastaEditando(null);
+    void load();
+  }
+
+  async function excluirPasta() {
+    if (!pastaParaExcluir) return;
+    await supabase.from("discovery").update({ pasta_id: null } as any)
+      .eq("pasta_id", pastaParaExcluir.id);
+    const { error } = await (supabase as any).from("discovery_pastas")
+      .update({ archived_at: new Date().toISOString() }).eq("id", pastaParaExcluir.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Pasta excluída");
+    if (pastaFilter === pastaParaExcluir.id) setPastaFilter("all");
+    setPastaParaExcluir(null);
+    void load();
+  }
+
+  async function moverItem(itemId: string, pastaId: string | null) {
+    const { error } = await supabase.from("discovery")
+      .update({ pasta_id: pastaId } as any).eq("id", itemId);
+    if (error) { toast.error(error.message); return; }
+    setItems((prev) => prev.map((it) => it.id === itemId ? { ...it, pasta_id: pastaId } : it));
+  }
 
   const vendedorNome = (id: string) =>
     vendedores.find((v) => v.id === id)?.nome ?? "—";

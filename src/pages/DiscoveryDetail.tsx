@@ -42,6 +42,7 @@ export default function DiscoveryDetail() {
   const [papeis, setPapeis] = useState<any[]>([]);
   const [linhas, setLinhas] = useState<any[]>([]);
   const [medicosAll, setMedicosAll] = useState<any[]>([]);
+  const [pastas, setPastas] = useState<any[]>([]);
 
   const [contatos, setContatos] = useState<any[]>([]);
   const [medicosVinc, setMedicosVinc] = useState<any[]>([]);
@@ -58,7 +59,7 @@ export default function DiscoveryDetail() {
 
   async function load() {
     if (!id) return;
-    const [d, t, e, pp, ln, md, c, mv, pq, an] = await Promise.all([
+    const [d, t, e, pp, ln, md, c, mv, pq, an, pa] = await Promise.all([
       supabase.from("discovery")
         .select("*, tipos_unidade(id, nome), estados(id, sigla)")
         .eq("id", id).maybeSingle(),
@@ -76,6 +77,8 @@ export default function DiscoveryDetail() {
         .eq("discovery_id", id).is("archived_at", null).order("created_at"),
       supabase.from("anotacoes").select("*, profiles!anotacoes_autor_profile_fkey(nome)")
         .eq("discovery_id", id).is("archived_at", null).order("created_at", { ascending: false }),
+      (supabase as any).from("discovery_pastas").select("id, nome, cor, ordem")
+        .is("archived_at", null).order("ordem").order("nome"),
     ]);
     setItem(d.data);
     setTipos(t.data ?? []);
@@ -87,6 +90,7 @@ export default function DiscoveryDetail() {
     setMedicosVinc(mv.data ?? []);
     setParque(pq.data ?? []);
     setAnotacoes(an.data ?? []);
+    setPastas(pa?.data ?? []);
   }
 
   async function salvar() {
@@ -104,7 +108,8 @@ export default function DiscoveryDetail() {
       email: item.email || null,
       site: item.site || null,
       informacoes_adicionais: item.informacoes_adicionais || null,
-    }).eq("id", item.id);
+      pasta_id: item.pasta_id || null,
+    } as any).eq("id", item.id);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Dados salvos");
@@ -428,6 +433,21 @@ export default function DiscoveryDetail() {
                       <SelectItem value="Grande">Grande</SelectItem>
                     </SelectContent>
                   </Select></div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2"><Label>Pasta</Label>
+                  <Select
+                    value={item.pasta_id ?? "__none__"}
+                    onValueChange={(v) => setItem({ ...item, pasta_id: v === "__none__" ? null : v })}
+                    disabled={readOnly}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Sem pasta" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">Sem pasta</SelectItem>
+                      {pastas.map((p) => <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2"><Label>Cidade</Label>

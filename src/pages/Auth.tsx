@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Activity, Loader2 } from "lucide-react";
 
@@ -16,7 +18,9 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [nome, setNome] = useState("");
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   if (authLoading) {
     return (
@@ -42,27 +46,21 @@ export default function AuthPage() {
     navigate("/");
   };
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleForgot = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    const redirectUrl = `${window.location.origin}/`;
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: { nome },
-      },
+    if (!forgotEmail) return;
+    setForgotLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+      redirectTo: `${window.location.origin}/reset-password`,
     });
-    setLoading(false);
+    setForgotLoading(false);
     if (error) {
-      toast.error(error.message.includes("already registered")
-        ? "Este email já está cadastrado."
-        : error.message);
+      toast.error(error.message);
       return;
     }
-    toast.success("Conta criada! Você já pode usar o sistema.");
-    navigate("/");
+    toast.success("Se o email existir, enviaremos instruções para redefinir a senha.");
+    setForgotOpen(false);
+    setForgotEmail("");
   };
 
   return (
@@ -84,73 +82,71 @@ export default function AuthPage() {
             <CardDescription>Use suas credenciais corporativas</CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="login">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Entrar</TabsTrigger>
-                <TabsTrigger value="signup">Cadastrar</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="login">
-                <form onSubmit={handleLogin} className="space-y-4 pt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email-l">Email</Label>
-                    <Input
-                      id="email-l" type="email" required
-                      value={email} onChange={(e) => setEmail(e.target.value)}
-                      placeholder="voce@vitatech.com"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="pass-l">Senha</Label>
-                    <Input
-                      id="pass-l" type="password" required minLength={6}
-                      value={password} onChange={(e) => setPassword(e.target.value)}
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Entrar
-                  </Button>
-                </form>
-              </TabsContent>
-
-              <TabsContent value="signup">
-                <form onSubmit={handleSignup} className="space-y-4 pt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="nome-s">Nome completo</Label>
-                    <Input
-                      id="nome-s" required
-                      value={nome} onChange={(e) => setNome(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email-s">Email</Label>
-                    <Input
-                      id="email-s" type="email" required
-                      value={email} onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="pass-s">Senha (mín. 6)</Label>
-                    <Input
-                      id="pass-s" type="password" required minLength={6}
-                      value={password} onChange={(e) => setPassword(e.target.value)}
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Criar conta
-                  </Button>
-                  <p className="text-center text-xs text-muted-foreground">
-                    Novo usuário recebe perfil <b>Vendedor</b> por padrão.<br />
-                    Admin pode alterar depois em Usuários.
-                  </p>
-                </form>
-              </TabsContent>
-            </Tabs>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email-l">Email</Label>
+                <Input
+                  id="email-l" type="email" required
+                  value={email} onChange={(e) => setEmail(e.target.value)}
+                  placeholder="voce@vitatech.com"
+                />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="pass-l">Senha</Label>
+                  <button
+                    type="button"
+                    onClick={() => { setForgotEmail(email); setForgotOpen(true); }}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Esqueci minha senha
+                  </button>
+                </div>
+                <Input
+                  id="pass-l" type="password" required minLength={6}
+                  value={password} onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Entrar
+              </Button>
+              <p className="text-center text-xs text-muted-foreground pt-2">
+                Apenas administradores podem cadastrar novos usuários.
+              </p>
+            </form>
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Redefinir senha</DialogTitle>
+            <DialogDescription>
+              Informe seu email e enviaremos um link para você criar uma nova senha.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleForgot} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="forgot-email">Email</Label>
+              <Input
+                id="forgot-email" type="email" required
+                value={forgotEmail}
+                onChange={(e) => setForgotEmail(e.target.value)}
+                placeholder="voce@vitatech.com"
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={() => setForgotOpen(false)}>Cancelar</Button>
+              <Button type="submit" disabled={forgotLoading}>
+                {forgotLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Enviar link
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

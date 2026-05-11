@@ -108,7 +108,8 @@ export default function DiscoveryDetail() {
       email: item.email || null,
       site: item.site || null,
       informacoes_adicionais: item.informacoes_adicionais || null,
-    }).eq("id", item.id);
+      pasta_id: item.pasta_id || null,
+    } as any).eq("id", item.id);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Dados salvos");

@@ -320,6 +320,22 @@ export default function Discovery() {
                   <TableCell className="text-muted-foreground">
                     {it.tipos_unidade?.nome ?? "—"}
                   </TableCell>
+                  <TableCell>
+                    <Select
+                      value={it.pasta_id ?? "__none__"}
+                      onValueChange={(v) => moverItem(it.id, v === "__none__" ? null : v)}
+                    >
+                      <SelectTrigger className="h-8 w-[140px] text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">Sem pasta</SelectItem>
+                        {pastas.map((p) => (
+                          <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
                   <TableCell className="text-muted-foreground text-sm">
                     {vendedorNome(it.vendedor_id)}
                   </TableCell>

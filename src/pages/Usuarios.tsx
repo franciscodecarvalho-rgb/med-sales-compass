@@ -353,7 +353,6 @@ function EditUserDialog({
             <p className="text-[11px] text-muted-foreground">A nova senha será aplicada imediatamente.</p>
           </div>
         </div>
-        </div>
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>Cancelar</Button>
           <Button onClick={save} disabled={saving}>{saving ? "Salvando..." : "Salvar"}</Button>

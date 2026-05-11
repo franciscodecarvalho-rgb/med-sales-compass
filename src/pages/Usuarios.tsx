@@ -335,8 +335,23 @@ function EditUserDialog({
                   {l.nome}
                 </label>
               ))}
-            </div>
           </div>
+          <div className="space-y-2 rounded-md border p-3">
+            <Label>Redefinir senha</Label>
+            <div className="flex gap-2">
+              <Input
+                type="text"
+                placeholder="Nova senha (mín. 6)"
+                value={novaSenha}
+                onChange={(e) => setNovaSenha(e.target.value)}
+              />
+              <Button type="button" variant="outline" onClick={resetSenha} disabled={resetando || novaSenha.length < 6}>
+                {resetando ? "..." : "Aplicar"}
+              </Button>
+            </div>
+            <p className="text-[11px] text-muted-foreground">A nova senha será aplicada imediatamente.</p>
+          </div>
+        </div>
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>Cancelar</Button>

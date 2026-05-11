@@ -23,9 +23,15 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import ImportarPlanilhaDialog from "@/components/ImportarPlanilhaDialog";
+import { Plus as PlusIcon, Pencil, Trash2, FolderOpen, Folder } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type Lookup = { id: string; nome: string; sigla?: string };
 type Vendedor = { id: string; nome: string };
+type Pasta = { id: string; nome: string; cor: string | null; ordem: number };
 
 export default function Discovery() {
   const { user, roles } = useAuth();

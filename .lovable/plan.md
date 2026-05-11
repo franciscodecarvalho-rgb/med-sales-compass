@@ -1,43 +1,44 @@
-## Alteração: busca de CNAE apenas por código
+## Problema
 
-### Problema
-Atualmente o filtro do CNAE busca tanto pelo `id` (código) quanto pelo `descricao` (nome da atividade). Isso gera muitos resultados irrelevantes quando o usuário digita termos genéricos do nome.
+Ao adicionar uma anotação em um Discovery, o banco rejeita com:
 
-### Solução
-Restringir a busca **exclusivamente ao código do CNAE** (`c.id`).
+```
+new row for relation "anotacoes" violates check constraint "anotacoes_check"
+```
 
-Arquivo: `src/pages/DiscoveryLab.tsx`
+### Causa raiz
 
-### Mudanças
+A tabela `anotacoes` tem o constraint:
 
-1. **Remover a busca por descrição**
-   Na função `cnaeFiltered` (linha ~199), alterar de:
-   ```ts
-   .filter((c) => c.id.includes(q) || c.descricao.toLowerCase().includes(q))
-   ```
-   para:
-   ```ts
-   .filter((c) => c.id.includes(q))
-   ```
+```sql
+CHECK (deal_id IS NOT NULL OR medico_id IS NOT NULL OR unidade_id IS NOT NULL)
+```
 
-2. **Ajustar o placeholder do input**
-   Alterar o `CommandInput` (linha ~609) de:
-   ```
-   "Buscar por código ou descrição..."
-   ```
-   para:
-   ```
-   "Digite o código CNAE..."
-   ```
+Esse check foi criado **antes** da coluna `discovery_id` existir. Hoje, em `DiscoveryDetail.tsx` (linha 284), o insert envia apenas `discovery_id`, sem deal/medico/unidade — então o constraint barra o insert.
 
-3. **Remover campo `search` pré-computado (se existir)**
-   Como a busca será puramente pelo `id` (string simples, sem acentos), não há necessidade de índice normalizado. Manter apenas o `id` e `descricao` no tipo.
+## Solução
 
-### Resultado esperado
-- Digitar "86" → lista todos os CNAEs que começam com 86
-- Digitar "8610-1" → encontra exatamente 8610-1/00
-- Digitar "medic" ou "hospital" → **nenhum resultado** (busca é só por código)
-- O filtro continua case-insensitive (`toLowerCase()` permanece no `q`, embora os códigos IBGE já sejam maiúsculos).
+Atualizar o check constraint para também aceitar `discovery_id` como vínculo válido.
 
-### Fora de escopo
-- Layout, visual, popover, responsividade, outras funcionalidades do LAB.
+### Migração (schema)
+
+```sql
+ALTER TABLE public.anotacoes DROP CONSTRAINT anotacoes_check;
+
+ALTER TABLE public.anotacoes ADD CONSTRAINT anotacoes_check CHECK (
+  deal_id IS NOT NULL
+  OR medico_id IS NOT NULL
+  OR unidade_id IS NOT NULL
+  OR discovery_id IS NOT NULL
+);
+```
+
+### Trigger relacionado
+
+A função `handle_anotacao_proximo_contato()` (que cria tarefa de follow-up) já trata os casos `deal_id / medico_id / unidade_id`, mas **não** trata `discovery_id` — cai no fallback "Follow-up (anotação)" e a tarefa criada fica sem `discovery_id` (a tabela `tarefas` nem tem essa coluna). Como follow-ups de Discovery hoje funcionam assim mesmo (sem vínculo direto na tarefa), **não vou alterar** essa função neste plano para não escopar mais do que o necessário. Se quiser, posso incluir num plano separado.
+
+## Fora de escopo
+
+- Mudar a UI de anotações.
+- Adicionar coluna `discovery_id` em `tarefas`.
+- Mexer em RLS (as policies atuais já permitem o insert).

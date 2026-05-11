@@ -364,7 +364,114 @@ export default function Discovery() {
           </Table>
         </div>
       )}
+
+      {/* Dialog criar/editar pasta */}
+      <Dialog open={pastaDialogOpen} onOpenChange={(o) => { setPastaDialogOpen(o); if (!o) setPastaEditando(null); }}>
+        <PastaDialog
+          pasta={pastaEditando}
+          onSave={salvarPasta}
+        />
+      </Dialog>
+
+      {/* Confirmação excluir pasta */}
+      <AlertDialog open={!!pastaParaExcluir} onOpenChange={(o) => { if (!o) setPastaParaExcluir(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir pasta "{pastaParaExcluir?.nome}"?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Os Discoveries dessa pasta voltam para "Sem pasta". Os itens não são apagados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={excluirPasta}>Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
+  );
+}
+
+function PastaTab({
+  active, onClick, icon, label, count, onEdit, onDelete,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+  count: number;
+  onEdit?: () => void;
+  onDelete?: () => void;
+}) {
+  return (
+    <div className={`group inline-flex items-center rounded-md border ${active ? "border-primary bg-primary/10" : "border-transparent hover:bg-muted"}`}>
+      <button
+        type="button"
+        onClick={onClick}
+        className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm ${active ? "text-primary font-medium" : "text-foreground"}`}
+      >
+        {icon}
+        {label}
+        <span className="ml-1 text-xs text-muted-foreground">{count}</span>
+      </button>
+      {(onEdit || onDelete) && (
+        <div className="hidden group-hover:flex items-center gap-0.5 pr-1">
+          {onEdit && (
+            <button type="button" onClick={(e) => { e.stopPropagation(); onEdit(); }} className="p-1 rounded hover:bg-muted-foreground/10" title="Renomear">
+              <Pencil className="h-3 w-3 text-muted-foreground" />
+            </button>
+          )}
+          {onDelete && (
+            <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(); }} className="p-1 rounded hover:bg-destructive/10" title="Excluir">
+              <Trash2 className="h-3 w-3 text-destructive" />
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PastaDialog({ pasta, onSave }: { pasta: Pasta | null; onSave: (nome: string, cor: string | null) => void }) {
+  const [nome, setNome] = useState(pasta?.nome ?? "");
+  const [cor, setCor] = useState(pasta?.cor ?? "");
+
+  useEffect(() => {
+    setNome(pasta?.nome ?? "");
+    setCor(pasta?.cor ?? "");
+  }, [pasta]);
+
+  return (
+    <DialogContent className="max-w-md">
+      <DialogHeader>
+        <DialogTitle>{pasta ? "Editar pasta" : "Nova pasta"}</DialogTitle>
+      </DialogHeader>
+      <form
+        onSubmit={(e) => { e.preventDefault(); onSave(nome, cor || null); }}
+        className="space-y-4"
+      >
+        <div className="space-y-2">
+          <Label>Nome *</Label>
+          <Input required autoFocus value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Ex: Prioridade alta" />
+        </div>
+        <div className="space-y-2">
+          <Label>Cor (opcional)</Label>
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              value={cor || "#0ea5e9"}
+              onChange={(e) => setCor(e.target.value)}
+              className="h-9 w-12 rounded border border-input bg-background"
+            />
+            <Input value={cor} onChange={(e) => setCor(e.target.value)} placeholder="#0ea5e9" />
+            {cor && <Button type="button" variant="ghost" size="sm" onClick={() => setCor("")}>limpar</Button>}
+          </div>
+        </div>
+        <DialogFooter>
+          <Button type="submit" disabled={!nome.trim()}>{pasta ? "Salvar" : "Criar"}</Button>
+        </DialogFooter>
+      </form>
+    </DialogContent>
   );
 }
 

@@ -269,6 +269,23 @@ function EditUserDialog({
   const [telefone, setTelefone] = useState(user.telefone ?? "");
   const [linhaIds, setLinhaIds] = useState<string[]>(selectedLinhaIds);
   const [saving, setSaving] = useState(false);
+  const [novaSenha, setNovaSenha] = useState("");
+  const [resetando, setResetando] = useState(false);
+
+  async function resetSenha() {
+    if (novaSenha.length < 6) { toast.error("Senha deve ter ao menos 6 caracteres"); return; }
+    setResetando(true);
+    const { data, error } = await supabase.functions.invoke("admin-update-password", {
+      body: { user_id: user.id, password: novaSenha },
+    });
+    setResetando(false);
+    if (error || (data as any)?.error) {
+      toast.error((data as any)?.error || error?.message || "Erro ao alterar senha");
+      return;
+    }
+    toast.success("Senha atualizada");
+    setNovaSenha("");
+  }
 
   function toggle(id: string) {
     setLinhaIds((arr) => arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id]);
@@ -319,6 +336,21 @@ function EditUserDialog({
                 </label>
               ))}
             </div>
+          </div>
+          <div className="space-y-2 rounded-md border p-3">
+            <Label>Redefinir senha</Label>
+            <div className="flex gap-2">
+              <Input
+                type="text"
+                placeholder="Nova senha (mín. 6)"
+                value={novaSenha}
+                onChange={(e) => setNovaSenha(e.target.value)}
+              />
+              <Button type="button" variant="outline" onClick={resetSenha} disabled={resetando || novaSenha.length < 6}>
+                {resetando ? "..." : "Aplicar"}
+              </Button>
+            </div>
+            <p className="text-[11px] text-muted-foreground">A nova senha será aplicada imediatamente.</p>
           </div>
         </div>
         <DialogFooter>

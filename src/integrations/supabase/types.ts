@@ -571,6 +571,7 @@ export type Database = {
           id: string
           informacoes_adicionais: string | null
           nome: string
+          pasta_id: string | null
           porte: string | null
           site: string | null
           status: Database["public"]["Enums"]["discovery_status"]
@@ -592,6 +593,7 @@ export type Database = {
           id?: string
           informacoes_adicionais?: string | null
           nome: string
+          pasta_id?: string | null
           porte?: string | null
           site?: string | null
           status?: Database["public"]["Enums"]["discovery_status"]
@@ -613,6 +615,7 @@ export type Database = {
           id?: string
           informacoes_adicionais?: string | null
           nome?: string
+          pasta_id?: string | null
           porte?: string | null
           site?: string | null
           status?: Database["public"]["Enums"]["discovery_status"]
@@ -645,6 +648,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      discovery_pastas: {
+        Row: {
+          archived_at: string | null
+          cor: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          nome: string
+          ordem: number
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          cor?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          nome: string
+          ordem?: number
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          cor?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          nome?: string
+          ordem?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       equipamentos: {
         Row: {

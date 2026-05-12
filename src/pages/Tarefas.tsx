@@ -111,7 +111,8 @@ export default function Tarefas() {
         if (vinculoFilter === "medico" && !t.medico_id) return false;
         if (vinculoFilter === "unidade" && !t.unidade_id) return false;
         if (vinculoFilter === "discovery" && !t.discovery_id) return false;
-        if (vinculoFilter === "livre" && (t.deal_id || t.medico_id || t.unidade_id || t.discovery_id)) return false;
+        if (vinculoFilter === "stakeholder" && !t.stakeholder_id) return false;
+        if (vinculoFilter === "livre" && (t.deal_id || t.medico_id || t.unidade_id || t.discovery_id || t.stakeholder_id)) return false;
       }
       // Prioridade
       if (prioFilter !== "todas" && t.prioridade !== prioFilter) return false;

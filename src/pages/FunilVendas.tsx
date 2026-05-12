@@ -461,7 +461,7 @@ function TabelaDeals({ deals, sortKey, sortDir, onSort, verdeLimit, amareloLimit
           <TableHeader>
             <TableRow>
               <Sortable k="titulo">Deal</Sortable>
-              <Sortable k="unidade">Unidade</Sortable>
+              <Sortable k="unidade">Cliente</Sortable>
               <Sortable k="vendedor">Vendedor</Sortable>
               <Sortable k="estagio">Estágio</Sortable>
               <Sortable k="valor" className="text-right">Valor</Sortable>

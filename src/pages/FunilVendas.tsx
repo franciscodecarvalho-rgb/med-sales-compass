@@ -729,7 +729,7 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
         </div>
 
         <DialogFooter>
-          <Button type="submit" disabled={saving || !form.titulo || !form.unidade_id || !form.linha_id}>
+          <Button type="submit" disabled={saving || !form.titulo || !form.linha_id || (!form.unidade_id && !form.medico_id)}>
             {saving ? "Salvando..." : "Criar deal"}
           </Button>
         </DialogFooter>

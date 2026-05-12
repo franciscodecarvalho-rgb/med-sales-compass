@@ -349,17 +349,19 @@ function CounterPill({ label, value, className }: { label: string; value: number
 }
 
 // ============= Tipo (cor pastel) =============
-type TipoKey = "deal" | "discovery" | "unidade" | "medico" | "livre";
+type TipoKey = "deal" | "discovery" | "unidade" | "medico" | "stakeholder" | "livre";
 const TIPO_META: Record<TipoKey, { label: string; cls: string }> = {
-  deal:      { label: "Deal",      cls: "bg-violet-100 text-violet-800 border-violet-200 dark:bg-violet-950/40 dark:text-violet-200 dark:border-violet-900" },
-  discovery: { label: "Discovery", cls: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-900" },
-  unidade:   { label: "Unidade",   cls: "bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-950/40 dark:text-sky-200 dark:border-sky-900" },
-  medico:    { label: "Médico",    cls: "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-900" },
-  livre:     { label: "Livre",     cls: "bg-stone-100 text-stone-700 border-stone-200 dark:bg-stone-900/40 dark:text-stone-300 dark:border-stone-800" },
+  deal:        { label: "Deal",        cls: "bg-violet-100 text-violet-800 border-violet-200 dark:bg-violet-950/40 dark:text-violet-200 dark:border-violet-900" },
+  discovery:   { label: "Discovery",   cls: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-900" },
+  unidade:     { label: "Unidade",     cls: "bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-950/40 dark:text-sky-200 dark:border-sky-900" },
+  medico:      { label: "Médico",      cls: "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-900" },
+  stakeholder: { label: "Stakeholder", cls: "bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-200 dark:border-rose-900" },
+  livre:       { label: "Livre",       cls: "bg-stone-100 text-stone-700 border-stone-200 dark:bg-stone-900/40 dark:text-stone-300 dark:border-stone-800" },
 };
 function tipoOf(t: any): TipoKey {
   if (t.deal_id) return "deal";
   if (t.discovery_id) return "discovery";
+  if (t.stakeholder_id) return "stakeholder";
   if (t.unidade_id) return "unidade";
   if (t.medico_id) return "medico";
   return "livre";

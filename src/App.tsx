@@ -26,6 +26,8 @@ import Tarefas from "./pages/Tarefas";
 import PosVenda from "./pages/PosVenda";
 import Usuarios from "./pages/Usuarios";
 import PainelGerencial from "./pages/PainelGerencial";
+import Stakeholders from "./pages/Stakeholders";
+import StakeholderDetail from "./pages/StakeholderDetail";
 import Configuracoes from "./pages/Configuracoes";
 import NotFound from "./pages/NotFound";
 

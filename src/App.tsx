@@ -73,6 +73,9 @@ const App = () => (
               <Route path="/usuarios" element={
                 <ProtectedRoute requireRoles={["admin"]}><Usuarios /></ProtectedRoute>
               } />
+              <Route path="/painel-gerencial" element={
+                <ProtectedRoute requireRoles={["admin", "gerente"]}><PainelGerencial /></ProtectedRoute>
+              } />
               <Route path="/configuracoes" element={
                 <ProtectedRoute requireRoles={["admin"]}><Configuracoes /></ProtectedRoute>
               } />

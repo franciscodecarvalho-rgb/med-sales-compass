@@ -102,6 +102,7 @@ export default function FunilVendas() {
       .select(`
         *,
         unidades_saude(id, nome, cidade, estado),
+        medicos(id, nome, crm),
         linhas_produto(nome, cor, limite_verde_dias, limite_amarelo_dias),
         motivos_perda(nome)
       `)

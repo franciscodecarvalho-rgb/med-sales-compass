@@ -14,6 +14,7 @@ import {
   Wrench,
   Receipt,
   Search as SearchIcon,
+  BarChart3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -39,6 +40,7 @@ const navItems: NavItem[] = [
   { to: "/equipamentos", label: "Equipamentos", icon: Package, roles: ["admin", "gerente"] },
   { to: "/configuracoes", label: "Configurações", icon: Settings, roles: ["admin"] },
   { to: "/usuarios", label: "Usuários", icon: Users, roles: ["admin"] },
+  { to: "/painel-gerencial", label: "Painel Gerencial", icon: BarChart3, roles: ["admin", "gerente"] },
 ];
 
 export default function AppLayout() {

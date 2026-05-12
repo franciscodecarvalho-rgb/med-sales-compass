@@ -25,6 +25,7 @@ import Faturamento from "./pages/Faturamento";
 import Tarefas from "./pages/Tarefas";
 import PosVenda from "./pages/PosVenda";
 import Usuarios from "./pages/Usuarios";
+import PainelGerencial from "./pages/PainelGerencial";
 import Configuracoes from "./pages/Configuracoes";
 import NotFound from "./pages/NotFound";
 
@@ -71,6 +72,9 @@ const App = () => (
               } />
               <Route path="/usuarios" element={
                 <ProtectedRoute requireRoles={["admin"]}><Usuarios /></ProtectedRoute>
+              } />
+              <Route path="/painel-gerencial" element={
+                <ProtectedRoute requireRoles={["admin", "gerente"]}><PainelGerencial /></ProtectedRoute>
               } />
               <Route path="/configuracoes" element={
                 <ProtectedRoute requireRoles={["admin"]}><Configuracoes /></ProtectedRoute>

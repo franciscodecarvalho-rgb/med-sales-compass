@@ -743,6 +743,9 @@ function NovaTarefaDialog({ onSaved }: { onSaved: () => void }) {
     } else if (v === "unidade") {
       const { data } = await supabase.from("unidades_saude").select("id, nome").is("archived_at", null).order("nome");
       setOpcoes((data ?? []).map((u) => ({ id: u.id, titulo: u.nome })));
+    } else if (v === "stakeholder") {
+      const { data } = await supabase.from("stakeholders").select("id, nome, organizacao").is("archived_at", null).order("nome");
+      setOpcoes((data ?? []).map((s: any) => ({ id: s.id, titulo: s.organizacao ? `${s.nome} — ${s.organizacao}` : s.nome })));
     } else {
       setOpcoes([]);
     }
@@ -771,6 +774,7 @@ function NovaTarefaDialog({ onSaved }: { onSaved: () => void }) {
     if (form.vinculo === "deal") payload.deal_id = form.entidadeId;
     if (form.vinculo === "medico") payload.medico_id = form.entidadeId;
     if (form.vinculo === "unidade") payload.unidade_id = form.entidadeId;
+    if (form.vinculo === "stakeholder") payload.stakeholder_id = form.entidadeId;
 
     const { error } = await supabase.from("tarefas").insert(payload);
     setSaving(false);

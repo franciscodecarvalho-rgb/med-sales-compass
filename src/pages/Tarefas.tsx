@@ -242,6 +242,7 @@ export default function Tarefas() {
               <SelectContent>
                 <SelectItem value="todos">Todos vínculos</SelectItem>
                 <SelectItem value="deal">Deal</SelectItem>
+                <SelectItem value="discovery">Discovery</SelectItem>
                 <SelectItem value="medico">Médico</SelectItem>
                 <SelectItem value="unidade">Unidade</SelectItem>
                 <SelectItem value="livre">Livre</SelectItem>

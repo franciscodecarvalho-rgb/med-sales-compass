@@ -44,6 +44,7 @@ export default function DealDetail() {
       supabase.from("deals").select(`
         *,
         unidades_saude(id, nome, cidade, estado),
+        medicos(id, nome, crm, especialidade),
         linhas_produto(id, nome, cor, limite_verde_dias, limite_amarelo_dias),
         profiles!deals_vendedor_profile_fkey(nome),
         motivos_perda(nome)

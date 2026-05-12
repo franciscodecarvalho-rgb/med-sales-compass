@@ -389,16 +389,20 @@ function FinalizarInline({ deal, onClose }: { deal: any; onClose: () => void }) 
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     if (resultado === "ganho") {
-      // Sugere criar instalação automaticamente
-      const { error: instErr } = await supabase.from("instalacoes").insert({
-        deal_id: deal.id,
-        unidade_id: deal.unidade_id,
-        tipo: "instalacao",
-        status: "pendente",
-        observacoes: `Gerado automaticamente do deal "${deal.titulo}"`,
-      });
-      if (instErr) toast.warning("Deal ganho, mas não foi possível criar instalação automaticamente");
-      else toast.success("Deal ganho! 🎉 Instalação pendente criada.");
+      if (deal.unidade_id) {
+        // Sugere criar instalação automaticamente
+        const { error: instErr } = await supabase.from("instalacoes").insert({
+          deal_id: deal.id,
+          unidade_id: deal.unidade_id,
+          tipo: "instalacao",
+          status: "pendente",
+          observacoes: `Gerado automaticamente do deal "${deal.titulo}"`,
+        });
+        if (instErr) toast.warning("Deal ganho, mas não foi possível criar instalação automaticamente");
+        else toast.success("Deal ganho! 🎉 Instalação pendente criada.");
+      } else {
+        toast.success("Deal ganho! 🎉");
+      }
     } else {
       toast.success("Deal encerrado");
     }

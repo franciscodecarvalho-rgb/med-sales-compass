@@ -1563,6 +1563,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "tarefas_discovery_id_fkey"
+            columns: ["discovery_id"]
+            isOneToOne: false
+            referencedRelation: "discovery"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tarefas_medico_id_fkey"
             columns: ["medico_id"]
             isOneToOne: false

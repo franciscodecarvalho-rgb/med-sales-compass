@@ -309,7 +309,7 @@ export default function PainelGerencial() {
                     <div className="grid grid-cols-3 gap-2 mt-4 text-xs">
                       <div><div className="text-muted-foreground">Conv.</div><div className="font-semibold">{s.conversao.toFixed(0)}%</div></div>
                       <div><div className="text-muted-foreground">Tarefas</div><div className="font-semibold">{s.tarefas_concluidas}/{s.tarefas_total}</div></div>
-                      <div><div className="text-muted-foreground">Leads</div><div className="font-semibold">{s.discoveries}</div></div>
+                      <div><div className="text-muted-foreground">Discovery</div><div className="font-semibold">{s.discoveries}</div></div>
                     </div>
                   </CardContent>
                 </Card>

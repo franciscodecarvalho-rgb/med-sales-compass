@@ -137,7 +137,8 @@ export default function FunilVendas() {
     if (search) {
       const q = search.toLowerCase();
       if (!d.titulo.toLowerCase().includes(q) &&
-          !d.unidades_saude?.nome?.toLowerCase().includes(q)) return false;
+          !d.unidades_saude?.nome?.toLowerCase().includes(q) &&
+          !d.medicos?.nome?.toLowerCase().includes(q)) return false;
     }
     if (filterEstado !== "all" && d.unidades_saude?.estado !== filterEstado) return false;
     if (filterVendedor !== "all" && d.vendedor_id !== filterVendedor) return false;

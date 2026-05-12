@@ -14,6 +14,10 @@ import {
   Wrench,
   Receipt,
   Search as SearchIcon,
+  BarChart3,
+  Wrench,
+  Receipt,
+  Search as SearchIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";

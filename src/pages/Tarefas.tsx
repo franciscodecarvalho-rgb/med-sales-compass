@@ -80,6 +80,7 @@ export default function Tarefas() {
         unidades_saude(id, nome, status),
         medicos(id, nome),
         discovery(id, nome),
+        stakeholders(id, nome),
         responsavel:profiles!tarefas_responsavel_profile_fkey(id, nome)
       `)
       .is("archived_at", null)

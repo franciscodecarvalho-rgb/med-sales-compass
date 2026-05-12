@@ -145,6 +145,7 @@ export default function Tarefas() {
     const livres: any[] = [];
     for (const t of filtered) {
       if (t.deal_id) { deals.push(t); continue; }
+      if (t.discovery_id) { discovery.push(t); continue; }
       if (t.unidade_id || t.medico_id) { relacionamento.push(t); continue; }
       livres.push(t);
     }

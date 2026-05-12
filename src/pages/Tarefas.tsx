@@ -29,7 +29,7 @@ import { EditarTarefaDialog } from "@/components/EditarTarefaDialog";
 import { format, isToday, isThisWeek, isThisMonth, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-type VinculoFiltro = "todos" | "deal" | "medico" | "unidade" | "livre";
+type VinculoFiltro = "todos" | "deal" | "medico" | "unidade" | "discovery" | "livre";
 type StatusFiltro = "abertas" | "concluidas" | "atrasadas" | "todas";
 type DataFiltro = "todas" | "hoje" | "semana" | "mes" | "custom";
 type PrioFiltro = "todas" | TarefaPrioridade;

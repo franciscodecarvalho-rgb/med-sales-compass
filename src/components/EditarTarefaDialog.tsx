@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Briefcase, Building2, UserRound, Search as SearchIcon } from "lucide-react";
+import { Briefcase, Building2, UserRound, Search as SearchIcon, Handshake } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -24,6 +24,7 @@ const VINCULO_CLS = {
   unidade: "bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-950/40 dark:text-sky-200 dark:border-sky-900",
   medico: "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-900",
   discovery: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-900",
+  stakeholder: "bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-200 dark:border-rose-900",
 };
 
 export function EditarTarefaDialogContent({ tarefa, onSaved }: { tarefa: any; onSaved: () => void }) {
@@ -65,6 +66,8 @@ export function EditarTarefaDialogContent({ tarefa, onSaved }: { tarefa: any; on
     ? { to: `/deals/${tarefa.deal_id}`, label: tarefa.deals?.titulo ?? "Deal", tipo: "Deal", icon: <Briefcase className="h-3.5 w-3.5" />, cls: VINCULO_CLS.deal }
     : tarefa.discovery_id
     ? { to: `/discovery/${tarefa.discovery_id}`, label: tarefa.discovery?.nome ?? "Discovery", tipo: "Discovery", icon: <SearchIcon className="h-3.5 w-3.5" />, cls: VINCULO_CLS.discovery }
+    : tarefa.stakeholder_id
+    ? { to: `/stakeholders/${tarefa.stakeholder_id}`, label: tarefa.stakeholders?.nome ?? "Stakeholder", tipo: "Stakeholder", icon: <Handshake className="h-3.5 w-3.5" />, cls: VINCULO_CLS.stakeholder }
     : tarefa.unidade_id
     ? { to: `/unidades/${tarefa.unidade_id}`, label: tarefa.unidades_saude?.nome ?? "Unidade", tipo: "Unidade", icon: <Building2 className="h-3.5 w-3.5" />, cls: VINCULO_CLS.unidade }
     : tarefa.medico_id

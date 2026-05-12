@@ -26,6 +26,8 @@ import Tarefas from "./pages/Tarefas";
 import PosVenda from "./pages/PosVenda";
 import Usuarios from "./pages/Usuarios";
 import PainelGerencial from "./pages/PainelGerencial";
+import Stakeholders from "./pages/Stakeholders";
+import StakeholderDetail from "./pages/StakeholderDetail";
 import Configuracoes from "./pages/Configuracoes";
 import NotFound from "./pages/NotFound";
 
@@ -75,6 +77,12 @@ const App = () => (
               } />
               <Route path="/painel-gerencial" element={
                 <ProtectedRoute requireRoles={["admin", "gerente"]}><PainelGerencial /></ProtectedRoute>
+              } />
+              <Route path="/stakeholders" element={
+                <ProtectedRoute requireRoles={["admin", "gerente"]}><Stakeholders /></ProtectedRoute>
+              } />
+              <Route path="/stakeholders/:id" element={
+                <ProtectedRoute requireRoles={["admin", "gerente"]}><StakeholderDetail /></ProtectedRoute>
               } />
               <Route path="/configuracoes" element={
                 <ProtectedRoute requireRoles={["admin"]}><Configuracoes /></ProtectedRoute>

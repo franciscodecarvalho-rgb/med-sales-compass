@@ -44,6 +44,7 @@ export default function DealDetail() {
       supabase.from("deals").select(`
         *,
         unidades_saude(id, nome, cidade, estado),
+        medicos(id, nome, crm, especialidade),
         linhas_produto(id, nome, cor, limite_verde_dias, limite_amarelo_dias),
         profiles!deals_vendedor_profile_fkey(nome),
         motivos_perda(nome)
@@ -111,9 +112,16 @@ export default function DealDetail() {
             )}
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-            <Link to={`/unidades/${deal.unidades_saude?.id}`} className="font-medium text-foreground hover:underline">
-              {deal.unidades_saude?.nome}
-            </Link>
+            {deal.unidades_saude && (
+              <Link to={`/unidades/${deal.unidades_saude.id}`} className="font-medium text-foreground hover:underline">
+                🏥 {deal.unidades_saude.nome}
+              </Link>
+            )}
+            {deal.medicos && (
+              <Link to={`/medicos/${deal.medicos.id}`} className="font-medium text-foreground hover:underline">
+                👨‍⚕️ Dr. {deal.medicos.nome}{deal.medicos.crm ? ` (CRM ${deal.medicos.crm})` : ""}
+              </Link>
+            )}
             <span>·</span>
             <span style={{ color: deal.linhas_produto?.cor }}>{deal.linhas_produto?.nome}</span>
             <span>·</span>
@@ -381,16 +389,20 @@ function FinalizarInline({ deal, onClose }: { deal: any; onClose: () => void }) 
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     if (resultado === "ganho") {
-      // Sugere criar instalação automaticamente
-      const { error: instErr } = await supabase.from("instalacoes").insert({
-        deal_id: deal.id,
-        unidade_id: deal.unidade_id,
-        tipo: "instalacao",
-        status: "pendente",
-        observacoes: `Gerado automaticamente do deal "${deal.titulo}"`,
-      });
-      if (instErr) toast.warning("Deal ganho, mas não foi possível criar instalação automaticamente");
-      else toast.success("Deal ganho! 🎉 Instalação pendente criada.");
+      if (deal.unidade_id) {
+        // Sugere criar instalação automaticamente
+        const { error: instErr } = await supabase.from("instalacoes").insert({
+          deal_id: deal.id,
+          unidade_id: deal.unidade_id,
+          tipo: "instalacao",
+          status: "pendente",
+          observacoes: `Gerado automaticamente do deal "${deal.titulo}"`,
+        });
+        if (instErr) toast.warning("Deal ganho, mas não foi possível criar instalação automaticamente");
+        else toast.success("Deal ganho! 🎉 Instalação pendente criada.");
+      } else {
+        toast.success("Deal ganho! 🎉");
+      }
     } else {
       toast.success("Deal encerrado");
     }

@@ -1,21 +1,57 @@
 ## Objetivo
 
-1. Na **timeline do Discovery**, o badge "⏰ Follow-up: ..." deve ser clicável e abrir o mesmo diálogo de edição de tarefa que aparece em **Tarefas**.
-2. Na página **Tarefas**, garantir que tarefas vinculadas a Discovery mostrem o link "→ nome do discovery" (igual deals).
+1. **Deal sem unidade**: permitir abrir deal vinculado apenas a um médico (ou unidade, ou ambos — mas obrigatório pelo menos um).
+2. **Stakeholders**: nova área (admin + gerente) com cadastro de pessoas-chave externas e tarefas vinculadas.
 
-## Mudanças
+---
 
-### `src/pages/DiscoveryDetail.tsx`
-- No `load()`, buscar tarefas do discovery (`tarefas` onde `discovery_id = id`, não arquivadas), retornando `id, anotacao_id, status, ...campos usados pelo EditarTarefaDialog`. Indexar por `anotacao_id`.
-- Importar `EditarTarefaDialog` de `@/components/EditarTarefaDialog`.
-- No bloco da timeline (linhas 741–745), quando `a.proximo_contato` existir e houver tarefa correspondente (via `anotacao_id`), trocar o `<div>` do follow-up por um `<button>` que abre o dialog.
-- Estado local: `tarefaAberta` (objeto da tarefa) + render do `<EditarTarefaDialog>` controlado, recarregando `load()` ao salvar.
-- Mostrar visualmente o status concluído quando `tarefa.status === 'concluida'` (ex: ✓ verde).
+## 1. Médico opcional/obrigatório no deal
 
-### `src/pages/Tarefas.tsx`
-O mapeamento já contempla discovery (linhas 421–428), mas a query precisa ser confirmada. Verificar:
-- Linha 82: `discovery(id, nome)` — se Supabase não inferir a relação automaticamente (não há FK declarada formalmente nessas tabelas), substituir pelo nome correto da relação ou fazer join manual.
-- Se necessário, ajustar para `discovery:discovery_id(id, nome)` ou buscar nomes via `in()` separado e mesclar.
-- Confirmar que `tipoOf()` (linha 358) e `TIPO_META` já incluem discovery — confirmado.
+### Banco
+- Adicionar coluna `medico_id uuid` em `deals` (nullable).
+- Tornar `unidade_id` nullable em `deals`.
+- Constraint `CHECK (unidade_id IS NOT NULL OR medico_id IS NOT NULL)`.
+- Mesmo tratamento em `deals_manutencao`? **Não** — manutenção sempre tem unidade.
 
-Resultado: clicar no follow-up abre a tarefa direto; lista de Tarefas mostra link para o Discovery vinculado.
+### Código
+- **`src/pages/FunilVendas.tsx`** (NewDealDialog):
+  - Adicionar combobox de médico (busca por nome/CRM).
+  - Validação: exige unidade OU médico (linha + título continuam obrigatórios).
+  - Payload inclui `medico_id`.
+- **`src/pages/FunilVendas.tsx`** (listagem): exibir médico quando não houver unidade (coluna "Cliente").
+- **`src/pages/DealDetail.tsx`**: mostrar bloco médico análogo ao da unidade; permitir editar ambos.
+- **`src/components/EditarTarefaDialog.tsx`**: já lida com tarefa vinculada a médico — sem mudança.
+
+---
+
+## 2. Stakeholders (admin + gerente)
+
+### Banco
+- Nova tabela `stakeholders`:
+  - `nome` (text, NOT NULL)
+  - `cargo` (text)
+  - `organizacao` (text)
+  - `tipo` (text, ex.: "decisor", "influenciador", "político", "financeiro")
+  - `telefone`, `email` (text)
+  - `observacoes` (text)
+  - `created_by` (uuid)
+  - `archived_at`, `created_at`, `updated_at`
+- RLS: SELECT/INSERT/UPDATE só `is_admin_or_gerente(auth.uid())`.
+- Adicionar `stakeholder_id uuid` em `tarefas` (nullable).
+- Atualizar trigger `handle_anotacao_proximo_contato` se necessário (não muda — stakeholders não geram anotações nesta etapa).
+
+### Código
+- **`src/pages/Stakeholders.tsx`** (novo): lista + busca + dialog de criar/editar; filtros por tipo.
+- **`src/pages/StakeholderDetail.tsx`** (novo): dados, lista de tarefas, botão "Nova tarefa" usando o mesmo padrão de criação de tarefa.
+- **`src/App.tsx`**: rotas `/stakeholders` e `/stakeholders/:id` protegidas por `requireRoles={["admin","gerente"]}`.
+- **`src/components/AppLayout.tsx`**: item de menu "Stakeholders" (ícone `Users2` ou `Handshake`), `roles: ["admin","gerente"]`.
+- **`src/pages/Tarefas.tsx`**: incluir `stakeholders(id, nome)` na query e mapeamento `tipoOf`/`TIPO_META` para mostrar link "→ stakeholder".
+- **`src/components/EditarTarefaDialog.tsx`**: adicionar `stakeholder` no `VINCULO_CLS` e na cadeia de detecção (após discovery/medico/unidade), navegando para `/stakeholders/:id`.
+
+---
+
+## Confirmação
+
+Após aprovar, executo na ordem:
+1. Migração (deals.medico_id + nullable unidade + check; stakeholders + tarefas.stakeholder_id + RLS).
+2. Código frontend (Funil, DealDetail, Stakeholders, Tarefas, EditarTarefaDialog, Layout, App).

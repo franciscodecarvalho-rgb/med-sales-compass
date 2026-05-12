@@ -408,12 +408,13 @@ export type Database = {
           estagio: Database["public"]["Enums"]["deal_stage"]
           id: string
           linha_id: string
+          medico_id: string | null
           motivo_perda: string | null
           motivo_perda_id: string | null
           observacoes: string | null
           resultado: Database["public"]["Enums"]["deal_resultado"]
           titulo: string
-          unidade_id: string
+          unidade_id: string | null
           updated_at: string
           valor_total: number
           vendedor_id: string
@@ -427,12 +428,13 @@ export type Database = {
           estagio?: Database["public"]["Enums"]["deal_stage"]
           id?: string
           linha_id: string
+          medico_id?: string | null
           motivo_perda?: string | null
           motivo_perda_id?: string | null
           observacoes?: string | null
           resultado?: Database["public"]["Enums"]["deal_resultado"]
           titulo: string
-          unidade_id: string
+          unidade_id?: string | null
           updated_at?: string
           valor_total?: number
           vendedor_id: string
@@ -446,12 +448,13 @@ export type Database = {
           estagio?: Database["public"]["Enums"]["deal_stage"]
           id?: string
           linha_id?: string
+          medico_id?: string | null
           motivo_perda?: string | null
           motivo_perda_id?: string | null
           observacoes?: string | null
           resultado?: Database["public"]["Enums"]["deal_resultado"]
           titulo?: string
-          unidade_id?: string
+          unidade_id?: string | null
           updated_at?: string
           valor_total?: number
           vendedor_id?: string
@@ -1482,6 +1485,51 @@ export type Database = {
         }
         Relationships: []
       }
+      stakeholders: {
+        Row: {
+          archived_at: string | null
+          cargo: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          id: string
+          nome: string
+          observacoes: string | null
+          organizacao: string | null
+          telefone: string | null
+          tipo: string | null
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          cargo?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          nome: string
+          observacoes?: string | null
+          organizacao?: string | null
+          telefone?: string | null
+          tipo?: string | null
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          cargo?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          organizacao?: string | null
+          telefone?: string | null
+          tipo?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tarefas: {
         Row: {
           anotacao_id: string | null
@@ -1497,6 +1545,7 @@ export type Database = {
           medico_id: string | null
           prioridade: Database["public"]["Enums"]["tarefa_prioridade"]
           responsavel_id: string
+          stakeholder_id: string | null
           status: Database["public"]["Enums"]["tarefa_status"]
           titulo: string
           unidade_id: string | null
@@ -1516,6 +1565,7 @@ export type Database = {
           medico_id?: string | null
           prioridade?: Database["public"]["Enums"]["tarefa_prioridade"]
           responsavel_id: string
+          stakeholder_id?: string | null
           status?: Database["public"]["Enums"]["tarefa_status"]
           titulo: string
           unidade_id?: string | null
@@ -1535,6 +1585,7 @@ export type Database = {
           medico_id?: string | null
           prioridade?: Database["public"]["Enums"]["tarefa_prioridade"]
           responsavel_id?: string
+          stakeholder_id?: string | null
           status?: Database["public"]["Enums"]["tarefa_status"]
           titulo?: string
           unidade_id?: string | null

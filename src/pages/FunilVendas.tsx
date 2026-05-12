@@ -102,6 +102,7 @@ export default function FunilVendas() {
       .select(`
         *,
         unidades_saude(id, nome, cidade, estado),
+        medicos(id, nome, crm),
         linhas_produto(nome, cor, limite_verde_dias, limite_amarelo_dias),
         motivos_perda(nome)
       `)
@@ -136,7 +137,8 @@ export default function FunilVendas() {
     if (search) {
       const q = search.toLowerCase();
       if (!d.titulo.toLowerCase().includes(q) &&
-          !d.unidades_saude?.nome?.toLowerCase().includes(q)) return false;
+          !d.unidades_saude?.nome?.toLowerCase().includes(q) &&
+          !d.medicos?.nome?.toLowerCase().includes(q)) return false;
     }
     if (filterEstado !== "all" && d.unidades_saude?.estado !== filterEstado) return false;
     if (filterVendedor !== "all" && d.vendedor_id !== filterVendedor) return false;
@@ -378,7 +380,9 @@ function DealCard({ deal, verdeLimit, amareloLimit, onEncerrar, dragging }: {
           </button>
         )}
       </div>
-      <div className="mt-1 text-xs text-muted-foreground truncate">{deal.unidades_saude?.nome}</div>
+      <div className="mt-1 text-xs text-muted-foreground truncate">
+        {deal.unidades_saude?.nome || (deal.medicos?.nome && `Dr. ${deal.medicos.nome}`) || "—"}
+      </div>
 
       <div className="mt-2 flex items-center justify-between">
         <span className="text-sm font-semibold">{formatCurrency(deal.valor_total)}</span>
@@ -425,7 +429,7 @@ function TabelaDeals({ deals, sortKey, sortDir, onSort, verdeLimit, amareloLimit
       let va: any, vb: any;
       switch (sortKey) {
         case "titulo": va = a.titulo; vb = b.titulo; break;
-        case "unidade": va = a.unidades_saude?.nome ?? ""; vb = b.unidades_saude?.nome ?? ""; break;
+        case "unidade": va = a.unidades_saude?.nome ?? a.medicos?.nome ?? ""; vb = b.unidades_saude?.nome ?? b.medicos?.nome ?? ""; break;
         case "vendedor": va = a.profiles?.nome ?? ""; vb = b.profiles?.nome ?? ""; break;
         case "estagio": va = STAGE_ORDER.indexOf(a.estagio); vb = STAGE_ORDER.indexOf(b.estagio); break;
         case "valor": va = Number(a.valor_total ?? 0); vb = Number(b.valor_total ?? 0); break;
@@ -457,7 +461,7 @@ function TabelaDeals({ deals, sortKey, sortDir, onSort, verdeLimit, amareloLimit
           <TableHeader>
             <TableRow>
               <Sortable k="titulo">Deal</Sortable>
-              <Sortable k="unidade">Unidade</Sortable>
+              <Sortable k="unidade">Cliente</Sortable>
               <Sortable k="vendedor">Vendedor</Sortable>
               <Sortable k="estagio">Estágio</Sortable>
               <Sortable k="valor" className="text-right">Valor</Sortable>
@@ -474,8 +478,12 @@ function TabelaDeals({ deals, sortKey, sortDir, onSort, verdeLimit, amareloLimit
                   onClick={() => navigate(`/deals/${d.id}`)}>
                   <TableCell className="font-medium">{d.titulo}</TableCell>
                   <TableCell>
-                    {d.unidades_saude?.nome}
-                    <div className="text-xs text-muted-foreground">{d.unidades_saude?.cidade}{d.unidades_saude?.estado ? `-${d.unidades_saude.estado}` : ""}</div>
+                    {d.unidades_saude?.nome || (d.medicos?.nome && `Dr. ${d.medicos.nome}`) || "—"}
+                    <div className="text-xs text-muted-foreground">
+                      {d.unidades_saude
+                        ? `${d.unidades_saude.cidade ?? ""}${d.unidades_saude.estado ? `-${d.unidades_saude.estado}` : ""}`
+                        : d.medicos?.crm ? `CRM ${d.medicos.crm}` : ""}
+                    </div>
                   </TableCell>
                   <TableCell>{d.profiles?.nome}</TableCell>
                   <TableCell><Badge variant="secondary">{STAGE_LABELS[d.estagio as DealStage]}</Badge></TableCell>
@@ -526,8 +534,9 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
 }) {
   const { user, isAdminOrGerente } = useAuth();
   const [unidades, setUnidades] = useState<any[]>([]);
+  const [medicos, setMedicos] = useState<any[]>([]);
   const [form, setForm] = useState({
-    titulo: "", unidade_id: defaultUnidadeId ?? "",
+    titulo: "", unidade_id: defaultUnidadeId ?? "", medico_id: "",
     linha_id: defaultLinhaId, valor_total: "", data_previsao_fechamento: "",
     vendedor_id: user?.id ?? "",
   });
@@ -535,12 +544,15 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
   const [novoEquip, setNovoEquip] = useState("");
   const [novaQtd, setNovaQtd] = useState("1");
   const [unidadeSearch, setUnidadeSearch] = useState("");
+  const [medicoSearch, setMedicoSearch] = useState("");
   const [openNovaUnidade, setOpenNovaUnidade] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     supabase.from("unidades_saude").select("id, nome, cidade, estado, cnpj").is("archived_at", null).order("nome")
       .then(({ data }) => setUnidades(data ?? []));
+    supabase.from("medicos").select("id, nome, crm, especialidade").is("archived_at", null).order("nome")
+      .then(({ data }) => setMedicos(data ?? []));
   }, []);
   useEffect(() => { setForm((f) => ({ ...f, linha_id: defaultLinhaId })); }, [defaultLinhaId]);
   useEffect(() => { if (defaultUnidadeId) setForm((f) => ({ ...f, unidade_id: defaultUnidadeId })); }, [defaultUnidadeId]);
@@ -549,6 +561,11 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
     const q = unidadeSearch.toLowerCase();
     return q ? unidades.filter((u) => u.nome.toLowerCase().includes(q)) : unidades;
   }, [unidades, unidadeSearch]);
+
+  const medicosFiltrados = useMemo(() => {
+    const q = medicoSearch.toLowerCase();
+    return q ? medicos.filter((m) => m.nome.toLowerCase().includes(q) || (m.crm ?? "").toLowerCase().includes(q)) : medicos;
+  }, [medicos, medicoSearch]);
 
   function addEquip() {
     if (!novoEquip.trim()) return;
@@ -560,15 +577,20 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
     e.preventDefault();
     e.stopPropagation();
     if (!user) { toast.error("Sessão expirada. Faça login novamente."); return; }
-    if (!form.titulo.trim() || !form.unidade_id || !form.linha_id) {
-      toast.error("Preencha título, unidade e linha.");
+    if (!form.titulo.trim() || !form.linha_id) {
+      toast.error("Preencha título e linha.");
+      return;
+    }
+    if (!form.unidade_id && !form.medico_id) {
+      toast.error("Vincule a uma unidade ou a um médico (pelo menos um).");
       return;
     }
     setSaving(true);
     try {
       const payload = {
         titulo: form.titulo.trim(),
-        unidade_id: form.unidade_id,
+        unidade_id: form.unidade_id || null,
+        medico_id: form.medico_id || null,
         linha_id: form.linha_id,
         vendedor_id: form.vendedor_id || user.id,
         valor_total: form.valor_total ? Number(form.valor_total) : 0,
@@ -615,15 +637,35 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
           <Input required value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })}
             placeholder="Ex: Hospital ABC - 2 ultrassons" />
         </div>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label>Unidade de saúde *</Label>
-            <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-xs"
-              onClick={() => setOpenNovaUnidade(true)}>
-              <Plus className="h-3 w-3 mr-1" /> Nova unidade
-            </Button>
+        <div className="rounded-md border bg-muted/20 p-3 space-y-3">
+          <div className="text-xs text-muted-foreground">
+            Vincule a uma <strong>unidade</strong> ou a um <strong>médico</strong> (pelo menos um).
           </div>
-          <UnidadeCombobox unidades={unidades} value={form.unidade_id} onChange={(v) => setForm({ ...form, unidade_id: v })} />
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>Unidade de saúde</Label>
+              <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-xs"
+                onClick={() => setOpenNovaUnidade(true)}>
+                <Plus className="h-3 w-3 mr-1" /> Nova unidade
+              </Button>
+            </div>
+            <UnidadeCombobox unidades={unidades} value={form.unidade_id} onChange={(v) => setForm({ ...form, unidade_id: v })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Médico</Label>
+            <Input placeholder="Buscar por nome ou CRM..." value={medicoSearch} onChange={(e) => setMedicoSearch(e.target.value)} />
+            <Select value={form.medico_id || "__none__"} onValueChange={(v) => setForm({ ...form, medico_id: v === "__none__" ? "" : v })}>
+              <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+              <SelectContent className="max-h-64">
+                <SelectItem value="__none__">— sem médico —</SelectItem>
+                {medicosFiltrados.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>
+                    Dr. {m.nome}{m.crm ? ` · CRM ${m.crm}` : ""}{m.especialidade ? ` · ${m.especialidade}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
@@ -687,7 +729,7 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
         </div>
 
         <DialogFooter>
-          <Button type="submit" disabled={saving || !form.titulo || !form.unidade_id || !form.linha_id}>
+          <Button type="submit" disabled={saving || !form.titulo || !form.linha_id || (!form.unidade_id && !form.medico_id)}>
             {saving ? "Salvando..." : "Criar deal"}
           </Button>
         </DialogFooter>

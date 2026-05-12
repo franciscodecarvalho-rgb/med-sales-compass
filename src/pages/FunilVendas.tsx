@@ -637,15 +637,35 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
           <Input required value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })}
             placeholder="Ex: Hospital ABC - 2 ultrassons" />
         </div>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label>Unidade de saúde *</Label>
-            <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-xs"
-              onClick={() => setOpenNovaUnidade(true)}>
-              <Plus className="h-3 w-3 mr-1" /> Nova unidade
-            </Button>
+        <div className="rounded-md border bg-muted/20 p-3 space-y-3">
+          <div className="text-xs text-muted-foreground">
+            Vincule a uma <strong>unidade</strong> ou a um <strong>médico</strong> (pelo menos um).
           </div>
-          <UnidadeCombobox unidades={unidades} value={form.unidade_id} onChange={(v) => setForm({ ...form, unidade_id: v })} />
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>Unidade de saúde</Label>
+              <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-xs"
+                onClick={() => setOpenNovaUnidade(true)}>
+                <Plus className="h-3 w-3 mr-1" /> Nova unidade
+              </Button>
+            </div>
+            <UnidadeCombobox unidades={unidades} value={form.unidade_id} onChange={(v) => setForm({ ...form, unidade_id: v })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Médico</Label>
+            <Input placeholder="Buscar por nome ou CRM..." value={medicoSearch} onChange={(e) => setMedicoSearch(e.target.value)} />
+            <Select value={form.medico_id || "__none__"} onValueChange={(v) => setForm({ ...form, medico_id: v === "__none__" ? "" : v })}>
+              <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+              <SelectContent className="max-h-64">
+                <SelectItem value="__none__">— sem médico —</SelectItem>
+                {medicosFiltrados.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>
+                    Dr. {m.nome}{m.crm ? ` · CRM ${m.crm}` : ""}{m.especialidade ? ` · ${m.especialidade}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">

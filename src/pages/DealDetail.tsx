@@ -112,9 +112,16 @@ export default function DealDetail() {
             )}
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-            <Link to={`/unidades/${deal.unidades_saude?.id}`} className="font-medium text-foreground hover:underline">
-              {deal.unidades_saude?.nome}
-            </Link>
+            {deal.unidades_saude && (
+              <Link to={`/unidades/${deal.unidades_saude.id}`} className="font-medium text-foreground hover:underline">
+                🏥 {deal.unidades_saude.nome}
+              </Link>
+            )}
+            {deal.medicos && (
+              <Link to={`/medicos/${deal.medicos.id}`} className="font-medium text-foreground hover:underline">
+                👨‍⚕️ Dr. {deal.medicos.nome}{deal.medicos.crm ? ` (CRM ${deal.medicos.crm})` : ""}
+              </Link>
+            )}
             <span>·</span>
             <span style={{ color: deal.linhas_produto?.cor }}>{deal.linhas_produto?.nome}</span>
             <span>·</span>

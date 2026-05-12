@@ -78,6 +78,12 @@ const App = () => (
               <Route path="/painel-gerencial" element={
                 <ProtectedRoute requireRoles={["admin", "gerente"]}><PainelGerencial /></ProtectedRoute>
               } />
+              <Route path="/stakeholders" element={
+                <ProtectedRoute requireRoles={["admin", "gerente"]}><Stakeholders /></ProtectedRoute>
+              } />
+              <Route path="/stakeholders/:id" element={
+                <ProtectedRoute requireRoles={["admin", "gerente"]}><StakeholderDetail /></ProtectedRoute>
+              } />
               <Route path="/configuracoes" element={
                 <ProtectedRoute requireRoles={["admin"]}><Configuracoes /></ProtectedRoute>
               } />

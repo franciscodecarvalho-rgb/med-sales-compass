@@ -478,8 +478,12 @@ function TabelaDeals({ deals, sortKey, sortDir, onSort, verdeLimit, amareloLimit
                   onClick={() => navigate(`/deals/${d.id}`)}>
                   <TableCell className="font-medium">{d.titulo}</TableCell>
                   <TableCell>
-                    {d.unidades_saude?.nome}
-                    <div className="text-xs text-muted-foreground">{d.unidades_saude?.cidade}{d.unidades_saude?.estado ? `-${d.unidades_saude.estado}` : ""}</div>
+                    {d.unidades_saude?.nome || (d.medicos?.nome && `Dr. ${d.medicos.nome}`) || "—"}
+                    <div className="text-xs text-muted-foreground">
+                      {d.unidades_saude
+                        ? `${d.unidades_saude.cidade ?? ""}${d.unidades_saude.estado ? `-${d.unidades_saude.estado}` : ""}`
+                        : d.medicos?.crm ? `CRM ${d.medicos.crm}` : ""}
+                    </div>
                   </TableCell>
                   <TableCell>{d.profiles?.nome}</TableCell>
                   <TableCell><Badge variant="secondary">{STAGE_LABELS[d.estagio as DealStage]}</Badge></TableCell>

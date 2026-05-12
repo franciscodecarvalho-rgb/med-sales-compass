@@ -790,10 +790,3 @@ export default function DiscoveryDetail() {
     </div>
   );
 }
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
-}

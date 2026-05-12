@@ -29,7 +29,7 @@ import { EditarTarefaDialog } from "@/components/EditarTarefaDialog";
 import { format, isToday, isThisWeek, isThisMonth, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-type VinculoFiltro = "todos" | "deal" | "medico" | "unidade" | "livre";
+type VinculoFiltro = "todos" | "deal" | "medico" | "unidade" | "discovery" | "livre";
 type StatusFiltro = "abertas" | "concluidas" | "atrasadas" | "todas";
 type DataFiltro = "todas" | "hoje" | "semana" | "mes" | "custom";
 type PrioFiltro = "todas" | TarefaPrioridade;
@@ -79,6 +79,7 @@ export default function Tarefas() {
         deals(id, titulo, unidades_saude(nome)),
         unidades_saude(id, nome, status),
         medicos(id, nome),
+        discovery(id, nome),
         responsavel:profiles!tarefas_responsavel_profile_fkey(id, nome)
       `)
       .is("archived_at", null)
@@ -108,7 +109,8 @@ export default function Tarefas() {
         if (vinculoFilter === "deal" && !t.deal_id) return false;
         if (vinculoFilter === "medico" && !t.medico_id) return false;
         if (vinculoFilter === "unidade" && !t.unidade_id) return false;
-        if (vinculoFilter === "livre" && (t.deal_id || t.medico_id || t.unidade_id)) return false;
+        if (vinculoFilter === "discovery" && !t.discovery_id) return false;
+        if (vinculoFilter === "livre" && (t.deal_id || t.medico_id || t.unidade_id || t.discovery_id)) return false;
       }
       // Prioridade
       if (prioFilter !== "todas" && t.prioridade !== prioFilter) return false;
@@ -143,6 +145,7 @@ export default function Tarefas() {
     const livres: any[] = [];
     for (const t of filtered) {
       if (t.deal_id) { deals.push(t); continue; }
+      if (t.discovery_id) { discovery.push(t); continue; }
       if (t.unidade_id || t.medico_id) { relacionamento.push(t); continue; }
       livres.push(t);
     }
@@ -239,6 +242,7 @@ export default function Tarefas() {
               <SelectContent>
                 <SelectItem value="todos">Todos vínculos</SelectItem>
                 <SelectItem value="deal">Deal</SelectItem>
+                <SelectItem value="discovery">Discovery</SelectItem>
                 <SelectItem value="medico">Médico</SelectItem>
                 <SelectItem value="unidade">Unidade</SelectItem>
                 <SelectItem value="livre">Livre</SelectItem>
@@ -343,15 +347,17 @@ function CounterPill({ label, value, className }: { label: string; value: number
 }
 
 // ============= Tipo (cor pastel) =============
-type TipoKey = "deal" | "unidade" | "medico" | "livre";
+type TipoKey = "deal" | "discovery" | "unidade" | "medico" | "livre";
 const TIPO_META: Record<TipoKey, { label: string; cls: string }> = {
-  deal:     { label: "Deal",     cls: "bg-violet-100 text-violet-800 border-violet-200 dark:bg-violet-950/40 dark:text-violet-200 dark:border-violet-900" },
-  unidade:  { label: "Unidade",  cls: "bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-950/40 dark:text-sky-200 dark:border-sky-900" },
-  medico:   { label: "Médico",   cls: "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-900" },
-  livre:    { label: "Livre",    cls: "bg-stone-100 text-stone-700 border-stone-200 dark:bg-stone-900/40 dark:text-stone-300 dark:border-stone-800" },
+  deal:      { label: "Deal",      cls: "bg-violet-100 text-violet-800 border-violet-200 dark:bg-violet-950/40 dark:text-violet-200 dark:border-violet-900" },
+  discovery: { label: "Discovery", cls: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-900" },
+  unidade:   { label: "Unidade",   cls: "bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-950/40 dark:text-sky-200 dark:border-sky-900" },
+  medico:    { label: "Médico",    cls: "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-900" },
+  livre:     { label: "Livre",     cls: "bg-stone-100 text-stone-700 border-stone-200 dark:bg-stone-900/40 dark:text-stone-300 dark:border-stone-800" },
 };
 function tipoOf(t: any): TipoKey {
   if (t.deal_id) return "deal";
+  if (t.discovery_id) return "discovery";
   if (t.unidade_id) return "unidade";
   if (t.medico_id) return "medico";
   return "livre";
@@ -413,9 +419,11 @@ function CompactRow({ t, onReabrir, onChanged }: { t: any; onReabrir: (t: any) =
   const meta = TIPO_META[tipo];
 
   const link = t.deal_id ? `/deals/${t.deal_id}`
+    : t.discovery_id ? `/discovery/${t.discovery_id}`
     : t.unidade_id ? `/unidades/${t.unidade_id}`
     : t.medico_id ? `/medicos/${t.medico_id}` : null;
   const linkLabel = t.deals?.titulo
+    || t.discovery?.nome
     || (t.medicos?.nome && `Dr. ${t.medicos.nome}`)
     || t.unidades_saude?.nome || "—";
 

@@ -424,10 +424,12 @@ function CompactRow({ t, onReabrir, onChanged }: { t: any; onReabrir: (t: any) =
 
   const link = t.deal_id ? `/deals/${t.deal_id}`
     : t.discovery_id ? `/discovery/${t.discovery_id}`
+    : t.stakeholder_id ? `/stakeholders/${t.stakeholder_id}`
     : t.unidade_id ? `/unidades/${t.unidade_id}`
     : t.medico_id ? `/medicos/${t.medico_id}` : null;
   const linkLabel = t.deals?.titulo
     || t.discovery?.nome
+    || t.stakeholders?.nome
     || (t.medicos?.nome && `Dr. ${t.medicos.nome}`)
     || t.unidades_saude?.nome || "—";
 

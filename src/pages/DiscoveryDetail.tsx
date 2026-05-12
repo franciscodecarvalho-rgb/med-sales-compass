@@ -30,6 +30,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { DISCOVERY_STATUS_LABELS, DISCOVERY_STATUS_BADGE, DiscoveryStatus } from "@/lib/crm";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { EditarTarefaDialog } from "@/components/EditarTarefaDialog";
 
 export default function DiscoveryDetail() {
   const { id } = useParams();
@@ -48,6 +49,8 @@ export default function DiscoveryDetail() {
   const [medicosVinc, setMedicosVinc] = useState<any[]>([]);
   const [parque, setParque] = useState<any[]>([]);
   const [anotacoes, setAnotacoes] = useState<any[]>([]);
+  const [tarefasByAnot, setTarefasByAnot] = useState<Record<string, any>>({});
+  const [tarefaAberta, setTarefaAberta] = useState<any | null>(null);
 
   const [saving, setSaving] = useState(false);
   const [oficializando, setOficializando] = useState(false);
@@ -59,7 +62,7 @@ export default function DiscoveryDetail() {
 
   async function load() {
     if (!id) return;
-    const [d, t, e, pp, ln, md, c, mv, pq, an, pa] = await Promise.all([
+    const [d, t, e, pp, ln, md, c, mv, pq, an, pa, tf] = await Promise.all([
       supabase.from("discovery")
         .select("*, tipos_unidade(id, nome), estados(id, sigla)")
         .eq("id", id).maybeSingle(),
@@ -79,6 +82,8 @@ export default function DiscoveryDetail() {
         .eq("discovery_id", id).is("archived_at", null).order("created_at", { ascending: false }),
       (supabase as any).from("discovery_pastas").select("id, nome, cor, ordem")
         .is("archived_at", null).order("ordem").order("nome"),
+      supabase.from("tarefas").select("*, discovery(id, nome)")
+        .eq("discovery_id", id).is("archived_at", null),
     ]);
     setItem(d.data);
     setTipos(t.data ?? []);
@@ -91,6 +96,9 @@ export default function DiscoveryDetail() {
     setParque(pq.data ?? []);
     setAnotacoes(an.data ?? []);
     setPastas(pa?.data ?? []);
+    const map: Record<string, any> = {};
+    (tf.data ?? []).forEach((row: any) => { if (row.anotacao_id) map[row.anotacao_id] = row; });
+    setTarefasByAnot(map);
   }
 
   async function salvar() {
@@ -738,11 +746,30 @@ export default function DiscoveryDetail() {
                       <div className="flex-1 rounded-md border bg-card p-3">
                         <div className="text-xs text-muted-foreground mb-1">{a.profiles?.nome ?? "—"}</div>
                         <div className="text-sm whitespace-pre-wrap">{a.texto}</div>
-                        {a.proximo_contato && (
-                          <div className="mt-2 text-xs text-primary inline-flex items-center gap-1">
-                            ⏰ Follow-up: {format(new Date(a.proximo_contato), "dd MMM yyyy 'às' HH:mm", { locale: ptBR })}
-                          </div>
-                        )}
+                        {a.proximo_contato && (() => {
+                          const tk = tarefasByAnot[a.id];
+                          const concluida = tk?.status === "concluida";
+                          const cls = concluida
+                            ? "text-success border-success/40 bg-success/10 hover:bg-success/20"
+                            : "text-primary border-primary/40 bg-primary/10 hover:bg-primary/20";
+                          const label = `${concluida ? "✓" : "⏰"} Follow-up: ${format(new Date(a.proximo_contato), "dd MMM yyyy 'às' HH:mm", { locale: ptBR })}`;
+                          if (!tk) {
+                            return (
+                              <div className="mt-2 inline-flex items-center gap-1 text-xs rounded-md border px-2 py-1 text-primary border-primary/40 bg-primary/10">
+                                {label}
+                              </div>
+                            );
+                          }
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => setTarefaAberta(tk)}
+                              className={`mt-2 inline-flex items-center gap-1 text-xs rounded-md border px-2 py-1 transition-colors ${cls}`}
+                            >
+                              {label}
+                            </button>
+                          );
+                        })()}
                       </div>
                     </div>
                   ))}
@@ -752,6 +779,14 @@ export default function DiscoveryDetail() {
           </Card>
         </TabsContent>
       </Tabs>
+      {tarefaAberta && (
+        <EditarTarefaDialog
+          tarefa={tarefaAberta}
+          open={!!tarefaAberta}
+          onOpenChange={(v) => { if (!v) setTarefaAberta(null); }}
+          onSaved={() => { setTarefaAberta(null); void load(); }}
+        />
+      )}
     </div>
   );
 }

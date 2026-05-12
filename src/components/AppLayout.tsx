@@ -42,6 +42,7 @@ const navItems: NavItem[] = [
   { to: "/configuracoes", label: "Configurações", icon: Settings, roles: ["admin"] },
   { to: "/usuarios", label: "Usuários", icon: Users, roles: ["admin"] },
   { to: "/painel-gerencial", label: "Painel Gerencial", icon: BarChart3, roles: ["admin", "gerente"] },
+  { to: "/stakeholders", label: "Stakeholders", icon: Handshake, roles: ["admin", "gerente"] },
 ];
 
 export default function AppLayout() {

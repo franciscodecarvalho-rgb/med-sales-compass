@@ -247,6 +247,7 @@ export default function Tarefas() {
                 <SelectItem value="discovery">Discovery</SelectItem>
                 <SelectItem value="medico">Médico</SelectItem>
                 <SelectItem value="unidade">Unidade</SelectItem>
+                {isAdminOrGerente && <SelectItem value="stakeholder">Stakeholder</SelectItem>}
                 <SelectItem value="livre">Livre</SelectItem>
               </SelectContent>
             </Select>

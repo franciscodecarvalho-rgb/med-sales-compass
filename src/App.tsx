@@ -25,6 +25,7 @@ import Faturamento from "./pages/Faturamento";
 import Tarefas from "./pages/Tarefas";
 import PosVenda from "./pages/PosVenda";
 import Usuarios from "./pages/Usuarios";
+import PainelGerencial from "./pages/PainelGerencial";
 import Configuracoes from "./pages/Configuracoes";
 import NotFound from "./pages/NotFound";
 

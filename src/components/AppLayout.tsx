@@ -15,6 +15,7 @@ import {
   Receipt,
   Search as SearchIcon,
   BarChart3,
+  Handshake,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";

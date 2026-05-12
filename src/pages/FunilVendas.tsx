@@ -429,7 +429,7 @@ function TabelaDeals({ deals, sortKey, sortDir, onSort, verdeLimit, amareloLimit
       let va: any, vb: any;
       switch (sortKey) {
         case "titulo": va = a.titulo; vb = b.titulo; break;
-        case "unidade": va = a.unidades_saude?.nome ?? ""; vb = b.unidades_saude?.nome ?? ""; break;
+        case "unidade": va = a.unidades_saude?.nome ?? a.medicos?.nome ?? ""; vb = b.unidades_saude?.nome ?? b.medicos?.nome ?? ""; break;
         case "vendedor": va = a.profiles?.nome ?? ""; vb = b.profiles?.nome ?? ""; break;
         case "estagio": va = STAGE_ORDER.indexOf(a.estagio); vb = STAGE_ORDER.indexOf(b.estagio); break;
         case "valor": va = Number(a.valor_total ?? 0); vb = Number(b.valor_total ?? 0); break;

@@ -380,7 +380,9 @@ function DealCard({ deal, verdeLimit, amareloLimit, onEncerrar, dragging }: {
           </button>
         )}
       </div>
-      <div className="mt-1 text-xs text-muted-foreground truncate">{deal.unidades_saude?.nome}</div>
+      <div className="mt-1 text-xs text-muted-foreground truncate">
+        {deal.unidades_saude?.nome || (deal.medicos?.nome && `Dr. ${deal.medicos.nome}`) || "—"}
+      </div>
 
       <div className="mt-2 flex items-center justify-between">
         <span className="text-sm font-semibold">{formatCurrency(deal.valor_total)}</span>

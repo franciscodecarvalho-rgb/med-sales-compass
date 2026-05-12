@@ -180,7 +180,7 @@ export default function PainelGerencial() {
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Painel Gerencial</h1>
-          <p className="text-sm text-muted-foreground">Visão consolidada de vendas, produtividade e geração de leads.</p>
+          <p className="text-sm text-muted-foreground">Visão consolidada de vendas, produtividade e Discovery.</p>
         </div>
         <Select value={periodo} onValueChange={(v) => setPeriodo(v as Periodo)}>
           <SelectTrigger className="w-[180px]">
@@ -272,7 +272,7 @@ export default function PainelGerencial() {
               </Card>
 
               <Card>
-                <CardHeader><CardTitle className="text-base">Geração de Leads (Top 10)</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-base">Discovery por Vendedor (Top 10)</CardTitle></CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={280}>
                     <BarChart data={chartLeadsPorUser}>
@@ -309,7 +309,7 @@ export default function PainelGerencial() {
                     <div className="grid grid-cols-3 gap-2 mt-4 text-xs">
                       <div><div className="text-muted-foreground">Conv.</div><div className="font-semibold">{s.conversao.toFixed(0)}%</div></div>
                       <div><div className="text-muted-foreground">Tarefas</div><div className="font-semibold">{s.tarefas_concluidas}/{s.tarefas_total}</div></div>
-                      <div><div className="text-muted-foreground">Leads</div><div className="font-semibold">{s.discoveries}</div></div>
+                      <div><div className="text-muted-foreground">Discovery</div><div className="font-semibold">{s.discoveries}</div></div>
                     </div>
                   </CardContent>
                 </Card>

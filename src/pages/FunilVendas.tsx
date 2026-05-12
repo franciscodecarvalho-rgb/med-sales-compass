@@ -534,8 +534,9 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
 }) {
   const { user, isAdminOrGerente } = useAuth();
   const [unidades, setUnidades] = useState<any[]>([]);
+  const [medicos, setMedicos] = useState<any[]>([]);
   const [form, setForm] = useState({
-    titulo: "", unidade_id: defaultUnidadeId ?? "",
+    titulo: "", unidade_id: defaultUnidadeId ?? "", medico_id: "",
     linha_id: defaultLinhaId, valor_total: "", data_previsao_fechamento: "",
     vendedor_id: user?.id ?? "",
   });
@@ -543,12 +544,15 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
   const [novoEquip, setNovoEquip] = useState("");
   const [novaQtd, setNovaQtd] = useState("1");
   const [unidadeSearch, setUnidadeSearch] = useState("");
+  const [medicoSearch, setMedicoSearch] = useState("");
   const [openNovaUnidade, setOpenNovaUnidade] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     supabase.from("unidades_saude").select("id, nome, cidade, estado, cnpj").is("archived_at", null).order("nome")
       .then(({ data }) => setUnidades(data ?? []));
+    supabase.from("medicos").select("id, nome, crm, especialidade").is("archived_at", null).order("nome")
+      .then(({ data }) => setMedicos(data ?? []));
   }, []);
   useEffect(() => { setForm((f) => ({ ...f, linha_id: defaultLinhaId })); }, [defaultLinhaId]);
   useEffect(() => { if (defaultUnidadeId) setForm((f) => ({ ...f, unidade_id: defaultUnidadeId })); }, [defaultUnidadeId]);
@@ -557,6 +561,11 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
     const q = unidadeSearch.toLowerCase();
     return q ? unidades.filter((u) => u.nome.toLowerCase().includes(q)) : unidades;
   }, [unidades, unidadeSearch]);
+
+  const medicosFiltrados = useMemo(() => {
+    const q = medicoSearch.toLowerCase();
+    return q ? medicos.filter((m) => m.nome.toLowerCase().includes(q) || (m.crm ?? "").toLowerCase().includes(q)) : medicos;
+  }, [medicos, medicoSearch]);
 
   function addEquip() {
     if (!novoEquip.trim()) return;
@@ -568,15 +577,20 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
     e.preventDefault();
     e.stopPropagation();
     if (!user) { toast.error("Sessão expirada. Faça login novamente."); return; }
-    if (!form.titulo.trim() || !form.unidade_id || !form.linha_id) {
-      toast.error("Preencha título, unidade e linha.");
+    if (!form.titulo.trim() || !form.linha_id) {
+      toast.error("Preencha título e linha.");
+      return;
+    }
+    if (!form.unidade_id && !form.medico_id) {
+      toast.error("Vincule a uma unidade ou a um médico (pelo menos um).");
       return;
     }
     setSaving(true);
     try {
       const payload = {
         titulo: form.titulo.trim(),
-        unidade_id: form.unidade_id,
+        unidade_id: form.unidade_id || null,
+        medico_id: form.medico_id || null,
         linha_id: form.linha_id,
         vendedor_id: form.vendedor_id || user.id,
         valor_total: form.valor_total ? Number(form.valor_total) : 0,

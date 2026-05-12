@@ -272,7 +272,7 @@ export default function PainelGerencial() {
               </Card>
 
               <Card>
-                <CardHeader><CardTitle className="text-base">Geração de Leads (Top 10)</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-base">Discovery por Vendedor (Top 10)</CardTitle></CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={280}>
                     <BarChart data={chartLeadsPorUser}>

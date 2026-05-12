@@ -717,7 +717,7 @@ function TarefaItem({ t, onToggle, onChanged }: { t: any; onToggle: (t: any) => 
 
 // ============= Modal Nova Tarefa =============
 function NovaTarefaDialog({ onSaved }: { onSaved: () => void }) {
-  const { user } = useAuth();
+  const { user, isAdminOrGerente } = useAuth();
   const [form, setForm] = useState({
     titulo: "", descricao: "", data: "", prioridade: "media" as TarefaPrioridade,
     vinculo: "livre" as VinculoFiltro, entidadeId: "",

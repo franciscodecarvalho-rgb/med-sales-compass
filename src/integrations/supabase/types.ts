@@ -1492,6 +1492,7 @@ export type Database = {
           data_vencimento: string | null
           deal_id: string | null
           descricao: string | null
+          discovery_id: string | null
           id: string
           medico_id: string | null
           prioridade: Database["public"]["Enums"]["tarefa_prioridade"]
@@ -1510,6 +1511,7 @@ export type Database = {
           data_vencimento?: string | null
           deal_id?: string | null
           descricao?: string | null
+          discovery_id?: string | null
           id?: string
           medico_id?: string | null
           prioridade?: Database["public"]["Enums"]["tarefa_prioridade"]
@@ -1528,6 +1530,7 @@ export type Database = {
           data_vencimento?: string | null
           deal_id?: string | null
           descricao?: string | null
+          discovery_id?: string | null
           id?: string
           medico_id?: string | null
           prioridade?: Database["public"]["Enums"]["tarefa_prioridade"]

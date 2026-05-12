@@ -822,6 +822,7 @@ function NovaTarefaDialog({ onSaved }: { onSaved: () => void }) {
               <SelectItem value="deal">Deal</SelectItem>
               <SelectItem value="medico">Médico</SelectItem>
               <SelectItem value="unidade">Unidade</SelectItem>
+              {isAdminOrGerente && <SelectItem value="stakeholder">Stakeholder</SelectItem>}
             </SelectContent>
           </Select>
         </div>

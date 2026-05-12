@@ -180,7 +180,7 @@ export default function PainelGerencial() {
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Painel Gerencial</h1>
-          <p className="text-sm text-muted-foreground">Visão consolidada de vendas, produtividade e geração de leads.</p>
+          <p className="text-sm text-muted-foreground">Visão consolidada de vendas, produtividade e Discovery.</p>
         </div>
         <Select value={periodo} onValueChange={(v) => setPeriodo(v as Periodo)}>
           <SelectTrigger className="w-[180px]">

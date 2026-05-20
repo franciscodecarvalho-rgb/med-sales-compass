@@ -57,8 +57,9 @@ export default function Configuracoes() {
         </p>
       </div>
 
-      <Tabs defaultValue="linhas" className="space-y-4">
+      <Tabs defaultValue="permissoes" className="space-y-4">
         <TabsList className="flex flex-wrap h-auto">
+          <TabsTrigger value="permissoes">Permissões</TabsTrigger>
           <TabsTrigger value="linhas">Linhas de Produto</TabsTrigger>
           <TabsTrigger value="contador">Contador</TabsTrigger>
           <TabsTrigger value="lab" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white">
@@ -70,6 +71,7 @@ export default function Configuracoes() {
           <TabsTrigger value="estados">Estados</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="permissoes"><PermissoesSection /></TabsContent>
         <TabsContent value="linhas"><LinhasSection /></TabsContent>
         <TabsContent value="contador"><ContadorSection /></TabsContent>
         <TabsContent value="lab"><LabSection /></TabsContent>
@@ -80,6 +82,7 @@ export default function Configuracoes() {
         ))}
         <TabsContent value="estados"><EstadosSection /></TabsContent>
       </Tabs>
+
     </div>
   );
 }

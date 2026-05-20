@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   ArrowLeft, Check, Search as SearchIcon, RotateCcw, Save, Plus, Trash2,
-  UserPlus, Stethoscope, Package, Phone, Mail,
+  UserPlus, Stethoscope, Package, Phone, Mail, Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";

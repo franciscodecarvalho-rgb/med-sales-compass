@@ -46,47 +46,64 @@ const App = () => (
             <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
               <Route path="/" element={<Dashboard />} />
               <Route path="/discovery" element={
-                <ProtectedRoute requireRoles={["admin", "gerente", "vendedor"]}><Discovery /></ProtectedRoute>
+                <ProtectedRoute requirePermission="view_discovery"><Discovery /></ProtectedRoute>
               } />
               <Route path="/discovery/lab" element={
-                <ProtectedRoute requireRoles={["admin", "gerente", "vendedor"]}><DiscoveryLab /></ProtectedRoute>
+                <ProtectedRoute requirePermission="view_discovery"><DiscoveryLab /></ProtectedRoute>
               } />
               <Route path="/discovery/:id" element={
-                <ProtectedRoute requireRoles={["admin", "gerente", "vendedor"]}><DiscoveryDetail /></ProtectedRoute>
+                <ProtectedRoute requirePermission="view_discovery"><DiscoveryDetail /></ProtectedRoute>
               } />
-              <Route path="/unidades" element={<Unidades />} />
-              <Route path="/unidades/:id" element={<UnidadeDetail />} />
-              <Route path="/medicos" element={<Medicos />} />
-              <Route path="/medicos/:id" element={<MedicoDetail />} />
+              <Route path="/unidades" element={
+                <ProtectedRoute requirePermission="view_unidades"><Unidades /></ProtectedRoute>
+              } />
+              <Route path="/unidades/:id" element={
+                <ProtectedRoute requirePermission="view_unidades"><UnidadeDetail /></ProtectedRoute>
+              } />
+              <Route path="/medicos" element={
+                <ProtectedRoute requirePermission="view_medicos"><Medicos /></ProtectedRoute>
+              } />
+              <Route path="/medicos/:id" element={
+                <ProtectedRoute requirePermission="view_medicos"><MedicoDetail /></ProtectedRoute>
+              } />
               <Route path="/equipamentos" element={
-                <ProtectedRoute requireRoles={["admin", "gerente"]}><Equipamentos /></ProtectedRoute>
+                <ProtectedRoute requirePermission="view_equipamentos"><Equipamentos /></ProtectedRoute>
               } />
-              <Route path="/funil-vendas" element={<FunilVendas />} />
-              <Route path="/deals/:id" element={<DealDetail />} />
-              <Route path="/funil-manutencao" element={<FunilManutencao />} />
-              <Route path="/deals-manutencao/:id" element={<DealManutencaoDetail />} />
+              <Route path="/funil-vendas" element={
+                <ProtectedRoute requirePermission="view_funil_vendas"><FunilVendas /></ProtectedRoute>
+              } />
+              <Route path="/deals/:id" element={
+                <ProtectedRoute requirePermission="view_funil_vendas"><DealDetail /></ProtectedRoute>
+              } />
+              <Route path="/funil-manutencao" element={
+                <ProtectedRoute requirePermission="view_funil_manut"><FunilManutencao /></ProtectedRoute>
+              } />
+              <Route path="/deals-manutencao/:id" element={
+                <ProtectedRoute requirePermission="view_funil_manut"><DealManutencaoDetail /></ProtectedRoute>
+              } />
               <Route path="/faturamento" element={
-                <ProtectedRoute requireRoles={["admin", "gerente", "assistente_vendas"]}><Faturamento /></ProtectedRoute>
+                <ProtectedRoute requirePermission="view_faturamento"><Faturamento /></ProtectedRoute>
               } />
               <Route path="/tarefas" element={<Tarefas />} />
               <Route path="/pos-venda" element={
-                <ProtectedRoute requireRoles={["admin", "gerente", "pos_venda"]}><PosVenda /></ProtectedRoute>
+                <ProtectedRoute requirePermission="view_posvenda"><PosVenda /></ProtectedRoute>
               } />
               <Route path="/usuarios" element={
                 <ProtectedRoute requireRoles={["admin"]}><Usuarios /></ProtectedRoute>
               } />
               <Route path="/painel-gerencial" element={
-                <ProtectedRoute requireRoles={["admin", "gerente"]}><PainelGerencial /></ProtectedRoute>
+                <ProtectedRoute requirePermission="view_painel"><PainelGerencial /></ProtectedRoute>
               } />
               <Route path="/stakeholders" element={
-                <ProtectedRoute requireRoles={["admin", "gerente"]}><Stakeholders /></ProtectedRoute>
+                <ProtectedRoute requirePermission="view_stakeholders"><Stakeholders /></ProtectedRoute>
               } />
               <Route path="/stakeholders/:id" element={
-                <ProtectedRoute requireRoles={["admin", "gerente"]}><StakeholderDetail /></ProtectedRoute>
+                <ProtectedRoute requirePermission="view_stakeholders"><StakeholderDetail /></ProtectedRoute>
               } />
               <Route path="/configuracoes" element={
                 <ProtectedRoute requireRoles={["admin"]}><Configuracoes /></ProtectedRoute>
               } />
+
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

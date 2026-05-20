@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { useAuth, ROLE_LABELS, AppRole } from "@/contexts/AuthContext";
+import { useAuth, ROLE_LABELS } from "@/contexts/AuthContext";
+import { usePermissions, Permission } from "@/hooks/usePermissions";
 import {
   LayoutDashboard,
   Building2,
@@ -25,28 +26,30 @@ interface NavItem {
   to: string;
   label: string;
   icon: React.ElementType;
-  roles?: AppRole[];
+  permission?: Permission;
+  adminOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/discovery", label: "Discovery", icon: SearchIcon, roles: ["admin", "gerente", "vendedor"] },
-  { to: "/unidades", label: "Unidades de Saúde", icon: Building2 },
-  { to: "/medicos", label: "Médicos", icon: UserRound },
-  { to: "/funil-vendas", label: "Funil de Vendas", icon: Kanban },
-  { to: "/funil-manutencao", label: "Funil de Manutenção", icon: Wrench },
-  { to: "/faturamento", label: "Faturamento", icon: Receipt, roles: ["admin", "gerente", "assistente_vendas"] },
+  { to: "/discovery", label: "Discovery", icon: SearchIcon, permission: "view_discovery" },
+  { to: "/unidades", label: "Unidades de Saúde", icon: Building2, permission: "view_unidades" },
+  { to: "/medicos", label: "Médicos", icon: UserRound, permission: "view_medicos" },
+  { to: "/funil-vendas", label: "Funil de Vendas", icon: Kanban, permission: "view_funil_vendas" },
+  { to: "/funil-manutencao", label: "Funil de Manutenção", icon: Wrench, permission: "view_funil_manut" },
+  { to: "/faturamento", label: "Faturamento", icon: Receipt, permission: "view_faturamento" },
   { to: "/tarefas", label: "Tarefas", icon: CheckSquare },
-  { to: "/pos-venda", label: "Pós-Venda", icon: Wrench, roles: ["admin", "gerente", "pos_venda"] },
-  { to: "/equipamentos", label: "Equipamentos", icon: Package, roles: ["admin", "gerente"] },
-  { to: "/configuracoes", label: "Configurações", icon: Settings, roles: ["admin"] },
-  { to: "/usuarios", label: "Usuários", icon: Users, roles: ["admin"] },
-  { to: "/painel-gerencial", label: "Painel Gerencial", icon: BarChart3, roles: ["admin", "gerente"] },
-  { to: "/stakeholders", label: "Stakeholders", icon: Handshake, roles: ["admin", "gerente"] },
+  { to: "/pos-venda", label: "Pós-Venda", icon: Wrench, permission: "view_posvenda" },
+  { to: "/equipamentos", label: "Equipamentos", icon: Package, permission: "view_equipamentos" },
+  { to: "/configuracoes", label: "Configurações", icon: Settings, adminOnly: true },
+  { to: "/usuarios", label: "Usuários", icon: Users, adminOnly: true },
+  { to: "/painel-gerencial", label: "Painel Gerencial", icon: BarChart3, permission: "view_painel" },
+  { to: "/stakeholders", label: "Stakeholders", icon: Handshake, permission: "view_stakeholders" },
 ];
 
 export default function AppLayout() {
   const { user, roles, signOut } = useAuth();
+  const { can, isAdmin } = usePermissions();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -54,9 +57,12 @@ export default function AppLayout() {
     navigate("/auth");
   };
 
-  const visibleItems = navItems.filter(
-    (item) => !item.roles || item.roles.some((r) => roles.includes(r))
-  );
+  const visibleItems = navItems.filter((item) => {
+    if (item.adminOnly) return isAdmin;
+    if (item.permission) return can(item.permission);
+    return true;
+  });
+
 
   const primaryRole = roles[0];
 

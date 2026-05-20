@@ -57,8 +57,9 @@ export default function Configuracoes() {
         </p>
       </div>
 
-      <Tabs defaultValue="linhas" className="space-y-4">
+      <Tabs defaultValue="permissoes" className="space-y-4">
         <TabsList className="flex flex-wrap h-auto">
+          <TabsTrigger value="permissoes">Permissões</TabsTrigger>
           <TabsTrigger value="linhas">Linhas de Produto</TabsTrigger>
           <TabsTrigger value="contador">Contador</TabsTrigger>
           <TabsTrigger value="lab" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white">
@@ -70,6 +71,7 @@ export default function Configuracoes() {
           <TabsTrigger value="estados">Estados</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="permissoes"><PermissoesSection /></TabsContent>
         <TabsContent value="linhas"><LinhasSection /></TabsContent>
         <TabsContent value="contador"><ContadorSection /></TabsContent>
         <TabsContent value="lab"><LabSection /></TabsContent>
@@ -80,6 +82,7 @@ export default function Configuracoes() {
         ))}
         <TabsContent value="estados"><EstadosSection /></TabsContent>
       </Tabs>
+
     </div>
   );
 }
@@ -572,6 +575,141 @@ function LabSection() {
             <RotateCcw className="mr-2 h-4 w-4" /> Resetar contador
           </Button>
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ---------------- PermissoesSection ----------------
+import { Checkbox } from "@/components/ui/checkbox";
+import { ROLE_LABELS } from "@/contexts/AuthContext";
+import type { AppRole } from "@/contexts/AuthContext";
+
+const PERM_ROLES: AppRole[] = ["gerente", "vendedor", "pos_venda", "assistente_vendas"];
+
+const PERM_GROUPS: { title: string; items: { key: string; label: string }[] }[] = [
+  {
+    title: "Visibilidade de módulos",
+    items: [
+      { key: "view_discovery", label: "Discovery / Lab" },
+      { key: "view_funil_vendas", label: "Funil de Vendas" },
+      { key: "view_funil_manut", label: "Funil de Manutenção" },
+      { key: "view_posvenda", label: "Pós-Venda" },
+      { key: "view_equipamentos", label: "Equipamentos" },
+      { key: "view_faturamento", label: "Faturamento" },
+      { key: "view_medicos", label: "Médicos" },
+      { key: "view_unidades", label: "Unidades de Saúde" },
+      { key: "view_painel", label: "Painel Gerencial" },
+      { key: "view_stakeholders", label: "Stakeholders" },
+    ],
+  },
+  {
+    title: "Escopo de dados",
+    items: [
+      { key: "view_all_records", label: "Ver dados de todos os usuários" },
+      { key: "edit_all_records", label: "Editar registros de outros" },
+    ],
+  },
+  {
+    title: "Ações sensíveis",
+    items: [
+      { key: "export_data", label: "Exportar planilhas" },
+      { key: "delete_records", label: "Excluir / arquivar registros" },
+    ],
+  },
+];
+
+function PermissoesSection() {
+  const [matrix, setMatrix] = useState<Record<string, Record<string, boolean>>>({});
+  const [loading, setLoadingState] = useState(true);
+  const [saving, setSaving] = useState<string | null>(null);
+
+  useEffect(() => { void load(); }, []);
+
+  async function load() {
+    setLoadingState(true);
+    const { data } = await supabase.from("role_permissions").select("role, permission, allowed");
+    const m: Record<string, Record<string, boolean>> = {};
+    (data ?? []).forEach((r: any) => {
+      m[r.role] ??= {};
+      m[r.role][r.permission] = !!r.allowed;
+    });
+    setMatrix(m);
+    setLoadingState(false);
+  }
+
+  async function toggle(role: AppRole, permission: string, value: boolean) {
+    const key = `${role}:${permission}`;
+    setSaving(key);
+    // Optimistic
+    setMatrix((m) => ({ ...m, [role]: { ...(m[role] ?? {}), [permission]: value } }));
+    const { error } = await supabase
+      .from("role_permissions")
+      .upsert({ role, permission, allowed: value, updated_at: new Date().toISOString() }, { onConflict: "role,permission" });
+    setSaving(null);
+    if (error) {
+      toast.error(error.message);
+      void load();
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Permissões por papel</CardTitle>
+        <CardDescription>
+          Marque o que cada perfil pode ver ou fazer. Administradores têm todas as permissões automaticamente.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <p className="text-sm text-muted-foreground">Carregando…</p>
+        ) : (
+          <div className="space-y-6">
+            {PERM_GROUPS.map((group) => (
+              <div key={group.title} className="space-y-2">
+                <h3 className="text-sm font-semibold tracking-tight">{group.title}</h3>
+                <div className="overflow-x-auto rounded-md border">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/40">
+                      <tr>
+                        <th className="px-3 py-2 text-left font-medium">Capacidade</th>
+                        {PERM_ROLES.map((r) => (
+                          <th key={r} className="px-3 py-2 text-center font-medium whitespace-nowrap">
+                            {ROLE_LABELS[r]}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {group.items.map((p) => (
+                        <tr key={p.key} className="border-t">
+                          <td className="px-3 py-2">{p.label}</td>
+                          {PERM_ROLES.map((r) => {
+                            const checked = !!matrix[r]?.[p.key];
+                            const key = `${r}:${p.key}`;
+                            return (
+                              <td key={r} className="px-3 py-2 text-center">
+                                <Checkbox
+                                  checked={checked}
+                                  disabled={saving === key}
+                                  onCheckedChange={(v) => toggle(r, p.key, v === true)}
+                                />
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
+            <p className="text-xs text-muted-foreground">
+              As alterações são aplicadas imediatamente. Usuários podem precisar recarregar a página para ver mudanças no menu.
+            </p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

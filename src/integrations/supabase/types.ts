@@ -1485,6 +1485,27 @@ export type Database = {
         }
         Relationships: []
       }
+      role_permissions: {
+        Row: {
+          allowed: boolean
+          permission: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string
+        }
+        Insert: {
+          allowed?: boolean
+          permission: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+        }
+        Update: {
+          allowed?: boolean
+          permission?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       stakeholders: {
         Row: {
           archived_at: string | null
@@ -1863,6 +1884,10 @@ export type Database = {
           _user_id: string
           _vendedor_id: string
         }
+        Returns: boolean
+      }
+      has_permission: {
+        Args: { _permission: string; _user_id: string }
         Returns: boolean
       }
       has_role: {

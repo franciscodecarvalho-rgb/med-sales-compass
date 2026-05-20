@@ -213,19 +213,41 @@ export default function DiscoveryDetail() {
   // ===== CONTATOS =====
   const [contatoNovo, setContatoNovo] = useState({ nome: "", cargo: "", telefone: "", email: "", papel_id: "" });
   const [contatoOpen, setContatoOpen] = useState(false);
+  const [contatoEdit, setContatoEdit] = useState<string | null>(null);
 
-  async function addContato() {
+  function openNovoContato() {
+    setContatoEdit(null);
+    setContatoNovo({ nome: "", cargo: "", telefone: "", email: "", papel_id: "" });
+    setContatoOpen(true);
+  }
+
+  function openEditarContato(c: any) {
+    setContatoEdit(c.id);
+    setContatoNovo({
+      nome: c.nome ?? "",
+      cargo: c.cargo ?? "",
+      telefone: c.telefone ?? "",
+      email: c.email ?? "",
+      papel_id: c.papel_id ?? "",
+    });
+    setContatoOpen(true);
+  }
+
+  async function saveContato() {
     if (!contatoNovo.nome.trim() || !item) return;
-    const { error } = await supabase.from("contatos").insert({
+    const payload = {
       nome: contatoNovo.nome.trim(),
       cargo: contatoNovo.cargo || null,
       telefone: contatoNovo.telefone || null,
       email: contatoNovo.email || null,
       papel_id: contatoNovo.papel_id || null,
-      discovery_id: item.id,
-    });
+    };
+    const { error } = contatoEdit
+      ? await supabase.from("contatos").update(payload).eq("id", contatoEdit)
+      : await supabase.from("contatos").insert({ ...payload, discovery_id: item.id });
     if (error) { toast.error(error.message); return; }
     setContatoNovo({ nome: "", cargo: "", telefone: "", email: "", papel_id: "" });
+    setContatoEdit(null);
     setContatoOpen(false);
     void load();
   }
@@ -236,6 +258,7 @@ export default function DiscoveryDetail() {
     if (error) { toast.error(error.message); return; }
     void load();
   }
+
 
   // ===== MÉDICOS =====
   const [medicoSel, setMedicoSel] = useState("");

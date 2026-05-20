@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   ArrowLeft, Check, Search as SearchIcon, RotateCcw, Save, Plus, Trash2,
-  UserPlus, Stethoscope, Package, Phone, Mail,
+  UserPlus, Stethoscope, Package, Phone, Mail, Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -213,19 +213,41 @@ export default function DiscoveryDetail() {
   // ===== CONTATOS =====
   const [contatoNovo, setContatoNovo] = useState({ nome: "", cargo: "", telefone: "", email: "", papel_id: "" });
   const [contatoOpen, setContatoOpen] = useState(false);
+  const [contatoEdit, setContatoEdit] = useState<string | null>(null);
 
-  async function addContato() {
+  function openNovoContato() {
+    setContatoEdit(null);
+    setContatoNovo({ nome: "", cargo: "", telefone: "", email: "", papel_id: "" });
+    setContatoOpen(true);
+  }
+
+  function openEditarContato(c: any) {
+    setContatoEdit(c.id);
+    setContatoNovo({
+      nome: c.nome ?? "",
+      cargo: c.cargo ?? "",
+      telefone: c.telefone ?? "",
+      email: c.email ?? "",
+      papel_id: c.papel_id ?? "",
+    });
+    setContatoOpen(true);
+  }
+
+  async function saveContato() {
     if (!contatoNovo.nome.trim() || !item) return;
-    const { error } = await supabase.from("contatos").insert({
+    const payload = {
       nome: contatoNovo.nome.trim(),
       cargo: contatoNovo.cargo || null,
       telefone: contatoNovo.telefone || null,
       email: contatoNovo.email || null,
       papel_id: contatoNovo.papel_id || null,
-      discovery_id: item.id,
-    });
+    };
+    const { error } = contatoEdit
+      ? await supabase.from("contatos").update(payload).eq("id", contatoEdit)
+      : await supabase.from("contatos").insert({ ...payload, discovery_id: item.id });
     if (error) { toast.error(error.message); return; }
     setContatoNovo({ nome: "", cargo: "", telefone: "", email: "", papel_id: "" });
+    setContatoEdit(null);
     setContatoOpen(false);
     void load();
   }
@@ -236,6 +258,7 @@ export default function DiscoveryDetail() {
     if (error) { toast.error(error.message); return; }
     void load();
   }
+
 
   // ===== MÉDICOS =====
   const [medicoSel, setMedicoSel] = useState("");
@@ -503,12 +526,10 @@ export default function DiscoveryDetail() {
                   <UserPlus className="h-4 w-4 text-primary" /> Contatos ({contatos.length})
                 </h3>
                 {!readOnly && (
-                  <Dialog open={contatoOpen} onOpenChange={setContatoOpen}>
-                    <DialogTrigger asChild>
-                      <Button size="sm"><Plus className="mr-1 h-4 w-4" /> Novo contato</Button>
-                    </DialogTrigger>
+                  <Dialog open={contatoOpen} onOpenChange={(o) => { setContatoOpen(o); if (!o) setContatoEdit(null); }}>
+                    <Button size="sm" onClick={openNovoContato}><Plus className="mr-1 h-4 w-4" /> Novo contato</Button>
                     <DialogContent>
-                      <DialogHeader><DialogTitle>Novo contato</DialogTitle></DialogHeader>
+                      <DialogHeader><DialogTitle>{contatoEdit ? "Editar contato" : "Novo contato"}</DialogTitle></DialogHeader>
                       <div className="space-y-3">
                         <div className="space-y-2"><Label>Nome *</Label>
                           <Input value={contatoNovo.nome} onChange={(e) => setContatoNovo({ ...contatoNovo, nome: e.target.value })} /></div>
@@ -529,7 +550,7 @@ export default function DiscoveryDetail() {
                         </div>
                       </div>
                       <DialogFooter>
-                        <Button onClick={addContato} disabled={!contatoNovo.nome.trim()}>Adicionar</Button>
+                        <Button onClick={saveContato} disabled={!contatoNovo.nome.trim()}>{contatoEdit ? "Salvar" : "Adicionar"}</Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
@@ -552,9 +573,14 @@ export default function DiscoveryDetail() {
                         </div>
                       </div>
                       {!readOnly && (
-                        <Button size="icon" variant="ghost" onClick={() => removeContato(c.id)} className="text-destructive">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button size="icon" variant="ghost" onClick={() => openEditarContato(c)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button size="icon" variant="ghost" onClick={() => removeContato(c.id)} className="text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       )}
                     </div>
                   ))}

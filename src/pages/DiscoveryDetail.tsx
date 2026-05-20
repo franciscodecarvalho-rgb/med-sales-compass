@@ -526,12 +526,10 @@ export default function DiscoveryDetail() {
                   <UserPlus className="h-4 w-4 text-primary" /> Contatos ({contatos.length})
                 </h3>
                 {!readOnly && (
-                  <Dialog open={contatoOpen} onOpenChange={setContatoOpen}>
-                    <DialogTrigger asChild>
-                      <Button size="sm"><Plus className="mr-1 h-4 w-4" /> Novo contato</Button>
-                    </DialogTrigger>
+                  <Dialog open={contatoOpen} onOpenChange={(o) => { setContatoOpen(o); if (!o) setContatoEdit(null); }}>
+                    <Button size="sm" onClick={openNovoContato}><Plus className="mr-1 h-4 w-4" /> Novo contato</Button>
                     <DialogContent>
-                      <DialogHeader><DialogTitle>Novo contato</DialogTitle></DialogHeader>
+                      <DialogHeader><DialogTitle>{contatoEdit ? "Editar contato" : "Novo contato"}</DialogTitle></DialogHeader>
                       <div className="space-y-3">
                         <div className="space-y-2"><Label>Nome *</Label>
                           <Input value={contatoNovo.nome} onChange={(e) => setContatoNovo({ ...contatoNovo, nome: e.target.value })} /></div>
@@ -552,7 +550,7 @@ export default function DiscoveryDetail() {
                         </div>
                       </div>
                       <DialogFooter>
-                        <Button onClick={addContato} disabled={!contatoNovo.nome.trim()}>Adicionar</Button>
+                        <Button onClick={saveContato} disabled={!contatoNovo.nome.trim()}>{contatoEdit ? "Salvar" : "Adicionar"}</Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
@@ -575,9 +573,14 @@ export default function DiscoveryDetail() {
                         </div>
                       </div>
                       {!readOnly && (
-                        <Button size="icon" variant="ghost" onClick={() => removeContato(c.id)} className="text-destructive">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button size="icon" variant="ghost" onClick={() => openEditarContato(c)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button size="icon" variant="ghost" onClick={() => removeContato(c.id)} className="text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       )}
                     </div>
                   ))}

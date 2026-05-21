@@ -1,0 +1,1 @@
+ALTER TABLE public.deals DROP CONSTRAINT IF EXISTS deals_unidade_or_medico_required;

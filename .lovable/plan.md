@@ -1,55 +1,21 @@
-## Modo Lite — Captura rápida de leads em feiras
+## Remover obrigatoriedade de unidade/médico ao criar deal
 
-Página focada em mobile para criar deals em segundos durante eventos, mostrando só os leads do vendedor logado.
+Hoje o dialog "Novo deal" do Funil de Vendas exige que o vendedor vincule uma unidade de saúde **ou** um médico para conseguir salvar. Com o Modo Lite criando deals sem unidade, faz sentido alinhar o funil normal: deixar esses vínculos opcionais e permitir completar depois.
 
-### Rota e acesso
-- Nova rota `/lite` (página `src/pages/Lite.tsx`).
-- Item no sidebar **"Modo Lite"** (ícone `Zap`), visível para qualquer usuário autenticado, logo abaixo de "Dashboard".
-- Mesma URL serve como link direto para salvar no celular (PWA-style).
+### Mudanças em `src/pages/FunilVendas.tsx` (componente `NewDealDialog`)
 
-### O que faz
-- Lista somente os deals onde `vendedor_id = auth.uid()` criados via Lite, ordenados do mais recente para o mais antigo.
-- Cada card mostra: título (nome do lead), telefone, observação curta, badge "pendente unidade" quando `unidade_id IS NULL`, data relativa ("há 5 min").
-- Toque no card → abre `/deals/:id` (página existente) para completar unidade/médico depois, no escritório.
-- Botão **"+ Novo lead"** fixo no topo (grande, full-width no mobile) abre dialog.
+1. **Validação no `submit`** — remover o bloco que exige `unidade_id || medico_id` (linhas 584-587). Manter apenas a validação de `titulo` e `linha_id`.
+2. **Botão "Criar deal"** — tirar `(!form.unidade_id && !form.medico_id)` do `disabled` (linha 732). Continuar desabilitando apenas quando faltar título ou linha.
+3. **Texto auxiliar do form** — trocar o aviso "Vincule a uma unidade ou a um médico (pelo menos um)" (linha 642) por algo neutro tipo: *"Vincule a uma unidade e/ou médico (opcional — pode completar depois)."*
+4. **Badge "pendente"** — quando salvar sem unidade, o deal já aparece com unidade vazia nas listagens existentes (`"—"` no funil). Sem mudança adicional necessária aqui.
 
-### Form rápido (dialog)
-Três campos, foco em velocidade:
-1. **Nome do lead*** (vira `deals.titulo`) — autofocus
-2. **Telefone** — máscara BR
-3. **Observação** — textarea curta (3 linhas)
+### O que NÃO muda
 
-Mais um seletor compacto que aparece só na primeira vez (depois fica salvo em `localStorage`):
-- **Linha de produto*** — obrigatório no schema; vendedor escolhe uma vez e a página memoriza.
+- Schema do banco: `deals.unidade_id` e `medico_id` já são nullable, RLS já permite. Sem migração.
+- Modo Lite: já funciona assim, segue igual.
+- DealDetail, listagens, exportações: continuam tratando unidade/médico ausentes como hoje (já mostram `"—"`).
+- Outros formulários (Discovery, Stakeholders etc.): fora do escopo.
 
-Botão **"Salvar lead"** com loading. Após salvar: toast, fecha dialog, limpa form, recarrega lista. O dialog não muda de tela — fica pronto pra próximo lead (caso muito comum em feira).
+### Arquivo
 
-### Como grava no banco
-Insert em `deals` com:
-- `titulo` = nome digitado
-- `vendedor_id` = `auth.uid()`
-- `linha_id` = linha escolhida (memorizada)
-- `estagio` = `'prospeccao'`, `resultado` = `'em_andamento'`
-- `unidade_id` = `NULL` (pendente — o usuário liga depois)
-- `observacoes` = `"📱 Lead Modo Lite\nTel: {telefone}\n\n{observacao}"` (assim o telefone fica buscável e visível no DealDetail sem precisar de coluna nova)
-
-Nenhuma mudança de schema é necessária — `deals.unidade_id` já é nullable e a policy `deals_insert_sales` já permite vendedor inserir o próprio deal.
-
-### Filtro da listagem
-- Query: `deals` onde `vendedor_id = user.id`, `archived_at IS NULL`, ordenado por `created_at desc`, limite 50.
-- Filtro de busca por título no topo (input simples).
-- Badge "pendente unidade" quando `unidade_id IS NULL` para o vendedor saber quais ainda precisa completar.
-
-### UI
-- Layout mobile-first (max-w-md centralizado em desktop).
-- Header sticky com título "Modo Lite ⚡", contador "X leads hoje".
-- Botão "+ Novo lead" gradiente primary, alto (h-14), ícone Plus grande.
-- Cards densos, tap-friendly (min-h-16).
-- Sem sidebar/breadcrumbs visuais pesados — manter o foco.
-
-### Arquivos
-- **Criar**: `src/pages/Lite.tsx`
-- **Editar**: `src/App.tsx` (rota `/lite` dentro de `<ProtectedRoute>` + `<AppLayout>`)
-- **Editar**: `src/components/AppLayout.tsx` (item "Modo Lite" no menu)
-
-Sem migrações, sem novas policies, sem alterações em telas existentes.
+- **Editar**: `src/pages/FunilVendas.tsx` (3 ajustes pontuais no componente `NewDealDialog`).

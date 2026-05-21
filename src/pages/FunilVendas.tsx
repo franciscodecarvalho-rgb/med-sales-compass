@@ -581,10 +581,6 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
       toast.error("Preencha título e linha.");
       return;
     }
-    if (!form.unidade_id && !form.medico_id) {
-      toast.error("Vincule a uma unidade ou a um médico (pelo menos um).");
-      return;
-    }
     setSaving(true);
     try {
       const payload = {
@@ -639,7 +635,7 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
         </div>
         <div className="rounded-md border bg-muted/20 p-3 space-y-3">
           <div className="text-xs text-muted-foreground">
-            Vincule a uma <strong>unidade</strong> ou a um <strong>médico</strong> (pelo menos um).
+            Vincule a uma <strong>unidade</strong> e/ou <strong>médico</strong> (opcional — pode completar depois).
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -729,7 +725,7 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
         </div>
 
         <DialogFooter>
-          <Button type="submit" disabled={saving || !form.titulo || !form.linha_id || (!form.unidade_id && !form.medico_id)}>
+          <Button type="submit" disabled={saving || !form.titulo || !form.linha_id}>
             {saving ? "Salvando..." : "Criar deal"}
           </Button>
         </DialogFooter>

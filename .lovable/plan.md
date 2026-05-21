@@ -1,21 +1,21 @@
-## Remover obrigatoriedade de unidade/médico ao criar deal
+## Remover constraint `deals_unidade_or_medico_required`
 
-Hoje o dialog "Novo deal" do Funil de Vendas exige que o vendedor vincule uma unidade de saúde **ou** um médico para conseguir salvar. Com o Modo Lite criando deals sem unidade, faz sentido alinhar o funil normal: deixar esses vínculos opcionais e permitir completar depois.
+O frontend já foi ajustado, mas o banco ainda tem um CHECK constraint na tabela `deals` que bloqueia o insert quando `unidade_id` e `medico_id` estão ambos nulos. Por isso o Modo Lite (e o funil normal) falham com:
 
-### Mudanças em `src/pages/FunilVendas.tsx` (componente `NewDealDialog`)
+> new row for relation "deals" violates check constraint "deals_unidade_or_medico_required"
 
-1. **Validação no `submit`** — remover o bloco que exige `unidade_id || medico_id` (linhas 584-587). Manter apenas a validação de `titulo` e `linha_id`.
-2. **Botão "Criar deal"** — tirar `(!form.unidade_id && !form.medico_id)` do `disabled` (linha 732). Continuar desabilitando apenas quando faltar título ou linha.
-3. **Texto auxiliar do form** — trocar o aviso "Vincule a uma unidade ou a um médico (pelo menos um)" (linha 642) por algo neutro tipo: *"Vincule a uma unidade e/ou médico (opcional — pode completar depois)."*
-4. **Badge "pendente"** — quando salvar sem unidade, o deal já aparece com unidade vazia nas listagens existentes (`"—"` no funil). Sem mudança adicional necessária aqui.
+### Mudança
+
+**Migração SQL** (uma linha):
+
+```sql
+ALTER TABLE public.deals DROP CONSTRAINT IF EXISTS deals_unidade_or_medico_required;
+```
 
 ### O que NÃO muda
 
-- Schema do banco: `deals.unidade_id` e `medico_id` já são nullable, RLS já permite. Sem migração.
-- Modo Lite: já funciona assim, segue igual.
-- DealDetail, listagens, exportações: continuam tratando unidade/médico ausentes como hoje (já mostram `"—"`).
-- Outros formulários (Discovery, Stakeholders etc.): fora do escopo.
+- Colunas `unidade_id` e `medico_id` continuam nullable como já estão.
+- RLS, triggers, índices: sem alteração.
+- Código frontend: já está pronto (validação removida no `FunilVendas` e no `Lite`).
 
-### Arquivo
-
-- **Editar**: `src/pages/FunilVendas.tsx` (3 ajustes pontuais no componente `NewDealDialog`).
+Depois da migração, salvar um lead/deal sem unidade nem médico passa a funcionar normalmente, e o vínculo pode ser completado depois pelo DealDetail.

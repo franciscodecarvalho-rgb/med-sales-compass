@@ -29,6 +29,7 @@ import PainelGerencial from "./pages/PainelGerencial";
 import Stakeholders from "./pages/Stakeholders";
 import StakeholderDetail from "./pages/StakeholderDetail";
 import Configuracoes from "./pages/Configuracoes";
+import Lite from "./pages/Lite";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -85,6 +86,7 @@ const App = () => (
                 <ProtectedRoute requirePermission="view_faturamento"><Faturamento /></ProtectedRoute>
               } />
               <Route path="/tarefas" element={<Tarefas />} />
+              <Route path="/lite" element={<Lite />} />
               <Route path="/pos-venda" element={
                 <ProtectedRoute requirePermission="view_posvenda"><PosVenda /></ProtectedRoute>
               } />

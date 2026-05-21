@@ -17,6 +17,7 @@ import {
   Search as SearchIcon,
   BarChart3,
   Handshake,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -32,6 +33,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/lite", label: "Modo Lite", icon: Zap },
   { to: "/discovery", label: "Discovery", icon: SearchIcon, permission: "view_discovery" },
   { to: "/unidades", label: "Unidades de Saúde", icon: Building2, permission: "view_unidades" },
   { to: "/medicos", label: "Médicos", icon: UserRound, permission: "view_medicos" },

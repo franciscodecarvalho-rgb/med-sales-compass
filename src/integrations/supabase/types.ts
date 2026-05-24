@@ -1929,7 +1929,7 @@ export type Database = {
         | "gerente"
         | "vendedor"
         | "pos_venda"
-        | "assistente_vendas"
+        | "equipe_advance"
       chamado_prioridade: "critica" | "alta" | "media" | "baixa"
       chamado_status: "aberto" | "em_atendimento" | "resolvido" | "fechado"
       contrato_status: "ativo" | "vencido" | "a_vencer"
@@ -2087,7 +2087,7 @@ export const Constants = {
         "gerente",
         "vendedor",
         "pos_venda",
-        "assistente_vendas",
+        "equipe_advance",
       ],
       chamado_prioridade: ["critica", "alta", "media", "baixa"],
       chamado_status: ["aberto", "em_atendimento", "resolvido", "fechado"],

@@ -17,7 +17,7 @@ import { format } from "date-fns";
 
 export default function Faturamento() {
   const { user, hasRole, isAdminOrGerente } = useAuth();
-  const canEdit = isAdminOrGerente || hasRole("assistente_vendas");
+  const canEdit = isAdminOrGerente || hasRole("equipe_advance");
 
   const [pendentes, setPendentes] = useState<any[]>([]);
   const [faturados, setFaturados] = useState<any[]>([]);

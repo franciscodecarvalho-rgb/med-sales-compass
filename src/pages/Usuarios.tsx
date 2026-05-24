@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { UserCircle2, Plus, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const ROLES: AppRole[] = ["admin", "gerente", "vendedor", "pos_venda", "assistente_vendas"];
+const ROLES: AppRole[] = ["admin", "gerente", "vendedor", "pos_venda", "equipe_advance"];
 type FilterMode = "ativos" | "inativos" | "todos";
 
 interface Profile {

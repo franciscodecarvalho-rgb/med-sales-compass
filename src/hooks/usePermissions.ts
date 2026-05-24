@@ -9,6 +9,7 @@ export type Permission =
   | "view_posvenda"
   | "view_equipamentos"
   | "view_faturamento"
+  | "view_vendas_advance"
   | "view_medicos"
   | "view_unidades"
   | "view_painel"

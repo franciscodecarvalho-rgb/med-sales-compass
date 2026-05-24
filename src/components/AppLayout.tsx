@@ -13,12 +13,14 @@ import {
   Activity,
   Package,
   Wrench,
-  Receipt,
   Search as SearchIcon,
   BarChart3,
   Handshake,
   Zap,
+  ClipboardCheck,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { GlobalSearch } from "@/components/GlobalSearch";
@@ -29,6 +31,7 @@ interface NavItem {
   icon: React.ElementType;
   permission?: Permission;
   adminOnly?: boolean;
+  badgeKey?: string; // chave para badge dinâmico
 }
 
 const navItems: NavItem[] = [
@@ -39,7 +42,7 @@ const navItems: NavItem[] = [
   { to: "/medicos", label: "Médicos", icon: UserRound, permission: "view_medicos" },
   { to: "/funil-vendas", label: "Funil de Vendas", icon: Kanban, permission: "view_funil_vendas" },
   { to: "/funil-manutencao", label: "Funil de Manutenção", icon: Wrench, permission: "view_funil_manut" },
-  { to: "/faturamento", label: "Faturamento", icon: Receipt, permission: "view_faturamento" },
+  { to: "/vendas-advance", label: "Vendas Advance", icon: ClipboardCheck, permission: "view_vendas_advance", badgeKey: "advance_em_andamento" },
   { to: "/tarefas", label: "Tarefas", icon: CheckSquare },
   { to: "/pos-venda", label: "Pós-Venda", icon: Wrench, permission: "view_posvenda" },
   { to: "/equipamentos", label: "Equipamentos", icon: Package, permission: "view_equipamentos" },
@@ -53,6 +56,18 @@ export default function AppLayout() {
   const { user, roles, signOut } = useAuth();
   const { can, isAdmin } = usePermissions();
   const navigate = useNavigate();
+  const [badges, setBadges] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    async function loadBadges() {
+      const { count } = await supabase
+        .from("saidas_advance")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "em_andamento");
+      setBadges({ advance_em_andamento: count ?? 0 });
+    }
+    void loadBadges();
+  }, []);
 
   const handleSignOut = async () => {
     await signOut();
@@ -98,7 +113,12 @@ export default function AppLayout() {
               }
             >
               <item.icon className="h-4 w-4 shrink-0" />
-              <span className="truncate">{item.label}</span>
+              <span className="flex-1 truncate">{item.label}</span>
+              {item.badgeKey && badges[item.badgeKey] > 0 && (
+                <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
+                  {badges[item.badgeKey]}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>

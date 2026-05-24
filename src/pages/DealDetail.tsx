@@ -14,6 +14,7 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { ArrowLeft, Clock, Plus, Trash2, History, XCircle } from "lucide-react";
+import { EnviarParaFaturamentoModal } from "@/components/EnviarParaFaturamentoModal";
 import { toast } from "sonner";
 import {
   STAGE_ORDER, STAGE_LABELS, formatCurrency, daysBetween, stageColorClass, DealStage, RESULTADO_LABELS,
@@ -34,6 +35,7 @@ export default function DealDetail() {
   const [novaAnot, setNovaAnot] = useState("");
   const [proxContato, setProxContato] = useState("");
   const [openFinal, setOpenFinal] = useState(false);
+  const [openAdvance, setOpenAdvance] = useState(false);
   const [editTarefa, setEditTarefa] = useState<any | null>(null);
 
   useEffect(() => { void load(); }, [id]);
@@ -309,8 +311,19 @@ export default function DealDetail() {
       )}
 
       <Dialog open={openFinal} onOpenChange={setOpenFinal}>
-        <FinalizarInline deal={deal} onClose={() => { setOpenFinal(false); void load(); }} />
+        <FinalizarInline
+          deal={deal}
+          onClose={() => { setOpenFinal(false); void load(); }}
+          onGanho={() => { setOpenFinal(false); setOpenAdvance(true); }}
+        />
       </Dialog>
+
+      <EnviarParaFaturamentoModal
+        open={openAdvance}
+        deal={deal}
+        onClose={() => { setOpenAdvance(false); void load(); }}
+        onSuccess={() => { setOpenAdvance(false); void load(); }}
+      />
     </div>
   );
 }
@@ -360,7 +373,7 @@ function DealEquipAdd({ dealId, equipamentos, onAdded }: { dealId: string; equip
   );
 }
 
-function FinalizarInline({ deal, onClose }: { deal: any; onClose: () => void }) {
+function FinalizarInline({ deal, onClose, onGanho }: { deal: any; onClose: () => void; onGanho: () => void }) {
   const [resultado, setResultado] = useState<"ganho" | "perdido">("ganho");
   const [motivoId, setMotivoId] = useState<string>("");
   const [motivoExtra, setMotivoExtra] = useState("");
@@ -377,35 +390,24 @@ function FinalizarInline({ deal, onClose }: { deal: any; onClose: () => void }) 
     if (resultado === "perdido" && !motivoId) {
       toast.error("Selecione um motivo de perda"); return;
     }
+    // Se GANHO → delega para o modal Advance
+    if (resultado === "ganho") {
+      onGanho();
+      return;
+    }
+
     setSaving(true);
     const motivoNome = motivos.find((m) => m.id === motivoId)?.nome ?? "";
     const { error } = await supabase.from("deals").update({
       estagio: "finalizado",
-      resultado,
-      motivo_perda_id: resultado === "perdido" ? motivoId : null,
-      motivo_perda: resultado === "perdido" ? (motivoExtra ? `${motivoNome} — ${motivoExtra}` : motivoNome) : null,
+      resultado: "perdido",
+      motivo_perda_id: motivoId || null,
+      motivo_perda: motivoExtra ? `${motivoNome} — ${motivoExtra}` : motivoNome,
       data_fechamento: new Date().toISOString(),
     }).eq("id", deal.id);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    if (resultado === "ganho") {
-      if (deal.unidade_id) {
-        // Sugere criar instalação automaticamente
-        const { error: instErr } = await supabase.from("instalacoes").insert({
-          deal_id: deal.id,
-          unidade_id: deal.unidade_id,
-          tipo: "instalacao",
-          status: "pendente",
-          observacoes: `Gerado automaticamente do deal "${deal.titulo}"`,
-        });
-        if (instErr) toast.warning("Deal ganho, mas não foi possível criar instalação automaticamente");
-        else toast.success("Deal ganho! 🎉 Instalação pendente criada.");
-      } else {
-        toast.success("Deal ganho! 🎉");
-      }
-    } else {
-      toast.success("Deal encerrado");
-    }
+    toast.success("Deal encerrado");
     onClose();
   };
   return (
@@ -423,6 +425,11 @@ function FinalizarInline({ deal, onClose }: { deal: any; onClose: () => void }) 
             </SelectContent>
           </Select>
         </div>
+        {resultado === "ganho" && (
+          <p className="rounded-md bg-primary/10 px-3 py-2 text-sm text-primary font-medium">
+            ✅ Você será direcionado para enviar o deal ao Vendas Advance.
+          </p>
+        )}
         {resultado === "perdido" && (
           <>
             <div className="space-y-2">

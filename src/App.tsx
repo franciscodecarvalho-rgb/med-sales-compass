@@ -22,6 +22,8 @@ import DealDetail from "./pages/DealDetail";
 import FunilManutencao from "./pages/FunilManutencao";
 import DealManutencaoDetail from "./pages/DealManutencaoDetail";
 import Faturamento from "./pages/Faturamento";
+import VendasAdvance from "./pages/VendasAdvance";
+import VendasAdvanceDetalhe from "./pages/VendasAdvanceDetalhe";
 import Tarefas from "./pages/Tarefas";
 import PosVenda from "./pages/PosVenda";
 import Usuarios from "./pages/Usuarios";
@@ -84,6 +86,12 @@ const App = () => (
               } />
               <Route path="/faturamento" element={
                 <ProtectedRoute requirePermission="view_faturamento"><Faturamento /></ProtectedRoute>
+              } />
+              <Route path="/vendas-advance" element={
+                <ProtectedRoute requirePermission="view_vendas_advance"><VendasAdvance /></ProtectedRoute>
+              } />
+              <Route path="/vendas-advance/:id" element={
+                <ProtectedRoute requirePermission="view_vendas_advance"><VendasAdvanceDetalhe /></ProtectedRoute>
               } />
               <Route path="/tarefas" element={<Tarefas />} />
               <Route path="/lite" element={<Lite />} />

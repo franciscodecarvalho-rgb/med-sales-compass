@@ -13,7 +13,7 @@ export default function Dashboard() {
 
   // Prioridade: admin/gerente > assistente > técnico > vendedor (default)
   if (roles.includes("admin") || roles.includes("gerente")) return <DashboardGerente />;
-  if (roles.includes("assistente_vendas")) return <DashboardAssistente />;
+  if (roles.includes("equipe_advance")) return <DashboardAssistente />;
   if (roles.includes("pos_venda")) return <DashboardTecnico />;
   return <DashboardVendedor />;
 }

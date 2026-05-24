@@ -27,6 +27,7 @@ import { format } from "date-fns";
 import * as XLSX from "xlsx";
 import QuickUnidadeDialog from "@/components/QuickUnidadeDialog";
 import UnidadeCombobox from "@/components/UnidadeCombobox";
+import { EnviarParaFaturamentoModal } from "@/components/EnviarParaFaturamentoModal";
 
 // ---------- Live counter helpers ----------
 function useNow(intervalMs = 1000) {
@@ -77,6 +78,7 @@ export default function FunilVendas() {
   const [openNew, setOpenNew] = useState(!!unidadePreSel);
   const [activeDeal, setActiveDeal] = useState<any>(null);
   const [perdaDeal, setPerdaDeal] = useState<any>(null);
+  const [advanceDeal, setAdvanceDeal] = useState<any>(null);
 
   const [sortKey, setSortKey] = useState<SortKey>("tempo");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -308,10 +310,22 @@ export default function FunilVendas() {
         />
       )}
 
-      {/* Diálogo de finalizar (drag p/ finalizado ou botão) */}
+      {/* Diálogo de finalizar (drag p/ finalizado ou botão) — só para PERDIDO */}
       <Dialog open={!!perdaDeal} onOpenChange={(o) => !o && setPerdaDeal(null)}>
-        <FinalizarDialog deal={perdaDeal} onClose={() => { setPerdaDeal(null); void loadDeals(); }} />
+        <FinalizarDialog
+          deal={perdaDeal}
+          onGanho={(d) => { setPerdaDeal(null); setAdvanceDeal(d); }}
+          onClose={() => { setPerdaDeal(null); void loadDeals(); }}
+        />
       </Dialog>
+
+      {/* Modal Enviar para Faturamento (só aparece quando GANHO) */}
+      <EnviarParaFaturamentoModal
+        open={!!advanceDeal}
+        deal={advanceDeal}
+        onClose={() => { setAdvanceDeal(null); void loadDeals(); }}
+        onSuccess={() => { setAdvanceDeal(null); void loadDeals(); }}
+      />
     </div>
   );
 }
@@ -406,6 +420,11 @@ function DealCard({ deal, verdeLimit, amareloLimit, onEncerrar, dragging }: {
         <div className="mt-1 text-[10px] text-destructive truncate">
           Motivo: {deal.motivos_perda?.nome ?? deal.motivo_perda}
         </div>
+      )}
+      {isFinal && deal.resultado === "ganho" && deal.enviado_para_advance && (
+        <Badge variant="outline" className="mt-1 text-[10px] bg-blue-900/15 text-blue-800 border-blue-700/40">
+          ENVIADO ADVANCE
+        </Badge>
       )}
 
       {deal.profiles?.nome && (
@@ -743,7 +762,13 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
 }
 
 // ============= Modal Finalizar Deal =============
-function FinalizarDialog({ deal, onClose }: { deal: any; onClose: () => void }) {
+function FinalizarDialog({
+  deal, onClose, onGanho,
+}: {
+  deal: any;
+  onClose: () => void;
+  onGanho: (deal: any) => void;
+}) {
   const [resultado, setResultado] = useState<"ganho" | "perdido">("ganho");
   const [motivoId, setMotivoId] = useState<string>("");
   const [motivoExtra, setMotivoExtra] = useState("");
@@ -762,18 +787,25 @@ function FinalizarDialog({ deal, onClose }: { deal: any; onClose: () => void }) 
     if (resultado === "perdido" && !motivoId) {
       toast.error("Selecione um motivo de perda"); return;
     }
+
+    // Se GANHO → abre modal de Enviar para Advance ao invés de fechar direto
+    if (resultado === "ganho") {
+      onGanho(deal);
+      return;
+    }
+
     setSaving(true);
     const motivoNome = motivos.find((m) => m.id === motivoId)?.nome ?? "";
     const { error } = await supabase.from("deals").update({
       estagio: "finalizado",
-      resultado,
-      motivo_perda_id: resultado === "perdido" ? motivoId : null,
-      motivo_perda: resultado === "perdido" ? (motivoExtra ? `${motivoNome} — ${motivoExtra}` : motivoNome) : null,
+      resultado: "perdido",
+      motivo_perda_id: motivoId || null,
+      motivo_perda: motivoExtra ? `${motivoNome} — ${motivoExtra}` : motivoNome,
       data_fechamento: new Date().toISOString(),
     }).eq("id", deal.id);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    toast.success(resultado === "ganho" ? "Deal ganho! 🎉" : "Deal encerrado");
+    toast.success("Deal encerrado");
     onClose();
   };
 
@@ -792,6 +824,11 @@ function FinalizarDialog({ deal, onClose }: { deal: any; onClose: () => void }) 
             </SelectContent>
           </Select>
         </div>
+        {resultado === "ganho" && (
+          <p className="rounded-md bg-primary/10 px-3 py-2 text-sm text-primary font-medium">
+            ✅ Ótimo! Você será direcionado para enviar o deal ao Vendas Advance.
+          </p>
+        )}
         {resultado === "perdido" && (
           <>
             <div className="space-y-2">
@@ -811,7 +848,9 @@ function FinalizarDialog({ deal, onClose }: { deal: any; onClose: () => void }) 
         )}
         <DialogFooter>
           <Button type="button" variant="ghost" onClick={onClose}>Cancelar</Button>
-          <Button type="submit" disabled={saving}>{saving ? "Salvando..." : "Confirmar"}</Button>
+          <Button type="submit" disabled={saving}>
+            {saving ? "Salvando..." : resultado === "ganho" ? "Continuar →" : "Confirmar"}
+          </Button>
         </DialogFooter>
       </form>
     </DialogContent>

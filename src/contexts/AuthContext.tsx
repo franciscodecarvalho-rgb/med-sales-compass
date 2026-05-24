@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppRole = "admin" | "gerente" | "vendedor" | "pos_venda" | "assistente_vendas";
+export type AppRole = "admin" | "gerente" | "vendedor" | "pos_venda" | "equipe_advance";
 
 interface AuthContextValue {
   user: User | null;
@@ -99,5 +99,5 @@ export const ROLE_LABELS: Record<AppRole, string> = {
   gerente: "Gerente",
   vendedor: "Vendedor",
   pos_venda: "Pós-Venda",
-  assistente_vendas: "Assistente de Vendas",
+  equipe_advance: "Equipe Advance",
 };

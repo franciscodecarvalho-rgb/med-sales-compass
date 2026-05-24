@@ -585,7 +585,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ROLE_LABELS } from "@/contexts/AuthContext";
 import type { AppRole } from "@/contexts/AuthContext";
 
-const PERM_ROLES: AppRole[] = ["gerente", "vendedor", "pos_venda", "assistente_vendas"];
+const PERM_ROLES: AppRole[] = ["gerente", "vendedor", "pos_venda", "equipe_advance"];
 
 const PERM_GROUPS: { title: string; items: { key: string; label: string }[] }[] = [
   {

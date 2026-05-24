@@ -468,6 +468,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "deals_medico_id_fkey"
+            columns: ["medico_id"]
+            isOneToOne: false
+            referencedRelation: "medicos"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "deals_motivo_perda_id_fkey"
             columns: ["motivo_perda_id"]
             isOneToOne: false

@@ -41,7 +41,7 @@ export function DashboardVendedor() {
     const fimHoje = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + 1).toISOString();
     const trintaDias = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
-    const abertasStatus = ["pendente", "em_andamento", "atrasada"];
+    const abertasStatus = ["pendente", "em_andamento", "atrasada"] as const;
     const [vendas, manut, tHoje, tAtras, disc, allTarefas, allDeals, ultAnot, discList] = await Promise.all([
       supabase.from("deals").select("id, valor_total").eq("vendedor_id", user!.id).eq("resultado", "em_andamento").is("archived_at", null),
       supabase.from("deals_manutencao").select("id, valor_total").eq("vendedor_id", user!.id).eq("resultado", "em_andamento").is("archived_at", null),

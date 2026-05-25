@@ -64,8 +64,9 @@ async function bumpUsage(
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
-    const userId = await getUserId(req);
+    const { userId, allowed } = await getUserAndCheckRole(req);
     if (!userId) return json({ error: "Não autenticado" }, 401);
+    if (!allowed) return json({ error: "Acesso negado" }, 403);
 
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
     const body = await req.json().catch(() => ({}));

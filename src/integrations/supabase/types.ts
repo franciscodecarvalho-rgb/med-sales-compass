@@ -1903,6 +1903,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "tarefas_stakeholder_id_fkey"
+            columns: ["stakeholder_id"]
+            isOneToOne: false
+            referencedRelation: "stakeholders"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tarefas_unidade_id_fkey"
             columns: ["unidade_id"]
             isOneToOne: false

@@ -1,0 +1,1 @@
+ALTER TABLE public.tarefas ADD CONSTRAINT tarefas_stakeholder_id_fkey FOREIGN KEY (stakeholder_id) REFERENCES public.stakeholders(id) ON DELETE SET NULL;

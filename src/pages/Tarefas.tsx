@@ -458,7 +458,10 @@ function CompactRow({ t, onReabrir, onChanged }: { t: any; onReabrir: (t: any) =
           </span>
         </td>
         <td className="px-2 py-1.5 align-middle cursor-pointer" onClick={() => setOpenEdit(true)}>
-          <div className={`font-medium truncate ${concluida ? "line-through" : ""}`}>{t.titulo}</div>
+          <div className={`font-medium truncate ${concluida ? "line-through" : ""}`}>
+            {t.stakeholders?.nome && <span className="text-muted-foreground font-normal">{t.stakeholders.nome} · </span>}
+            {t.titulo}
+          </div>
         </td>
         <td className="px-2 py-1.5 align-middle">
           {link ? (

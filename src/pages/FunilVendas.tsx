@@ -73,6 +73,7 @@ export default function FunilVendas() {
   const [view, setView] = useState<"kanban" | "tabela">("kanban");
   const [search, setSearch] = useState("");
   const [filterEstado, setFilterEstado] = useState("all");
+  const [filterRegiao, setFilterRegiao] = useState("all");
   const [filterVendedor, setFilterVendedor] = useState("all");
   const [showFinalizados, setShowFinalizados] = useState(false);
   const [openNew, setOpenNew] = useState(!!unidadePreSel);

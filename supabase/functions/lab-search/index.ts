@@ -26,14 +26,20 @@ function json(data: unknown, status = 200) {
   });
 }
 
-async function getUserId(req: Request): Promise<string | null> {
+async function getUserAndCheckRole(req: Request): Promise<{ userId: string | null; allowed: boolean }> {
   const auth = req.headers.get("Authorization");
-  if (!auth) return null;
+  if (!auth) return { userId: null, allowed: false };
   const sb = createClient(SUPABASE_URL, ANON_KEY, {
     global: { headers: { Authorization: auth } },
   });
   const { data } = await sb.auth.getUser();
-  return data.user?.id ?? null;
+  const userId = data.user?.id ?? null;
+  if (!userId) return { userId: null, allowed: false };
+  const [{ data: isManager }, { data: isVendedor }] = await Promise.all([
+    sb.rpc("is_admin_or_gerente", { _user_id: userId }),
+    sb.rpc("has_role", { _user_id: userId, _role: "vendedor" }),
+  ]);
+  return { userId, allowed: Boolean(isManager) || Boolean(isVendedor) };
 }
 
 async function getUsage(admin: ReturnType<typeof createClient>) {
@@ -58,8 +64,9 @@ async function bumpUsage(
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
-    const userId = await getUserId(req);
+    const { userId, allowed } = await getUserAndCheckRole(req);
     if (!userId) return json({ error: "Não autenticado" }, 401);
+    if (!allowed) return json({ error: "Acesso negado" }, 403);
 
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
     const body = await req.json().catch(() => ({}));

@@ -226,7 +226,7 @@ function NovoUsuarioForm({ linhas, onSaved }: { linhas: Linha[]; onSaved: () => 
         </div>
         <div className="space-y-2">
           <Label>Senha provisória *</Label>
-          <Input type="text" required minLength={6} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+          <Input type="password" required minLength={6} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
           <p className="text-[11px] text-muted-foreground">Mínimo 6 caracteres. O usuário poderá alterá-la depois.</p>
         </div>
         <div className="space-y-2">
@@ -341,7 +341,7 @@ function EditUserDialog({
             <Label>Redefinir senha</Label>
             <div className="flex gap-2">
               <Input
-                type="text"
+                type="password"
                 placeholder="Nova senha (mín. 6)"
                 value={novaSenha}
                 onChange={(e) => setNovaSenha(e.target.value)}

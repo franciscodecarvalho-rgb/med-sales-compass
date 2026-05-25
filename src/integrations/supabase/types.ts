@@ -14,6 +14,65 @@ export type Database = {
   }
   public: {
     Tables: {
+      analises_credito: {
+        Row: {
+          cliente_consultado: string | null
+          consultado_em: string
+          consultado_por: string
+          created_at: string
+          deal_id: string
+          id: string
+          limite_aprovado: number | null
+          numero_analise: string
+          observacoes: string | null
+          parcelas_maximas: number | null
+          payload_completo: Json
+          prazo_maximo_dias: number | null
+          status: Database["public"]["Enums"]["status_analise_credito"]
+          validade_analise: string | null
+        }
+        Insert: {
+          cliente_consultado?: string | null
+          consultado_em?: string
+          consultado_por: string
+          created_at?: string
+          deal_id: string
+          id?: string
+          limite_aprovado?: number | null
+          numero_analise: string
+          observacoes?: string | null
+          parcelas_maximas?: number | null
+          payload_completo?: Json
+          prazo_maximo_dias?: number | null
+          status: Database["public"]["Enums"]["status_analise_credito"]
+          validade_analise?: string | null
+        }
+        Update: {
+          cliente_consultado?: string | null
+          consultado_em?: string
+          consultado_por?: string
+          created_at?: string
+          deal_id?: string
+          id?: string
+          limite_aprovado?: number | null
+          numero_analise?: string
+          observacoes?: string | null
+          parcelas_maximas?: number | null
+          payload_completo?: Json
+          prazo_maximo_dias?: number | null
+          status?: Database["public"]["Enums"]["status_analise_credito"]
+          validade_analise?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analises_credito_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       anotacoes: {
         Row: {
           archived_at: string | null
@@ -400,13 +459,20 @@ export type Database = {
       }
       deals: {
         Row: {
+          analise_credito_id: string | null
           archived_at: string | null
           created_at: string
           data_entrada_estagio: string
+          data_envio_advance: string | null
           data_fechamento: string | null
           data_previsao_fechamento: string | null
+          enviado_para_advance: boolean
           estagio: Database["public"]["Enums"]["deal_stage"]
+          forma_pagamento:
+            | Database["public"]["Enums"]["forma_pagamento_tipo"]
+            | null
           id: string
+          instituicao_financeira_externa: string | null
           linha_id: string
           medico_id: string | null
           motivo_perda: string | null
@@ -420,13 +486,20 @@ export type Database = {
           vendedor_id: string
         }
         Insert: {
+          analise_credito_id?: string | null
           archived_at?: string | null
           created_at?: string
           data_entrada_estagio?: string
+          data_envio_advance?: string | null
           data_fechamento?: string | null
           data_previsao_fechamento?: string | null
+          enviado_para_advance?: boolean
           estagio?: Database["public"]["Enums"]["deal_stage"]
+          forma_pagamento?:
+            | Database["public"]["Enums"]["forma_pagamento_tipo"]
+            | null
           id?: string
+          instituicao_financeira_externa?: string | null
           linha_id: string
           medico_id?: string | null
           motivo_perda?: string | null
@@ -440,13 +513,20 @@ export type Database = {
           vendedor_id: string
         }
         Update: {
+          analise_credito_id?: string | null
           archived_at?: string | null
           created_at?: string
           data_entrada_estagio?: string
+          data_envio_advance?: string | null
           data_fechamento?: string | null
           data_previsao_fechamento?: string | null
+          enviado_para_advance?: boolean
           estagio?: Database["public"]["Enums"]["deal_stage"]
+          forma_pagamento?:
+            | Database["public"]["Enums"]["forma_pagamento_tipo"]
+            | null
           id?: string
+          instituicao_financeira_externa?: string | null
           linha_id?: string
           medico_id?: string | null
           motivo_perda?: string | null
@@ -460,6 +540,13 @@ export type Database = {
           vendedor_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "deals_analise_credito_fkey"
+            columns: ["analise_credito_id"]
+            isOneToOne: false
+            referencedRelation: "analises_credito"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "deals_linha_id_fkey"
             columns: ["linha_id"]
@@ -1513,6 +1600,159 @@ export type Database = {
         }
         Relationships: []
       }
+      saidas_advance: {
+        Row: {
+          created_at: string
+          criado_em: string
+          criado_por: string
+          deal_id: string
+          finalizado_em: string | null
+          finalizado_por: string | null
+          id: string
+          id_olist: string | null
+          observacoes_gerais: string | null
+          pedido_olist: string | null
+          proposta_olist: string | null
+          status: Database["public"]["Enums"]["status_saida_advance"]
+          tipo_saida: Database["public"]["Enums"]["tipo_saida_advance"] | null
+        }
+        Insert: {
+          created_at?: string
+          criado_em?: string
+          criado_por: string
+          deal_id: string
+          finalizado_em?: string | null
+          finalizado_por?: string | null
+          id?: string
+          id_olist?: string | null
+          observacoes_gerais?: string | null
+          pedido_olist?: string | null
+          proposta_olist?: string | null
+          status?: Database["public"]["Enums"]["status_saida_advance"]
+          tipo_saida?: Database["public"]["Enums"]["tipo_saida_advance"] | null
+        }
+        Update: {
+          created_at?: string
+          criado_em?: string
+          criado_por?: string
+          deal_id?: string
+          finalizado_em?: string | null
+          finalizado_por?: string | null
+          id?: string
+          id_olist?: string | null
+          observacoes_gerais?: string | null
+          pedido_olist?: string | null
+          proposta_olist?: string | null
+          status?: Database["public"]["Enums"]["status_saida_advance"]
+          tipo_saida?: Database["public"]["Enums"]["tipo_saida_advance"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saidas_advance_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: true
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saidas_advance_anexos: {
+        Row: {
+          anexado_em: string
+          anexado_por: string
+          id: string
+          item_chave: string | null
+          nome_arquivo: string
+          saida_id: string
+          tamanho_bytes: number
+          tipo_mime: string
+          url: string
+        }
+        Insert: {
+          anexado_em?: string
+          anexado_por: string
+          id?: string
+          item_chave?: string | null
+          nome_arquivo: string
+          saida_id: string
+          tamanho_bytes?: number
+          tipo_mime?: string
+          url: string
+        }
+        Update: {
+          anexado_em?: string
+          anexado_por?: string
+          id?: string
+          item_chave?: string | null
+          nome_arquivo?: string
+          saida_id?: string
+          tamanho_bytes?: number
+          tipo_mime?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saidas_advance_anexos_saida_id_fkey"
+            columns: ["saida_id"]
+            isOneToOne: false
+            referencedRelation: "saidas_advance"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saidas_advance_itens: {
+        Row: {
+          bloco: Database["public"]["Enums"]["bloco_advance"]
+          chave_item: string
+          concluido: boolean
+          concluido_em: string | null
+          concluido_por: string | null
+          created_at: string
+          dados_extras: Json | null
+          id: string
+          observacao: string | null
+          ordem: number
+          saida_id: string
+          updated_at: string
+        }
+        Insert: {
+          bloco: Database["public"]["Enums"]["bloco_advance"]
+          chave_item: string
+          concluido?: boolean
+          concluido_em?: string | null
+          concluido_por?: string | null
+          created_at?: string
+          dados_extras?: Json | null
+          id?: string
+          observacao?: string | null
+          ordem: number
+          saida_id: string
+          updated_at?: string
+        }
+        Update: {
+          bloco?: Database["public"]["Enums"]["bloco_advance"]
+          chave_item?: string
+          concluido?: boolean
+          concluido_em?: string | null
+          concluido_por?: string | null
+          created_at?: string
+          dados_extras?: Json | null
+          id?: string
+          observacao?: string | null
+          ordem?: number
+          saida_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saidas_advance_itens_saida_id_fkey"
+            columns: ["saida_id"]
+            isOneToOne: false
+            referencedRelation: "saidas_advance"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stakeholders: {
         Row: {
           archived_at: string | null
@@ -1930,6 +2170,11 @@ export type Database = {
         | "vendedor"
         | "pos_venda"
         | "equipe_advance"
+      bloco_advance:
+        | "cadastro"
+        | "margem_financeiro"
+        | "faturamento"
+        | "logistica"
       chamado_prioridade: "critica" | "alta" | "media" | "baixa"
       chamado_status: "aberto" | "em_atendimento" | "resolvido" | "fechado"
       contrato_status: "ativo" | "vencido" | "a_vencer"
@@ -1943,9 +2188,20 @@ export type Database = {
         | "fechamento"
         | "finalizado"
       discovery_status: "em_pesquisa" | "oficializado" | "descartado"
+      forma_pagamento_tipo:
+        | "a_vista_cartao"
+        | "financiado_interno"
+        | "financiamento_externo"
       garantia_status: "ativa" | "vencida" | "a_vencer"
       instalacao_status: "pendente" | "em_andamento" | "concluido"
       instalacao_tipo: "instalacao" | "aplicacao"
+      status_analise_credito:
+        | "aprovado"
+        | "reprovado"
+        | "pendente"
+        | "limite_insuficiente"
+        | "erro_api"
+      status_saida_advance: "em_andamento" | "finalizado"
       tarefa_prioridade: "baixa" | "media" | "alta"
       tarefa_status:
         | "pendente"
@@ -1953,6 +2209,12 @@ export type Database = {
         | "concluida"
         | "cancelada"
         | "atrasada"
+      tipo_saida_advance:
+        | "venda"
+        | "demonstracao"
+        | "comodato"
+        | "locacao"
+        | "troca"
       unidade_status: "lead" | "cliente" | "inativo"
       unidade_tipo: "hospital" | "clinica" | "ubs" | "laboratorio" | "outro"
     }
@@ -2082,12 +2344,12 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: [
-        "admin",
-        "gerente",
-        "vendedor",
-        "pos_venda",
-        "equipe_advance",
+      app_role: ["admin", "gerente", "vendedor", "pos_venda", "equipe_advance"],
+      bloco_advance: [
+        "cadastro",
+        "margem_financeiro",
+        "faturamento",
+        "logistica",
       ],
       chamado_prioridade: ["critica", "alta", "media", "baixa"],
       chamado_status: ["aberto", "em_atendimento", "resolvido", "fechado"],
@@ -2103,9 +2365,22 @@ export const Constants = {
         "finalizado",
       ],
       discovery_status: ["em_pesquisa", "oficializado", "descartado"],
+      forma_pagamento_tipo: [
+        "a_vista_cartao",
+        "financiado_interno",
+        "financiamento_externo",
+      ],
       garantia_status: ["ativa", "vencida", "a_vencer"],
       instalacao_status: ["pendente", "em_andamento", "concluido"],
       instalacao_tipo: ["instalacao", "aplicacao"],
+      status_analise_credito: [
+        "aprovado",
+        "reprovado",
+        "pendente",
+        "limite_insuficiente",
+        "erro_api",
+      ],
+      status_saida_advance: ["em_andamento", "finalizado"],
       tarefa_prioridade: ["baixa", "media", "alta"],
       tarefa_status: [
         "pendente",
@@ -2113,6 +2388,13 @@ export const Constants = {
         "concluida",
         "cancelada",
         "atrasada",
+      ],
+      tipo_saida_advance: [
+        "venda",
+        "demonstracao",
+        "comodato",
+        "locacao",
+        "troca",
       ],
       unidade_status: ["lead", "cliente", "inativo"],
       unidade_tipo: ["hospital", "clinica", "ubs", "laboratorio", "outro"],

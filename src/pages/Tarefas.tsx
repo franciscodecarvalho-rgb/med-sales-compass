@@ -778,11 +778,12 @@ function NovaTarefaDialog({ onSaved }: { onSaved: () => void }) {
     const payload: any = {
       titulo: form.titulo,
       descricao: form.descricao || null,
-      responsavel_id: user.id,
+      responsavel_id: (isAdminOrGerente && form.responsavelId) ? form.responsavelId : user.id,
       criador_id: user.id,
       prioridade: form.prioridade,
       data_vencimento: form.data || null,
     };
+
     if (form.vinculo === "deal") payload.deal_id = form.entidadeId;
     if (form.vinculo === "medico") payload.medico_id = form.entidadeId;
     if (form.vinculo === "unidade") payload.unidade_id = form.entidadeId;

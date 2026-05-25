@@ -114,6 +114,9 @@ export default function DealDetail() {
                 {RESULTADO_LABELS[deal.resultado as keyof typeof RESULTADO_LABELS]}
               </Badge>
             )}
+            <Button variant="outline" size="sm" className="ml-2" onClick={() => setOpenEdit(true)}>
+              <Pencil className="mr-1 h-3.5 w-3.5" /> Editar
+            </Button>
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
             {deal.unidades_saude && (

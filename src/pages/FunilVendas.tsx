@@ -255,11 +255,17 @@ export default function FunilVendas() {
           <SelectTrigger className="w-[170px]"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos UF</SelectItem>
+            {ESTADOS_BR.map((uf) => <SelectItem key={uf} value={uf}>{uf}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={filterRegiao} onValueChange={setFilterRegiao}>
+          <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas regiões</SelectItem>
             <SelectItem value="ne1">Nordeste 1 (BA, SE, AL)</SelectItem>
             <SelectItem value="ne2">Nordeste 2 (PE, PB, RN)</SelectItem>
             <SelectItem value="ne3">Nordeste 3 (CE, PI, MA)</SelectItem>
             <SelectItem value="outros">Outros</SelectItem>
-            {ESTADOS_BR.map((uf) => <SelectItem key={uf} value={uf}>{uf}</SelectItem>)}
           </SelectContent>
         </Select>
         {isAdminOrGerente && (

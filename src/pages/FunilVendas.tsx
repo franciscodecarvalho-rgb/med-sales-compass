@@ -569,7 +569,7 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
   const [form, setForm] = useState({
     titulo: "", unidade_id: defaultUnidadeId ?? "", medico_id: "",
     linha_id: defaultLinhaId, valor_total: "", data_previsao_fechamento: "",
-    vendedor_id: user?.id ?? "",
+    vendedor_id: user?.id ?? "", regiao: "ne1",
   });
   const [equips, setEquips] = useState<{ descricao: string; quantidade: number }[]>([]);
   const [novoEquip, setNovoEquip] = useState("");

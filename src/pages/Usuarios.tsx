@@ -341,7 +341,7 @@ function EditUserDialog({
             <Label>Redefinir senha</Label>
             <div className="flex gap-2">
               <Input
-                type="text"
+                type="password"
                 placeholder="Nova senha (mín. 6)"
                 value={novaSenha}
                 onChange={(e) => setNovaSenha(e.target.value)}

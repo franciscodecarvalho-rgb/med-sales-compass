@@ -130,15 +130,21 @@ export default function DealDetail() {
             <span>👤 {deal.profiles?.nome}</span>
           </div>
         </div>
-        <Card className="border-primary/30">
+        <Card className="border-primary/30 min-w-[200px]">
           <CardContent className="p-4 text-center">
             <div className="text-xs uppercase tracking-wide text-muted-foreground">Valor total</div>
-            <div className="text-2xl font-bold text-primary">{formatCurrency(deal.valor_total)}</div>
+            <ValorTotalEditor
+              dealId={deal.id}
+              valor={Number(deal.valor_total ?? 0)}
+              temEquipamentos={dealEquips.length > 0}
+              onSaved={load}
+            />
             <Badge className={`mt-1 gap-1 ${colorClass}`}>
               <Clock className="h-3 w-3" /> {days}d no estágio
             </Badge>
           </CardContent>
         </Card>
+
       </div>
 
       {/* Pipeline visual */}

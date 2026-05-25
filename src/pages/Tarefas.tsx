@@ -853,6 +853,21 @@ function NovaTarefaDialog({ onSaved }: { onSaved: () => void }) {
             </Select>
           </div>
         )}
+        {isAdminOrGerente && (
+          <div className="space-y-2">
+            <Label>Responsável</Label>
+            <Select value={form.responsavelId} onValueChange={(v) => setForm({ ...form, responsavelId: v })}>
+              <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+              <SelectContent className="max-h-64">
+                {responsaveis.map((r) => (
+                  <SelectItem key={r.id} value={r.id}>
+                    {r.id === user?.id ? `${r.nome} (eu)` : r.nome}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <DialogFooter>
           <Button type="submit" disabled={saving || !form.titulo}>
             {saving ? "Salvando..." : "Criar tarefa"}

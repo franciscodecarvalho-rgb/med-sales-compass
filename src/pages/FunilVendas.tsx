@@ -143,7 +143,7 @@ export default function FunilVendas() {
           !d.unidades_saude?.nome?.toLowerCase().includes(q) &&
           !d.medicos?.nome?.toLowerCase().includes(q)) return false;
     }
-    if (filterEstado !== "all" && d.unidades_saude?.estado !== filterEstado) return false;
+    if (filterEstado !== "all" && (d.estado || d.unidades_saude?.estado) !== filterEstado) return false;
     if (filterRegiao !== "all" && (d.regiao || "ne1") !== filterRegiao) return false;
     if (filterVendedor !== "all" && d.vendedor_id !== filterVendedor) return false;
     return true;

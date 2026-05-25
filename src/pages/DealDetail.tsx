@@ -334,6 +334,69 @@ export default function DealDetail() {
   );
 }
 
+function ValorTotalEditor({
+  dealId, valor, temEquipamentos, onSaved,
+}: { dealId: string; valor: number; temEquipamentos: boolean; onSaved: () => void }) {
+  const [editing, setEditing] = useState(false);
+  const [val, setVal] = useState(valor.toString());
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => { setVal(valor.toString()); }, [valor]);
+
+  const save = async () => {
+    const num = Number(val.replace(",", "."));
+    if (isNaN(num) || num < 0) { toast.error("Valor inválido"); return; }
+    setSaving(true);
+    const { error } = await supabase.from("deals").update({ valor_total: num }).eq("id", dealId);
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Valor atualizado");
+    setEditing(false);
+    onSaved();
+  };
+
+  if (editing) {
+    return (
+      <div className="mt-1 flex items-center gap-1">
+        <Input
+          type="number" step="0.01" min="0" autoFocus
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") { e.preventDefault(); void save(); }
+            if (e.key === "Escape") { setEditing(false); setVal(valor.toString()); }
+          }}
+          className="h-9 text-right text-lg font-bold"
+        />
+        <Button size="icon" variant="ghost" className="h-8 w-8" onClick={save} disabled={saving}>
+          <Check className="h-4 w-4 text-success" />
+        </Button>
+        <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => { setEditing(false); setVal(valor.toString()); }}>
+          <X className="h-4 w-4 text-muted-foreground" />
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-0.5">
+      <button
+        type="button"
+        onClick={() => setEditing(true)}
+        className="group inline-flex items-center gap-1.5 text-2xl font-bold text-primary hover:opacity-80"
+        title="Clique para editar"
+      >
+        {formatCurrency(valor)}
+        <Pencil className="h-3.5 w-3.5 opacity-0 group-hover:opacity-60" />
+      </button>
+      {temEquipamentos && (
+        <div className="text-[10px] text-muted-foreground">Calculado dos equipamentos</div>
+      )}
+    </div>
+  );
+}
+
+
 function DealEquipAdd({ dealId, equipamentos, onAdded }: { dealId: string; equipamentos: any[]; onAdded: () => void }) {
   const [form, setForm] = useState({ equipamento_id: "", quantidade: "1", valor_unitario: "" });
   const submit = async (e: React.FormEvent) => {

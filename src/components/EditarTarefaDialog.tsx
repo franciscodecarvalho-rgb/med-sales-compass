@@ -142,6 +142,21 @@ export function EditarTarefaDialogContent({ tarefa, onSaved }: { tarefa: any; on
             </Select>
           </div>
         </div>
+        {isAdminOrGerente && (
+          <div className="space-y-2">
+            <Label>Responsável</Label>
+            <Select value={form.responsavelId} onValueChange={(v) => setForm({ ...form, responsavelId: v })}>
+              <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+              <SelectContent className="max-h-64">
+                {responsaveis.map((r) => (
+                  <SelectItem key={r.id} value={r.id}>
+                    {r.id === user?.id ? `${r.nome} (eu)` : r.nome}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <div className="text-xs text-muted-foreground">
           Status atual: <Badge variant="outline" className={TAREFA_STATUS_BADGE[tarefa.status as TarefaStatus]}>
             {TAREFA_STATUS_LABELS[tarefa.status as TarefaStatus]}

@@ -37,6 +37,7 @@ export default function DealDetail() {
   const [proxContato, setProxContato] = useState("");
   const [openFinal, setOpenFinal] = useState(false);
   const [openAdvance, setOpenAdvance] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
   const [editTarefa, setEditTarefa] = useState<any | null>(null);
 
   useEffect(() => { void load(); }, [id]);

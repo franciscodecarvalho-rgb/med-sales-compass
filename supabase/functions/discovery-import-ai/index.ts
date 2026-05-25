@@ -41,6 +41,17 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Role check: only admin/gerente/vendedor can use bulk discovery import
+    const [{ data: isManager }, { data: isVendedor }] = await Promise.all([
+      supabase.rpc("is_admin_or_gerente", { _user_id: userData.user.id }),
+      supabase.rpc("has_role", { _user_id: userData.user.id, _role: "vendedor" }),
+    ]);
+    if (!isManager && !isVendedor) {
+      return new Response(JSON.stringify({ error: "Acesso negado" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { rawText } = await req.json();
     if (!rawText || typeof rawText !== "string" || rawText.trim().length < 5) {
       return new Response(JSON.stringify({ error: "Texto vazio" }), {

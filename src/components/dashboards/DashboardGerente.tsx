@@ -54,6 +54,7 @@ export function DashboardGerente() {
 
   async function load() {
     setLoading(true);
+    await supabase.rpc("marcar_tarefas_atrasadas");
     const [deals, unis, anots, tarefas] = await Promise.all([
       supabase.from("deals").select("id, titulo, valor_total, estagio, resultado, data_entrada_estagio, data_fechamento, vendedor_id, linha_id, unidade_id, motivo_perda, motivos_perda(nome), unidades_saude(nome, cidade, estado), linhas_produto(nome, cor, limite_amarelo_dias), profiles!deals_vendedor_profile_fkey(nome)").is("archived_at", null).limit(2000),
       supabase.from("unidades_saude").select("id, nome, status, estado, cidade").is("archived_at", null).limit(2000),

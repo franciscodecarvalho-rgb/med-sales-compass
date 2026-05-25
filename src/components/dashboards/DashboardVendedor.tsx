@@ -34,16 +34,20 @@ export function DashboardVendedor() {
 
   async function load() {
     setLoading(true);
+    // Sincroniza status de tarefas atrasadas antes de contar
+    await supabase.rpc("marcar_tarefas_atrasadas");
     const hoje = new Date();
     const inicioHoje = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()).toISOString();
     const fimHoje = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + 1).toISOString();
     const trintaDias = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
+    const abertasStatus = ["pendente", "em_andamento", "atrasada"] as const;
     const [vendas, manut, tHoje, tAtras, disc, allTarefas, allDeals, ultAnot, discList] = await Promise.all([
       supabase.from("deals").select("id, valor_total").eq("vendedor_id", user!.id).eq("resultado", "em_andamento").is("archived_at", null),
       supabase.from("deals_manutencao").select("id, valor_total").eq("vendedor_id", user!.id).eq("resultado", "em_andamento").is("archived_at", null),
-      supabase.from("tarefas").select("id", { count: "exact", head: true }).eq("responsavel_id", user!.id).in("status", ["pendente", "em_andamento"]).gte("data_vencimento", inicioHoje).lt("data_vencimento", fimHoje).is("archived_at", null),
-      supabase.from("tarefas").select("id", { count: "exact", head: true }).eq("responsavel_id", user!.id).eq("status", "atrasada").is("archived_at", null),
+      supabase.from("tarefas").select("id", { count: "exact", head: true }).eq("responsavel_id", user!.id).in("status", abertasStatus).gte("data_vencimento", inicioHoje).lt("data_vencimento", fimHoje).is("archived_at", null),
+      supabase.from("tarefas").select("id", { count: "exact", head: true }).eq("responsavel_id", user!.id).in("status", abertasStatus).lt("data_vencimento", inicioHoje).is("archived_at", null),
+
       supabase.from("discovery").select("id", { count: "exact", head: true }).eq("vendedor_id", user!.id).eq("status", "em_pesquisa").is("archived_at", null),
       supabase.from("tarefas").select("*, deals(titulo), unidades_saude(nome), medicos(nome)").eq("responsavel_id", user!.id).in("status", ["pendente", "em_andamento", "atrasada"]).is("archived_at", null).order("data_vencimento", { ascending: true, nullsFirst: false }).limit(30),
       supabase.from("deals").select("id, titulo, valor_total, estagio, data_entrada_estagio, unidades_saude(nome), linhas_produto(nome, cor, limite_amarelo_dias, limite_verde_dias)").eq("vendedor_id", user!.id).eq("resultado", "em_andamento").is("archived_at", null),

@@ -724,10 +724,18 @@ function NovaTarefaDialog({ onSaved }: { onSaved: () => void }) {
   const [form, setForm] = useState({
     titulo: "", descricao: "", data: "", prioridade: "media" as TarefaPrioridade,
     vinculo: "livre" as VinculoFiltro, entidadeId: "",
+    responsavelId: user?.id ?? "",
   });
   const [opcoes, setOpcoes] = useState<any[]>([]);
+  const [responsaveis, setResponsaveis] = useState<any[]>([]);
   const [searchEnt, setSearchEnt] = useState("");
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!isAdminOrGerente) return;
+    supabase.from("profiles").select("id, nome").eq("ativo", true).order("nome")
+      .then(({ data }) => setResponsaveis(data ?? []));
+  }, [isAdminOrGerente]);
 
   useEffect(() => {
     void carregarOpcoes(form.vinculo);
@@ -735,6 +743,7 @@ function NovaTarefaDialog({ onSaved }: { onSaved: () => void }) {
     setSearchEnt("");
     // eslint-disable-next-line
   }, [form.vinculo]);
+
 
   async function carregarOpcoes(v: VinculoFiltro) {
     if (v === "deal") {
@@ -769,11 +778,12 @@ function NovaTarefaDialog({ onSaved }: { onSaved: () => void }) {
     const payload: any = {
       titulo: form.titulo,
       descricao: form.descricao || null,
-      responsavel_id: user.id,
+      responsavel_id: (isAdminOrGerente && form.responsavelId) ? form.responsavelId : user.id,
       criador_id: user.id,
       prioridade: form.prioridade,
       data_vencimento: form.data || null,
     };
+
     if (form.vinculo === "deal") payload.deal_id = form.entidadeId;
     if (form.vinculo === "medico") payload.medico_id = form.entidadeId;
     if (form.vinculo === "unidade") payload.unidade_id = form.entidadeId;
@@ -838,6 +848,21 @@ function NovaTarefaDialog({ onSaved }: { onSaved: () => void }) {
               <SelectContent className="max-h-64">
                 {opcoesFiltradas.map((o) => (
                   <SelectItem key={o.id} value={o.id}>{o.titulo}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+        {isAdminOrGerente && (
+          <div className="space-y-2">
+            <Label>Responsável</Label>
+            <Select value={form.responsavelId} onValueChange={(v) => setForm({ ...form, responsavelId: v })}>
+              <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+              <SelectContent className="max-h-64">
+                {responsaveis.map((r) => (
+                  <SelectItem key={r.id} value={r.id}>
+                    {r.id === user?.id ? `${r.nome} (eu)` : r.nome}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>

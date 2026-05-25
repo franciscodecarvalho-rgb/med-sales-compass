@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Briefcase, Building2, UserRound, Search as SearchIcon, Handshake } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,13 +29,22 @@ const VINCULO_CLS = {
 };
 
 export function EditarTarefaDialogContent({ tarefa, onSaved }: { tarefa: any; onSaved: () => void }) {
+  const { isAdminOrGerente, user } = useAuth();
   const [form, setForm] = useState({
     titulo: tarefa.titulo ?? "",
     data: tarefa.data_vencimento ? new Date(tarefa.data_vencimento).toISOString().slice(0, 16) : "",
     prioridade: (tarefa.prioridade ?? "media") as TarefaPrioridade,
+    responsavelId: tarefa.responsavel_id ?? "",
   });
+  const [responsaveis, setResponsaveis] = useState<any[]>([]);
   const [novaNota, setNovaNota] = useState("");
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!isAdminOrGerente) return;
+    supabase.from("profiles").select("id, nome").eq("ativo", true).order("nome")
+      .then(({ data }) => setResponsaveis(data ?? []));
+  }, [isAdminOrGerente]);
 
   const historico = (tarefa.descricao ?? "").trim();
 
@@ -47,14 +57,18 @@ export function EditarTarefaDialogContent({ tarefa, onSaved }: { tarefa: any; on
       const entrada = `[${stamp}] ${novaNota.trim()}`;
       descricaoFinal = historico ? `${historico}\n\n${entrada}` : entrada;
     }
-    const { error } = await supabase.from("tarefas").update({
+    const updates: any = {
       titulo: form.titulo,
       descricao: descricaoFinal || null,
       data_vencimento: form.data || null,
       prioridade: form.prioridade,
       status: tarefa.status === "atrasada" && form.data && new Date(form.data) > new Date()
         ? "pendente" as TarefaStatus : tarefa.status,
-    }).eq("id", tarefa.id);
+    };
+    if (isAdminOrGerente && form.responsavelId) {
+      updates.responsavel_id = form.responsavelId;
+    }
+    const { error } = await supabase.from("tarefas").update(updates).eq("id", tarefa.id);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Tarefa atualizada");
@@ -128,6 +142,21 @@ export function EditarTarefaDialogContent({ tarefa, onSaved }: { tarefa: any; on
             </Select>
           </div>
         </div>
+        {isAdminOrGerente && (
+          <div className="space-y-2">
+            <Label>Responsável</Label>
+            <Select value={form.responsavelId} onValueChange={(v) => setForm({ ...form, responsavelId: v })}>
+              <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+              <SelectContent className="max-h-64">
+                {responsaveis.map((r) => (
+                  <SelectItem key={r.id} value={r.id}>
+                    {r.id === user?.id ? `${r.nome} (eu)` : r.nome}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <div className="text-xs text-muted-foreground">
           Status atual: <Badge variant="outline" className={TAREFA_STATUS_BADGE[tarefa.status as TarefaStatus]}>
             {TAREFA_STATUS_LABELS[tarefa.status as TarefaStatus]}

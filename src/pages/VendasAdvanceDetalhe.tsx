@@ -102,7 +102,8 @@ export default function VendasAdvanceDetalhe() {
   const [loading, setLoading] = useState(true);
 
   // Campos do formulário
-  const [tipoSaida, setTipoSaida] = useState("");
+  type TipoSaida = "venda" | "demonstracao" | "comodato" | "locacao" | "troca";
+  const [tipoSaida, setTipoSaida] = useState<TipoSaida | "">("");
   const [idOlist, setIdOlist] = useState("");
   const [propostaOlist, setPropostaOlist] = useState("");
   const [pedidoOlist, setPedidoOlist] = useState("");

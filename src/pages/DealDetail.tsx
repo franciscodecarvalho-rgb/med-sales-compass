@@ -17,11 +17,12 @@ import { ArrowLeft, Clock, Plus, Trash2, History, XCircle, Pencil, Check, X } fr
 import { EnviarParaFaturamentoModal } from "@/components/EnviarParaFaturamentoModal";
 import { toast } from "sonner";
 import {
-  STAGE_ORDER, STAGE_LABELS, formatCurrency, daysBetween, stageColorClass, DealStage, RESULTADO_LABELS,
+  STAGE_ORDER, STAGE_LABELS, formatCurrency, daysBetween, stageColorClass, DealStage, RESULTADO_LABELS, ESTADOS_BR,
 } from "@/lib/crm";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { EditarTarefaDialog } from "@/components/EditarTarefaDialog";
+import UnidadeCombobox from "@/components/UnidadeCombobox";
 
 export default function DealDetail() {
   const { id } = useParams();
@@ -36,6 +37,7 @@ export default function DealDetail() {
   const [proxContato, setProxContato] = useState("");
   const [openFinal, setOpenFinal] = useState(false);
   const [openAdvance, setOpenAdvance] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
   const [editTarefa, setEditTarefa] = useState<any | null>(null);
 
   useEffect(() => { void load(); }, [id]);
@@ -112,6 +114,9 @@ export default function DealDetail() {
                 {RESULTADO_LABELS[deal.resultado as keyof typeof RESULTADO_LABELS]}
               </Badge>
             )}
+            <Button variant="outline" size="sm" className="ml-2" onClick={() => setOpenEdit(true)}>
+              <Pencil className="mr-1 h-3.5 w-3.5" /> Editar
+            </Button>
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
             {deal.unidades_saude && (
@@ -330,6 +335,13 @@ export default function DealDetail() {
         onClose={() => { setOpenAdvance(false); void load(); }}
         onSuccess={() => { setOpenAdvance(false); void load(); }}
       />
+
+      <EditDealDialog
+        open={openEdit}
+        deal={deal}
+        onClose={() => setOpenEdit(false)}
+        onSaved={() => { setOpenEdit(false); void load(); }}
+      />
     </div>
   );
 }
@@ -524,4 +536,170 @@ function FinalizarInline({ deal, onClose, onGanho }: { deal: any; onClose: () =>
     </DialogContent>
   );
 }
+
+function EditDealDialog({
+  open, deal, onClose, onSaved,
+}: { open: boolean; deal: any; onClose: () => void; onSaved: () => void }) {
+  const { isAdminOrGerente } = useAuth();
+  const [unidades, setUnidades] = useState<any[]>([]);
+  const [medicos, setMedicos] = useState<any[]>([]);
+  const [linhas, setLinhas] = useState<any[]>([]);
+  const [vendedores, setVendedores] = useState<any[]>([]);
+  const [medicoSearch, setMedicoSearch] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    titulo: "", unidade_id: "", medico_id: "", linha_id: "", valor_total: "",
+    data_previsao_fechamento: "", vendedor_id: "", regiao: "ne1", estado: "",
+  });
+
+  useEffect(() => {
+    if (!open || !deal) return;
+    setForm({
+      titulo: deal.titulo ?? "",
+      unidade_id: deal.unidade_id ?? "",
+      medico_id: deal.medico_id ?? "",
+      linha_id: deal.linha_id ?? "",
+      valor_total: deal.valor_total?.toString() ?? "",
+      data_previsao_fechamento: deal.data_previsao_fechamento ?? "",
+      vendedor_id: deal.vendedor_id ?? "",
+      regiao: deal.regiao ?? "ne1",
+      estado: deal.estado ?? "",
+    });
+  }, [open, deal]);
+
+  useEffect(() => {
+    if (!open) return;
+    supabase.from("unidades_saude").select("id, nome, cidade, estado, cnpj").is("archived_at", null).order("nome")
+      .then(({ data }) => setUnidades(data ?? []));
+    supabase.from("medicos").select("id, nome, crm, especialidade").is("archived_at", null).order("nome")
+      .then(({ data }) => setMedicos(data ?? []));
+    supabase.from("linhas_produto").select("id, nome").is("archived_at", null).order("nome")
+      .then(({ data }) => setLinhas(data ?? []));
+    supabase.from("profiles").select("id, nome").eq("ativo", true).order("nome")
+      .then(({ data }) => setVendedores(data ?? []));
+  }, [open]);
+
+  const medicosFiltrados = medicoSearch
+    ? medicos.filter((m) => m.nome.toLowerCase().includes(medicoSearch.toLowerCase()) || (m.crm ?? "").toLowerCase().includes(medicoSearch.toLowerCase()))
+    : medicos;
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.titulo.trim() || !form.linha_id) { toast.error("Preencha título e linha."); return; }
+    setSaving(true);
+    const { error } = await supabase.from("deals").update({
+      titulo: form.titulo.trim(),
+      unidade_id: form.unidade_id || null,
+      medico_id: form.medico_id || null,
+      linha_id: form.linha_id,
+      vendedor_id: form.vendedor_id,
+      valor_total: form.valor_total ? Number(form.valor_total) : 0,
+      data_previsao_fechamento: form.data_previsao_fechamento || null,
+      regiao: form.regiao || "ne1",
+      estado: form.estado || null,
+    }).eq("id", deal.id);
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Deal atualizado");
+    onSaved();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader><DialogTitle>Editar deal</DialogTitle></DialogHeader>
+        <form onSubmit={submit} className="space-y-3">
+          <div className="space-y-2">
+            <Label>Nome do deal *</Label>
+            <Input required value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Unidade de saúde</Label>
+            <UnidadeCombobox unidades={unidades} value={form.unidade_id} onChange={(v) => setForm({ ...form, unidade_id: v })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Médico</Label>
+            <Input placeholder="Buscar por nome ou CRM..." value={medicoSearch} onChange={(e) => setMedicoSearch(e.target.value)} />
+            <Select value={form.medico_id || "__none__"} onValueChange={(v) => setForm({ ...form, medico_id: v === "__none__" ? "" : v })}>
+              <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+              <SelectContent className="max-h-64">
+                <SelectItem value="__none__">— sem médico —</SelectItem>
+                {medicosFiltrados.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>
+                    Dr. {m.nome}{m.crm ? ` · CRM ${m.crm}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Linha *</Label>
+              <Select value={form.linha_id} onValueChange={(v) => setForm({ ...form, linha_id: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {linhas.map((l) => <SelectItem key={l.id} value={l.id}>{l.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Valor total (R$)</Label>
+              <Input type="number" step="0.01" value={form.valor_total}
+                onChange={(e) => setForm({ ...form, valor_total: e.target.value })} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Data prevista de fechamento</Label>
+              <Input type="date" value={form.data_previsao_fechamento}
+                onChange={(e) => setForm({ ...form, data_previsao_fechamento: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Vendedor</Label>
+              {isAdminOrGerente ? (
+                <Select value={form.vendedor_id} onValueChange={(v) => setForm({ ...form, vendedor_id: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {vendedores.map((v) => <SelectItem key={v.id} value={v.id}>{v.nome}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input disabled value={vendedores.find((v) => v.id === form.vendedor_id)?.nome ?? "—"} />
+              )}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Região</Label>
+              <Select value={form.regiao} onValueChange={(v) => setForm({ ...form, regiao: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ne1">Nordeste 1 (BA, SE, AL)</SelectItem>
+                  <SelectItem value="ne2">Nordeste 2 (PE, PB, RN)</SelectItem>
+                  <SelectItem value="ne3">Nordeste 3 (CE, PI, MA)</SelectItem>
+                  <SelectItem value="outros">Outros</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Estado</Label>
+              <Select value={form.estado || "__none__"} onValueChange={(v) => setForm({ ...form, estado: v === "__none__" ? "" : v })}>
+                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                <SelectContent className="max-h-64">
+                  <SelectItem value="__none__">— sem estado —</SelectItem>
+                  {ESTADOS_BR.map((uf) => <SelectItem key={uf} value={uf}>{uf}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={onClose}>Cancelar</Button>
+            <Button type="submit" disabled={saving}>{saving ? "Salvando..." : "Salvar alterações"}</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 

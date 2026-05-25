@@ -467,6 +467,7 @@ export type Database = {
           data_fechamento: string | null
           data_previsao_fechamento: string | null
           enviado_para_advance: boolean
+          estado: string | null
           estagio: Database["public"]["Enums"]["deal_stage"]
           forma_pagamento:
             | Database["public"]["Enums"]["forma_pagamento_tipo"]
@@ -495,6 +496,7 @@ export type Database = {
           data_fechamento?: string | null
           data_previsao_fechamento?: string | null
           enviado_para_advance?: boolean
+          estado?: string | null
           estagio?: Database["public"]["Enums"]["deal_stage"]
           forma_pagamento?:
             | Database["public"]["Enums"]["forma_pagamento_tipo"]
@@ -523,6 +525,7 @@ export type Database = {
           data_fechamento?: string | null
           data_previsao_fechamento?: string | null
           enviado_para_advance?: boolean
+          estado?: string | null
           estagio?: Database["public"]["Enums"]["deal_stage"]
           forma_pagamento?:
             | Database["public"]["Enums"]["forma_pagamento_tipo"]

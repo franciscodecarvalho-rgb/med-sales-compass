@@ -143,7 +143,7 @@ export default function FunilVendas() {
           !d.unidades_saude?.nome?.toLowerCase().includes(q) &&
           !d.medicos?.nome?.toLowerCase().includes(q)) return false;
     }
-    if (filterEstado !== "all" && d.unidades_saude?.estado !== filterEstado) return false;
+    if (filterEstado !== "all" && (d.estado || d.unidades_saude?.estado) !== filterEstado) return false;
     if (filterRegiao !== "all" && (d.regiao || "ne1") !== filterRegiao) return false;
     if (filterVendedor !== "all" && d.vendedor_id !== filterVendedor) return false;
     return true;
@@ -569,7 +569,7 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
   const [form, setForm] = useState({
     titulo: "", unidade_id: defaultUnidadeId ?? "", medico_id: "",
     linha_id: defaultLinhaId, valor_total: "", data_previsao_fechamento: "",
-    vendedor_id: user?.id ?? "", regiao: "ne1",
+    vendedor_id: user?.id ?? "", regiao: "ne1", estado: "",
   });
   const [equips, setEquips] = useState<{ descricao: string; quantidade: number }[]>([]);
   const [novoEquip, setNovoEquip] = useState("");
@@ -623,6 +623,7 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
         valor_total: form.valor_total ? Number(form.valor_total) : 0,
         data_previsao_fechamento: form.data_previsao_fechamento || null,
         regiao: form.regiao || "ne1",
+        estado: form.estado || null,
       };
       console.log("[NewDeal] inserting", payload);
       const { data, error } = await supabase.from("deals").insert(payload).select().single();
@@ -732,17 +733,29 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label>Região</Label>
-          <Select value={form.regiao} onValueChange={(v) => setForm({ ...form, regiao: v })}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ne1">Nordeste 1 (BA, SE, AL)</SelectItem>
-              <SelectItem value="ne2">Nordeste 2 (PE, PB, RN)</SelectItem>
-              <SelectItem value="ne3">Nordeste 3 (CE, PI, MA)</SelectItem>
-              <SelectItem value="outros">Outros</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <Label>Região</Label>
+            <Select value={form.regiao} onValueChange={(v) => setForm({ ...form, regiao: v })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ne1">Nordeste 1 (BA, SE, AL)</SelectItem>
+                <SelectItem value="ne2">Nordeste 2 (PE, PB, RN)</SelectItem>
+                <SelectItem value="ne3">Nordeste 3 (CE, PI, MA)</SelectItem>
+                <SelectItem value="outros">Outros</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Estado</Label>
+            <Select value={form.estado || "__none__"} onValueChange={(v) => setForm({ ...form, estado: v === "__none__" ? "" : v })}>
+              <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+              <SelectContent className="max-h-64">
+                <SelectItem value="__none__">— sem estado —</SelectItem>
+                {ESTADOS_BR.map((uf) => <SelectItem key={uf} value={uf}>{uf}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div className="space-y-2">

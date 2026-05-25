@@ -423,7 +423,7 @@ export default function VendasAdvanceDetalhe() {
                 <Label className="text-xs">Tipo de Saída</Label>
                 <Select
                   value={tipoSaida}
-                  onValueChange={setTipoSaida}
+                  onValueChange={(v) => setTipoSaida(v as TipoSaida)}
                   disabled={!canEdit}
                 >
                   <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>

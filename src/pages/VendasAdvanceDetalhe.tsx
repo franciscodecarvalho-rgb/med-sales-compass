@@ -184,13 +184,14 @@ export default function VendasAdvanceDetalhe() {
 
     // Análise de crédito
     const financItem = (itensData ?? []).find(
-      (it: any) => it.chave_item === "financiamento" && it.dados_extras?.analise_credito_id
+      (it: any) => it.chave_item === "financiamento" && (it.dados_extras as any)?.analise_credito_id
     );
-    if (financItem?.dados_extras?.analise_credito_id) {
+    const analiseCreditoId = (financItem?.dados_extras as any)?.analise_credito_id;
+    if (analiseCreditoId) {
       const { data: an } = await supabase
         .from("analises_credito")
         .select("*")
-        .eq("id", financItem.dados_extras.analise_credito_id)
+        .eq("id", analiseCreditoId)
         .maybeSingle();
       setAnalise(an);
     }

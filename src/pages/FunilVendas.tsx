@@ -733,6 +733,19 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
         </div>
 
         <div className="space-y-2">
+          <Label>Região</Label>
+          <Select value={form.regiao} onValueChange={(v) => setForm({ ...form, regiao: v })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ne1">Nordeste 1 (BA, SE, AL)</SelectItem>
+              <SelectItem value="ne2">Nordeste 2 (PE, PB, RN)</SelectItem>
+              <SelectItem value="ne3">Nordeste 3 (CE, PI, MA)</SelectItem>
+              <SelectItem value="outros">Outros</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
           <Label>Equipamentos (descrição livre)</Label>
           <div className="flex gap-2">
             <Input className="flex-1" placeholder="Ex: Monitor multiparamétrico" value={novoEquip}

@@ -335,6 +335,13 @@ export default function DealDetail() {
         onClose={() => { setOpenAdvance(false); void load(); }}
         onSuccess={() => { setOpenAdvance(false); void load(); }}
       />
+
+      <EditDealDialog
+        open={openEdit}
+        deal={deal}
+        onClose={() => setOpenEdit(false)}
+        onSaved={() => { setOpenEdit(false); void load(); }}
+      />
     </div>
   );
 }

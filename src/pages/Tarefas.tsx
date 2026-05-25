@@ -724,10 +724,18 @@ function NovaTarefaDialog({ onSaved }: { onSaved: () => void }) {
   const [form, setForm] = useState({
     titulo: "", descricao: "", data: "", prioridade: "media" as TarefaPrioridade,
     vinculo: "livre" as VinculoFiltro, entidadeId: "",
+    responsavelId: user?.id ?? "",
   });
   const [opcoes, setOpcoes] = useState<any[]>([]);
+  const [responsaveis, setResponsaveis] = useState<any[]>([]);
   const [searchEnt, setSearchEnt] = useState("");
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!isAdminOrGerente) return;
+    supabase.from("profiles").select("id, nome").eq("ativo", true).order("nome")
+      .then(({ data }) => setResponsaveis(data ?? []));
+  }, [isAdminOrGerente]);
 
   useEffect(() => {
     void carregarOpcoes(form.vinculo);
@@ -735,6 +743,7 @@ function NovaTarefaDialog({ onSaved }: { onSaved: () => void }) {
     setSearchEnt("");
     // eslint-disable-next-line
   }, [form.vinculo]);
+
 
   async function carregarOpcoes(v: VinculoFiltro) {
     if (v === "deal") {

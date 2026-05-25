@@ -623,6 +623,7 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
         valor_total: form.valor_total ? Number(form.valor_total) : 0,
         data_previsao_fechamento: form.data_previsao_fechamento || null,
         regiao: form.regiao || "ne1",
+        estado: form.estado || null,
       };
       console.log("[NewDeal] inserting", payload);
       const { data, error } = await supabase.from("deals").insert(payload).select().single();

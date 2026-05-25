@@ -142,7 +142,18 @@ export default function FunilVendas() {
           !d.unidades_saude?.nome?.toLowerCase().includes(q) &&
           !d.medicos?.nome?.toLowerCase().includes(q)) return false;
     }
-    if (filterEstado !== "all" && d.unidades_saude?.estado !== filterEstado) return false;
+    if (filterEstado !== "all") {
+      const uf = d.unidades_saude?.estado;
+      const NE1 = ["BA", "SE", "AL"];
+      const NE2 = ["PE", "PB", "RN"];
+      const NE3 = ["CE", "PI", "MA"];
+      const NE_ALL = [...NE1, ...NE2, ...NE3];
+      if (filterEstado === "ne1" && !NE1.includes(uf)) return false;
+      else if (filterEstado === "ne2" && !NE2.includes(uf)) return false;
+      else if (filterEstado === "ne3" && !NE3.includes(uf)) return false;
+      else if (filterEstado === "outros" && NE_ALL.includes(uf)) return false;
+      else if (!["ne1","ne2","ne3","outros"].includes(filterEstado) && uf !== filterEstado) return false;
+    }
     if (filterVendedor !== "all" && d.vendedor_id !== filterVendedor) return false;
     return true;
   }), [deals, search, filterEstado, filterVendedor, showFinalizados]);

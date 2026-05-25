@@ -73,6 +73,7 @@ export default function FunilVendas() {
   const [view, setView] = useState<"kanban" | "tabela">("kanban");
   const [search, setSearch] = useState("");
   const [filterEstado, setFilterEstado] = useState("all");
+  const [filterRegiao, setFilterRegiao] = useState("all");
   const [filterVendedor, setFilterVendedor] = useState("all");
   const [showFinalizados, setShowFinalizados] = useState(false);
   const [openNew, setOpenNew] = useState(!!unidadePreSel);
@@ -142,21 +143,11 @@ export default function FunilVendas() {
           !d.unidades_saude?.nome?.toLowerCase().includes(q) &&
           !d.medicos?.nome?.toLowerCase().includes(q)) return false;
     }
-    if (filterEstado !== "all") {
-      const uf = d.unidades_saude?.estado;
-      const NE1 = ["BA", "SE", "AL"];
-      const NE2 = ["PE", "PB", "RN"];
-      const NE3 = ["CE", "PI", "MA"];
-      const NE_ALL = [...NE1, ...NE2, ...NE3];
-      if (filterEstado === "ne1" && !NE1.includes(uf)) return false;
-      else if (filterEstado === "ne2" && !NE2.includes(uf)) return false;
-      else if (filterEstado === "ne3" && !NE3.includes(uf)) return false;
-      else if (filterEstado === "outros" && NE_ALL.includes(uf)) return false;
-      else if (!["ne1","ne2","ne3","outros"].includes(filterEstado) && uf !== filterEstado) return false;
-    }
+    if (filterEstado !== "all" && d.unidades_saude?.estado !== filterEstado) return false;
+    if (filterRegiao !== "all" && (d.regiao || "ne1") !== filterRegiao) return false;
     if (filterVendedor !== "all" && d.vendedor_id !== filterVendedor) return false;
     return true;
-  }), [deals, search, filterEstado, filterVendedor, showFinalizados]);
+  }), [deals, search, filterEstado, filterRegiao, filterVendedor, showFinalizados]);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -261,14 +252,20 @@ export default function FunilVendas() {
           <Input className="pl-9" placeholder="Buscar deal ou unidade..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <Select value={filterEstado} onValueChange={setFilterEstado}>
-          <SelectTrigger className="w-[170px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos UF</SelectItem>
+            {ESTADOS_BR.map((uf) => <SelectItem key={uf} value={uf}>{uf}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={filterRegiao} onValueChange={setFilterRegiao}>
+          <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas regiões</SelectItem>
             <SelectItem value="ne1">Nordeste 1 (BA, SE, AL)</SelectItem>
             <SelectItem value="ne2">Nordeste 2 (PE, PB, RN)</SelectItem>
             <SelectItem value="ne3">Nordeste 3 (CE, PI, MA)</SelectItem>
             <SelectItem value="outros">Outros</SelectItem>
-            {ESTADOS_BR.map((uf) => <SelectItem key={uf} value={uf}>{uf}</SelectItem>)}
           </SelectContent>
         </Select>
         {isAdminOrGerente && (
@@ -572,7 +569,7 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
   const [form, setForm] = useState({
     titulo: "", unidade_id: defaultUnidadeId ?? "", medico_id: "",
     linha_id: defaultLinhaId, valor_total: "", data_previsao_fechamento: "",
-    vendedor_id: user?.id ?? "",
+    vendedor_id: user?.id ?? "", regiao: "ne1",
   });
   const [equips, setEquips] = useState<{ descricao: string; quantidade: number }[]>([]);
   const [novoEquip, setNovoEquip] = useState("");
@@ -625,6 +622,7 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
         vendedor_id: form.vendedor_id || user.id,
         valor_total: form.valor_total ? Number(form.valor_total) : 0,
         data_previsao_fechamento: form.data_previsao_fechamento || null,
+        regiao: form.regiao || "ne1",
       };
       console.log("[NewDeal] inserting", payload);
       const { data, error } = await supabase.from("deals").insert(payload).select().single();
@@ -732,6 +730,19 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
               <Input disabled value={vendedores.find((v) => v.id === user?.id)?.nome ?? "Você"} />
             )}
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Região</Label>
+          <Select value={form.regiao} onValueChange={(v) => setForm({ ...form, regiao: v })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ne1">Nordeste 1 (BA, SE, AL)</SelectItem>
+              <SelectItem value="ne2">Nordeste 2 (PE, PB, RN)</SelectItem>
+              <SelectItem value="ne3">Nordeste 3 (CE, PI, MA)</SelectItem>
+              <SelectItem value="outros">Outros</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">

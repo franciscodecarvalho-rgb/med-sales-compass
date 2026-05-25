@@ -478,6 +478,7 @@ export type Database = {
           motivo_perda: string | null
           motivo_perda_id: string | null
           observacoes: string | null
+          regiao: string
           resultado: Database["public"]["Enums"]["deal_resultado"]
           titulo: string
           unidade_id: string | null
@@ -505,6 +506,7 @@ export type Database = {
           motivo_perda?: string | null
           motivo_perda_id?: string | null
           observacoes?: string | null
+          regiao?: string
           resultado?: Database["public"]["Enums"]["deal_resultado"]
           titulo: string
           unidade_id?: string | null
@@ -532,6 +534,7 @@ export type Database = {
           motivo_perda?: string | null
           motivo_perda_id?: string | null
           observacoes?: string | null
+          regiao?: string
           resultado?: Database["public"]["Enums"]["deal_resultado"]
           titulo?: string
           unidade_id?: string | null

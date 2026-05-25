@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
-import { ArrowLeft, Clock, Plus, Trash2, History, XCircle } from "lucide-react";
+import { ArrowLeft, Clock, Plus, Trash2, History, XCircle, Pencil, Check, X } from "lucide-react";
 import { EnviarParaFaturamentoModal } from "@/components/EnviarParaFaturamentoModal";
 import { toast } from "sonner";
 import {

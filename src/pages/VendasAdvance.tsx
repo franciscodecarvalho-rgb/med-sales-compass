@@ -280,7 +280,7 @@ export default function VendasAdvance() {
                             <Clock className="h-3 w-3" /> Em andamento
                           </Badge>
                           {atrasada && (
-                            <AlertTriangle className="h-3 w-3 text-amber-500" title="+15 dias" />
+                            <span title="+15 dias"><AlertTriangle className="h-3 w-3 text-amber-500" /></span>
                           )}
                         </div>
                       ) : (

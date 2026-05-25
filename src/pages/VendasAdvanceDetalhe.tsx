@@ -102,7 +102,8 @@ export default function VendasAdvanceDetalhe() {
   const [loading, setLoading] = useState(true);
 
   // Campos do formulário
-  const [tipoSaida, setTipoSaida] = useState("");
+  type TipoSaida = "venda" | "demonstracao" | "comodato" | "locacao" | "troca";
+  const [tipoSaida, setTipoSaida] = useState<TipoSaida | "">("");
   const [idOlist, setIdOlist] = useState("");
   const [propostaOlist, setPropostaOlist] = useState("");
   const [pedidoOlist, setPedidoOlist] = useState("");
@@ -183,13 +184,14 @@ export default function VendasAdvanceDetalhe() {
 
     // Análise de crédito
     const financItem = (itensData ?? []).find(
-      (it: any) => it.chave_item === "financiamento" && it.dados_extras?.analise_credito_id
+      (it: any) => it.chave_item === "financiamento" && (it.dados_extras as any)?.analise_credito_id
     );
-    if (financItem?.dados_extras?.analise_credito_id) {
+    const analiseCreditoId = (financItem?.dados_extras as any)?.analise_credito_id;
+    if (analiseCreditoId) {
       const { data: an } = await supabase
         .from("analises_credito")
         .select("*")
-        .eq("id", financItem.dados_extras.analise_credito_id)
+        .eq("id", analiseCreditoId)
         .maybeSingle();
       setAnalise(an);
     }
@@ -422,7 +424,7 @@ export default function VendasAdvanceDetalhe() {
                 <Label className="text-xs">Tipo de Saída</Label>
                 <Select
                   value={tipoSaida}
-                  onValueChange={setTipoSaida}
+                  onValueChange={(v) => setTipoSaida(v as TipoSaida)}
                   disabled={!canEdit}
                 >
                   <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>

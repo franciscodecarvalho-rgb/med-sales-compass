@@ -189,6 +189,22 @@ export const ESTADOS_BR = [
   "RJ","RN","RS","RO","RR","SC","SP","SE","TO"
 ];
 
+export const REGIAO_LABELS: Record<string, string> = {
+  ne1: "Nordeste 1 (BA, SE, AL)",
+  ne2: "Nordeste 2 (PE, PB, RN)",
+  ne3: "Nordeste 3 (CE, PI, MA)",
+  outros: "Outros",
+};
+
+export function regiaoFromEstado(estado?: string | null): string {
+  const uf = (estado || "").toUpperCase();
+  if (["BA", "SE", "AL"].includes(uf)) return "ne1";
+  if (["PE", "PB", "RN"].includes(uf)) return "ne2";
+  if (["CE", "PI", "MA"].includes(uf)) return "ne3";
+  if (!uf) return "ne1";
+  return "outros";
+}
+
 export function formatCurrency(value: number | null | undefined): string {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" })
     .format(value ?? 0);

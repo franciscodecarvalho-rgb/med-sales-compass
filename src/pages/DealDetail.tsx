@@ -17,7 +17,7 @@ import { ArrowLeft, Clock, Plus, Trash2, History, XCircle, Pencil, Check, X } fr
 import { EnviarParaFaturamentoModal } from "@/components/EnviarParaFaturamentoModal";
 import { toast } from "sonner";
 import {
-  STAGE_ORDER, STAGE_LABELS, formatCurrency, daysBetween, stageColorClass, DealStage, RESULTADO_LABELS, ESTADOS_BR,
+  STAGE_ORDER, STAGE_LABELS, formatCurrency, daysBetween, stageColorClass, DealStage, RESULTADO_LABELS, ESTADOS_BR, regiaoFromEstado, REGIAO_LABELS,
 } from "@/lib/crm";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -549,7 +549,7 @@ function EditDealDialog({
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     titulo: "", unidade_id: "", medico_id: "", linha_id: "", valor_total: "",
-    data_previsao_fechamento: "", vendedor_id: "", regiao: "ne1", estado: "",
+    data_previsao_fechamento: "", vendedor_id: "", estado: "",
   });
 
   useEffect(() => {
@@ -562,7 +562,6 @@ function EditDealDialog({
       valor_total: deal.valor_total?.toString() ?? "",
       data_previsao_fechamento: deal.data_previsao_fechamento ?? "",
       vendedor_id: deal.vendedor_id ?? "",
-      regiao: deal.regiao ?? "ne1",
       estado: deal.estado ?? "",
     });
   }, [open, deal]);
@@ -595,7 +594,7 @@ function EditDealDialog({
       vendedor_id: form.vendedor_id,
       valor_total: form.valor_total ? Number(form.valor_total) : 0,
       data_previsao_fechamento: form.data_previsao_fechamento || null,
-      regiao: form.regiao || "ne1",
+      regiao: regiaoFromEstado(form.estado),
       estado: form.estado || null,
     }).eq("id", deal.id);
     setSaving(false);
@@ -670,18 +669,6 @@ function EditDealDialog({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label>Região</Label>
-              <Select value={form.regiao} onValueChange={(v) => setForm({ ...form, regiao: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ne1">Nordeste 1 (BA, SE, AL)</SelectItem>
-                  <SelectItem value="ne2">Nordeste 2 (PE, PB, RN)</SelectItem>
-                  <SelectItem value="ne3">Nordeste 3 (CE, PI, MA)</SelectItem>
-                  <SelectItem value="outros">Outros</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
               <Label>Estado</Label>
               <Select value={form.estado || "__none__"} onValueChange={(v) => setForm({ ...form, estado: v === "__none__" ? "" : v })}>
                 <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
@@ -690,6 +677,10 @@ function EditDealDialog({
                   {ESTADOS_BR.map((uf) => <SelectItem key={uf} value={uf}>{uf}</SelectItem>)}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Região (automática)</Label>
+              <Input disabled value={REGIAO_LABELS[regiaoFromEstado(form.estado)]} />
             </div>
           </div>
           <DialogFooter>

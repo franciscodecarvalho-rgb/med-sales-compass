@@ -148,7 +148,7 @@ export default function FunilVendas() {
     setLinhas(ln.data ?? []);
     setVendedores(vd.data ?? []);
     if (cc.data) setConfigContador({ verde: cc.data.limite_verde_dias, amarelo: cc.data.limite_amarelo_dias });
-    setLinhaId("all");
+    if (!linhaId) setLinhaId("all");
   }
 
   async function loadDeals() {

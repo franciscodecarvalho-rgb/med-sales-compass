@@ -223,7 +223,7 @@ export default function FunilVendas() {
             <NewDealDialog
               linhas={linhas}
               vendedores={vendedores}
-              defaultLinhaId={linhaId}
+              defaultLinhaId={linhaId === "all" ? "" : linhaId}
               defaultUnidadeId={unidadePreSel ?? undefined}
               onSaved={(id) => { setOpenNew(false); navigate(`/deals/${id}`); }}
             />
@@ -233,6 +233,14 @@ export default function FunilVendas() {
 
       {/* Tabs por linha */}
       <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => setLinhaId("all")}
+          className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
+            linhaId === "all" ? "bg-primary text-primary-foreground shadow-md" : "bg-muted text-muted-foreground hover:bg-muted/70"
+          }`}
+        >
+          Todos
+        </button>
         {linhas.map((l) => (
           <button
             key={l.id}
@@ -246,6 +254,7 @@ export default function FunilVendas() {
           </button>
         ))}
       </div>
+
 
       {/* Filtros */}
       <div className="flex flex-wrap items-center gap-2">

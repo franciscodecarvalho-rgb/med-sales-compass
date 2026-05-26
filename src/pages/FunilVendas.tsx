@@ -633,7 +633,7 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
         vendedor_id: form.vendedor_id || user.id,
         valor_total: form.valor_total ? Number(form.valor_total) : 0,
         data_previsao_fechamento: form.data_previsao_fechamento || null,
-        regiao: form.regiao || "ne1",
+        regiao: regiaoFromEstado(form.estado),
         estado: form.estado || null,
       };
       console.log("[NewDeal] inserting", payload);

@@ -58,34 +58,86 @@ function counterColorClass(fromIso: string, now: number, verdeDias: number, amar
 type SortKey = "titulo" | "unidade" | "vendedor" | "estagio" | "valor" | "tempo" | "status";
 type SortDir = "asc" | "desc";
 
+const STORAGE_KEY = "funil-vendas:filters:v1";
+type PersistedFilters = {
+  linhaId?: string;
+  search?: string;
+  filterEstado?: string;
+  filterRegiao?: string;
+  filterVendedor?: string;
+  showFinalizados?: boolean;
+  view?: "kanban" | "tabela";
+  sortKey?: SortKey;
+  sortDir?: SortDir;
+};
+function loadPersisted(): PersistedFilters {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
 export default function FunilVendas() {
-  const { isAdminOrGerente } = useAuth();
+  const { user, isAdminOrGerente } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const unidadePreSel = searchParams.get("unidade");
 
+  const persisted = useMemo(() => loadPersisted(), []);
+  const hasPersisted = Object.keys(persisted).length > 0;
+
   const [linhas, setLinhas] = useState<any[]>([]);
-  const [linhaId, setLinhaId] = useState<string>("");
+  const [linhaId, setLinhaId] = useState<string>(persisted.linhaId ?? "");
   const [deals, setDeals] = useState<any[]>([]);
   const [vendedores, setVendedores] = useState<any[]>([]);
   const [configContador, setConfigContador] = useState<{ verde: number; amarelo: number }>({ verde: 30, amarelo: 60 });
 
-  const [view, setView] = useState<"kanban" | "tabela">("kanban");
-  const [search, setSearch] = useState("");
-  const [filterEstado, setFilterEstado] = useState("all");
-  const [filterRegiao, setFilterRegiao] = useState("all");
-  const [filterVendedor, setFilterVendedor] = useState("all");
-  const [showFinalizados, setShowFinalizados] = useState(false);
+  const [view, setView] = useState<"kanban" | "tabela">(persisted.view ?? "kanban");
+  const [search, setSearch] = useState(persisted.search ?? "");
+  const [filterEstado, setFilterEstado] = useState(persisted.filterEstado ?? "all");
+  const [filterRegiao, setFilterRegiao] = useState(persisted.filterRegiao ?? "all");
+  const [filterVendedor, setFilterVendedor] = useState(
+    persisted.filterVendedor ?? (hasPersisted ? "all" : (user?.id ?? "all"))
+  );
+  const [showFinalizados, setShowFinalizados] = useState(persisted.showFinalizados ?? false);
   const [openNew, setOpenNew] = useState(!!unidadePreSel);
   const [activeDeal, setActiveDeal] = useState<any>(null);
   const [perdaDeal, setPerdaDeal] = useState<any>(null);
   const [advanceDeal, setAdvanceDeal] = useState<any>(null);
 
-  const [sortKey, setSortKey] = useState<SortKey>("tempo");
-  const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [sortKey, setSortKey] = useState<SortKey>(persisted.sortKey ?? "tempo");
+  const [sortDir, setSortDir] = useState<SortDir>(persisted.sortDir ?? "desc");
+
+  // Persist filters in sessionStorage
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+        linhaId, search, filterEstado, filterRegiao, filterVendedor,
+        showFinalizados, view, sortKey, sortDir,
+      } satisfies PersistedFilters));
+    } catch {}
+  }, [linhaId, search, filterEstado, filterRegiao, filterVendedor, showFinalizados, view, sortKey, sortDir]);
+
+  // When user loads after mount and no persisted filter, default vendedor to logged-in user
+  useEffect(() => {
+    if (!hasPersisted && user?.id && filterVendedor === "all") {
+      setFilterVendedor(user.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  function clearFilters() {
+    setSearch("");
+    setFilterEstado("all");
+    setFilterRegiao("all");
+    setFilterVendedor("all");
+    setShowFinalizados(false);
+    try { sessionStorage.removeItem(STORAGE_KEY); } catch {}
+  }
 
   useEffect(() => { void loadInitial(); }, []);
   useEffect(() => { if (linhaId) void loadDeals(); }, [linhaId]);
+
 
   async function loadInitial() {
     const [ln, vd, cc] = await Promise.all([

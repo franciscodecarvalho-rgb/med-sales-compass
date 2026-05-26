@@ -182,17 +182,17 @@ export default function Tarefas() {
   // Contadores rápidos
   const counts = useMemo(() => {
     const total = filtered.length;
-    let atrasadas = 0, hoje = 0, semana = 0, concluidas = 0;
+    let atrasadas = 0, hoje = 0, semana = 0, futuras = 0, concluidas = 0;
     const now = new Date();
     for (const t of filtered) {
       if (t.status === "concluida") { concluidas++; continue; }
-      if (!t.data_vencimento) continue;
-      const d = new Date(t.data_vencimento);
-      if (t.status === "atrasada" || (d < now && !isToday(d))) atrasadas++;
-      else if (isToday(d)) hoje++;
-      else if (isThisWeek(d, { weekStartsOn: 1 })) semana++;
+      const d = t.data_vencimento ? new Date(t.data_vencimento) : null;
+      if (t.status === "atrasada" || (d && d < now && !isToday(d))) atrasadas++;
+      else if (d && isToday(d)) hoje++;
+      else if (d && isThisWeek(d, { weekStartsOn: 1 })) semana++;
+      else futuras++;
     }
-    return { total, atrasadas, hoje, semana, concluidas };
+    return { total, atrasadas, hoje, semana, futuras, concluidas };
   }, [filtered]);
 
   return (

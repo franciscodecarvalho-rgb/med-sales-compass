@@ -1,45 +1,21 @@
-# Tarefas: alinhar contadores e permitir atribuição
+## Persistência de filtros no Funil de Vendas
 
-## 1. Divergência de contadores (Painel vs Tarefas)
+Hoje os filtros do `/funil-vendas` (linha, busca, UF, região, vendedor, view kanban/tabela, sort, finalizados) são `useState` puros — ao navegar para um deal e voltar, tudo zera.
 
-Causas identificadas no `DashboardVendedor.tsx`:
+### Mudanças em `src/pages/FunilVendas.tsx`
 
-- **"Tarefas hoje"** (linha 45) só conta status `pendente`/`em_andamento` com `data_vencimento` em hoje. Se uma tarefa de hoje virou `atrasada` (passou da hora), ela some do KPI mas continua sendo contada como "Hoje" em `/tarefas`.
-- **"Atrasadas"** (linha 46) filtra apenas por `status = 'atrasada'`. Esse status só é marcado quando o usuário abre a página `/tarefas` (que chama `rpc('marcar_tarefas_atrasadas')`). Se o vendedor só olha o painel, tarefas vencidas ainda em `pendente` não entram na contagem.
+1. **Persistir filtros em `sessionStorage`** sob a chave `funil-vendas:filters:v1`:
+   - Campos salvos: `linhaId`, `search`, `filterEstado`, `filterRegiao`, `filterVendedor`, `showFinalizados`, `view`, `sortKey`, `sortDir`.
+   - Inicializar cada `useState` com lazy initializer que lê do `sessionStorage` (fallback para o default atual).
+   - `useEffect` único que grava o objeto serializado sempre que qualquer um desses estados mudar.
+   - `sessionStorage` (não `localStorage`) → some ao fechar o navegador, mas mantém durante toda a navegação da sessão.
 
-### Correção
+2. **Default = vendedor logado**:
+   - Na primeira visita da sessão (quando não há estado salvo), se o usuário logado tiver role `vendedor` (e não for admin/gerente), pré-selecionar `filterVendedor = user.id`.
+   - Usar `useAuth()` para obter `user` e `isAdminOrGerente`.
+   - Admin/gerente continua começando em "Todos vendedores" (eles costumam querer visão global).
+   - Se já existe valor salvo na sessão, respeitar o salvo (não sobrescrever).
 
-No `DashboardVendedor.tsx` (e mesma lógica aplicada onde fizer sentido em `DashboardGerente.tsx`):
+3. **Botão "Limpar filtros"** (pequeno, ao lado dos selects) que reseta tudo para os defaults e limpa a chave do `sessionStorage` — para o caso de o usuário querer voltar à visão original sem recarregar.
 
-1. Chamar `await supabase.rpc('marcar_tarefas_atrasadas')` no início do `load()`, antes das demais queries, para sincronizar status.
-2. Mudar o critério das contagens para serem coerentes com o que `/tarefas` mostra:
-   - **Atrasadas** = `status in ('pendente','em_andamento','atrasada')` AND `data_vencimento < inicioHoje`.
-   - **Hoje** = `status in ('pendente','em_andamento','atrasada')` AND `data_vencimento >= inicioHoje AND data_vencimento < fimHoje`.
-   
-   Assim KPI e página usam exatamente a mesma definição (mesma que `counts` em `Tarefas.tsx`).
-
-## 2. Atribuir tarefa a outro usuário
-
-Hoje `NovaTarefaDialog` e `EditarTarefaDialog` sempre usam `responsavel_id = user.id`. Adicionar seleção de responsável:
-
-### `NovaTarefaDialog` (em `src/pages/Tarefas.tsx`)
-- Carregar lista de `profiles` ativos quando o usuário for admin/gerente (reusar o estilo do filtro já existente).
-- Adicionar campo `<Select>` "Responsável" mostrado apenas para admin/gerente; default = usuário logado. Para vendedor comum, mantém comportamento atual (auto-atribui a si).
-- `payload.responsavel_id = form.responsavelId || user.id`.
-
-### `EditarTarefaDialog` (em `src/components/EditarTarefaDialog.tsx`)
-- Adicionar mesmo `<Select>` "Responsável" visível apenas para admin/gerente.
-- Incluir `responsavel_id` no `update`.
-- Carregar profiles ativos no mount do dialog (quando admin/gerente).
-
-Permissão de banco: RLS de `tarefas` precisa permitir admin/gerente alterar/criar com `responsavel_id` diferente. Verificar e, se necessário, ajustar política via migration (provavelmente já permite, mas confirmar antes de codar).
-
-## Arquivos afetados
-
-- `src/components/dashboards/DashboardVendedor.tsx` — corrigir queries de KPI.
-- `src/components/dashboards/DashboardGerente.tsx` — chamar `marcar_tarefas_atrasadas` no load (consistência).
-- `src/pages/Tarefas.tsx` — campo Responsável no `NovaTarefaDialog`.
-- `src/components/EditarTarefaDialog.tsx` — campo Responsável.
-- Possível migration em `supabase/migrations/` se a RLS bloquear atribuição cruzada.
-
-Sem mudança de schema esperada — `tarefas.responsavel_id` já existe.
+Nenhuma mudança em backend, schema ou outros arquivos.

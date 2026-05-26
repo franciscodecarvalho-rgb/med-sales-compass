@@ -325,6 +325,7 @@ export default function Tarefas() {
         <CounterPill label="Atrasadas" value={counts.atrasadas} className="bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-200" />
         <CounterPill label="Hoje" value={counts.hoje} className="bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200" />
         <CounterPill label="Esta semana" value={counts.semana} className="bg-sky-100 text-sky-800 dark:bg-sky-950/40 dark:text-sky-200" />
+        <CounterPill label="Futuras" value={counts.futuras} className="bg-violet-100 text-violet-800 dark:bg-violet-950/40 dark:text-violet-200" />
         <CounterPill label="Concluídas" value={counts.concluidas} className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200" />
       </div>
 

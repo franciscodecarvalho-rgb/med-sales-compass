@@ -18,7 +18,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Download, Clock, Search, XCircle, ArrowUpDown, ArrowDown, ArrowUp, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
-  STAGE_ORDER, STAGE_LABELS, formatCurrency, DealStage, ESTADOS_BR, RESULTADO_LABELS,
+  STAGE_ORDER, STAGE_LABELS, formatCurrency, DealStage, ESTADOS_BR, RESULTADO_LABELS, regiaoFromEstado, REGIAO_LABELS,
 } from "@/lib/crm";
 import {
   DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useDraggable, useDroppable, useSensor, useSensors,

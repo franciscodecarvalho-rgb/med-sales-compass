@@ -350,6 +350,10 @@ export default function FunilVendas() {
             <TabsTrigger value="tabela">Lista</TabsTrigger>
           </TabsList>
         </Tabs>
+        <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
+          <XCircle className="h-4 w-4 mr-1" /> Limpar
+        </Button>
+
       </div>
 
       {view === "kanban" ? (

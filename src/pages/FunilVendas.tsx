@@ -746,18 +746,6 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
 
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
-            <Label>Região</Label>
-            <Select value={form.regiao} onValueChange={(v) => setForm({ ...form, regiao: v })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ne1">Nordeste 1 (BA, SE, AL)</SelectItem>
-                <SelectItem value="ne2">Nordeste 2 (PE, PB, RN)</SelectItem>
-                <SelectItem value="ne3">Nordeste 3 (CE, PI, MA)</SelectItem>
-                <SelectItem value="outros">Outros</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
             <Label>Estado</Label>
             <Select value={form.estado || "__none__"} onValueChange={(v) => setForm({ ...form, estado: v === "__none__" ? "" : v })}>
               <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
@@ -767,7 +755,12 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-2">
+            <Label>Região (automática)</Label>
+            <Input disabled value={REGIAO_LABELS[regiaoFromEstado(form.estado)]} />
+          </div>
         </div>
+
 
         <div className="space-y-2">
           <Label>Equipamentos (descrição livre)</Label>

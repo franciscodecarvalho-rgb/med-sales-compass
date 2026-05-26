@@ -549,7 +549,7 @@ function EditDealDialog({
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     titulo: "", unidade_id: "", medico_id: "", linha_id: "", valor_total: "",
-    data_previsao_fechamento: "", vendedor_id: "", regiao: "ne1", estado: "",
+    data_previsao_fechamento: "", vendedor_id: "", estado: "",
   });
 
   useEffect(() => {
@@ -562,7 +562,6 @@ function EditDealDialog({
       valor_total: deal.valor_total?.toString() ?? "",
       data_previsao_fechamento: deal.data_previsao_fechamento ?? "",
       vendedor_id: deal.vendedor_id ?? "",
-      regiao: deal.regiao ?? "ne1",
       estado: deal.estado ?? "",
     });
   }, [open, deal]);

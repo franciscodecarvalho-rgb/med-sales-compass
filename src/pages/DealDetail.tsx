@@ -17,7 +17,7 @@ import { ArrowLeft, Clock, Plus, Trash2, History, XCircle, Pencil, Check, X } fr
 import { EnviarParaFaturamentoModal } from "@/components/EnviarParaFaturamentoModal";
 import { toast } from "sonner";
 import {
-  STAGE_ORDER, STAGE_LABELS, formatCurrency, daysBetween, stageColorClass, DealStage, RESULTADO_LABELS, ESTADOS_BR,
+  STAGE_ORDER, STAGE_LABELS, formatCurrency, daysBetween, stageColorClass, DealStage, RESULTADO_LABELS, ESTADOS_BR, regiaoFromEstado, REGIAO_LABELS,
 } from "@/lib/crm";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";

@@ -89,7 +89,7 @@ export default function Tarefas() {
       .is("archived_at", null)
       .order("data_vencimento", { ascending: true, nullsFirst: false });
 
-    if (!isAdminOrGerente) {
+    if (!canViewAll) {
       q = q.eq("responsavel_id", user!.id);
     } else if (vendedorFilter !== "todos") {
       q = q.eq("responsavel_id", vendedorFilter === "eu" ? user!.id : vendedorFilter);

@@ -273,7 +273,7 @@ export default function Tarefas() {
                 <SelectItem value="custom">Período…</SelectItem>
               </SelectContent>
             </Select>
-            {isAdminOrGerente && (
+            {canViewAll && (
               <Select value={vendedorFilter} onValueChange={setVendedorFilter}>
                 <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
                 <SelectContent>

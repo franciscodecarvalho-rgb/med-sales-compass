@@ -26,6 +26,7 @@ import {
 } from "@/lib/crm";
 import { ExportButton, exportToExcel } from "@/lib/export";
 import { EditarTarefaDialog } from "@/components/EditarTarefaDialog";
+import { usePermissions } from "@/hooks/usePermissions";
 import { format, isToday, isThisWeek, isThisMonth, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 

@@ -26,6 +26,7 @@ import {
 } from "@/lib/crm";
 import { ExportButton, exportToExcel } from "@/lib/export";
 import { EditarTarefaDialog } from "@/components/EditarTarefaDialog";
+import { usePermissions } from "@/hooks/usePermissions";
 import { format, isToday, isThisWeek, isThisMonth, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -36,6 +37,8 @@ type PrioFiltro = "todas" | TarefaPrioridade;
 
 export default function Tarefas() {
   const { user, isAdminOrGerente } = useAuth();
+  const { can } = usePermissions();
+  const canViewAll = isAdminOrGerente || can("view_all_records");
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -54,17 +57,17 @@ export default function Tarefas() {
     if (!user) return;
     void initialize();
     // eslint-disable-next-line
-  }, [user]);
+  }, [user, canViewAll]);
 
   useEffect(() => {
     if (user) void load();
     // eslint-disable-next-line
-  }, [user, statusFilter, vendedorFilter]);
+  }, [user, statusFilter, vendedorFilter, canViewAll]);
 
   async function initialize() {
     // Marca atrasadas ao abrir a página
     await supabase.rpc("marcar_tarefas_atrasadas");
-    if (isAdminOrGerente) {
+    if (canViewAll) {
       const { data } = await supabase.from("profiles").select("id, nome").eq("ativo", true).order("nome");
       setVendedores(data ?? []);
     }
@@ -86,7 +89,7 @@ export default function Tarefas() {
       .is("archived_at", null)
       .order("data_vencimento", { ascending: true, nullsFirst: false });
 
-    if (!isAdminOrGerente) {
+    if (!canViewAll) {
       q = q.eq("responsavel_id", user!.id);
     } else if (vendedorFilter !== "todos") {
       q = q.eq("responsavel_id", vendedorFilter === "eu" ? user!.id : vendedorFilter);
@@ -156,7 +159,7 @@ export default function Tarefas() {
 
   // View: agrupamento por vendedor com atraso (gerente)
   const atrasadasPorVendedor = useMemo(() => {
-    if (!isAdminOrGerente) return null;
+    if (!canViewAll) return null;
     const map = new Map<string, { vendedor: any; tarefas: any[] }>();
     for (const t of items) {
       if (t.status !== "atrasada") continue;
@@ -166,7 +169,7 @@ export default function Tarefas() {
       map.get(v.id)!.tarefas.push(t);
     }
     return Array.from(map.values()).sort((a, b) => b.tarefas.length - a.tarefas.length);
-  }, [items, isAdminOrGerente]);
+  }, [items, canViewAll]);
 
   // Reabrir tarefa (sem comentário). Concluir é feito via ConcluirTarefaDialog.
   async function reabrirTarefa(t: any) {
@@ -202,7 +205,7 @@ export default function Tarefas() {
           <h1 className="text-3xl font-bold tracking-tight">Tarefas</h1>
           <p className="text-sm text-muted-foreground">
             {filtered.length} tarefa{filtered.length !== 1 ? "s" : ""}
-            {isAdminOrGerente && vendedorFilter === "todos" && " · visão da equipe"}
+            {canViewAll && vendedorFilter === "todos" && " · visão da equipe"}
           </p>
         </div>
         <div className="flex gap-2">
@@ -270,7 +273,7 @@ export default function Tarefas() {
                 <SelectItem value="custom">Período…</SelectItem>
               </SelectContent>
             </Select>
-            {isAdminOrGerente && (
+            {canViewAll && (
               <Select value={vendedorFilter} onValueChange={setVendedorFilter}>
                 <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -295,7 +298,7 @@ export default function Tarefas() {
       </Card>
 
       {/* GERENTE: vendedores com atraso */}
-      {isAdminOrGerente && vendedorFilter === "todos" && atrasadasPorVendedor && atrasadasPorVendedor.length > 0 && (
+      {canViewAll && vendedorFilter === "todos" && atrasadasPorVendedor && atrasadasPorVendedor.length > 0 && (
         <Card className="border-destructive/40 bg-destructive/5">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2 text-destructive">

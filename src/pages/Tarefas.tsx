@@ -205,7 +205,7 @@ export default function Tarefas() {
           <h1 className="text-3xl font-bold tracking-tight">Tarefas</h1>
           <p className="text-sm text-muted-foreground">
             {filtered.length} tarefa{filtered.length !== 1 ? "s" : ""}
-            {isAdminOrGerente && vendedorFilter === "todos" && " · visão da equipe"}
+            {canViewAll && vendedorFilter === "todos" && " · visão da equipe"}
           </p>
         </div>
         <div className="flex gap-2">

@@ -298,7 +298,7 @@ export default function Tarefas() {
       </Card>
 
       {/* GERENTE: vendedores com atraso */}
-      {isAdminOrGerente && vendedorFilter === "todos" && atrasadasPorVendedor && atrasadasPorVendedor.length > 0 && (
+      {canViewAll && vendedorFilter === "todos" && atrasadasPorVendedor && atrasadasPorVendedor.length > 0 && (
         <Card className="border-destructive/40 bg-destructive/5">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2 text-destructive">

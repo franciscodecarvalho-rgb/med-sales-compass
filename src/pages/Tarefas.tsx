@@ -57,12 +57,12 @@ export default function Tarefas() {
     if (!user) return;
     void initialize();
     // eslint-disable-next-line
-  }, [user]);
+  }, [user, canViewAll]);
 
   useEffect(() => {
     if (user) void load();
     // eslint-disable-next-line
-  }, [user, statusFilter, vendedorFilter]);
+  }, [user, statusFilter, vendedorFilter, canViewAll]);
 
   async function initialize() {
     // Marca atrasadas ao abrir a página

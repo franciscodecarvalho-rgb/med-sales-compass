@@ -67,7 +67,7 @@ export default function Tarefas() {
   async function initialize() {
     // Marca atrasadas ao abrir a página
     await supabase.rpc("marcar_tarefas_atrasadas");
-    if (isAdminOrGerente) {
+    if (canViewAll) {
       const { data } = await supabase.from("profiles").select("id, nome").eq("ativo", true).order("nome");
       setVendedores(data ?? []);
     }

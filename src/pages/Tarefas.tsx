@@ -37,6 +37,8 @@ type PrioFiltro = "todas" | TarefaPrioridade;
 
 export default function Tarefas() {
   const { user, isAdminOrGerente } = useAuth();
+  const { can } = usePermissions();
+  const canViewAll = isAdminOrGerente || can("view_all_records");
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 

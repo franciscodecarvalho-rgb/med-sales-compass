@@ -159,7 +159,7 @@ export default function Tarefas() {
 
   // View: agrupamento por vendedor com atraso (gerente)
   const atrasadasPorVendedor = useMemo(() => {
-    if (!isAdminOrGerente) return null;
+    if (!canViewAll) return null;
     const map = new Map<string, { vendedor: any; tarefas: any[] }>();
     for (const t of items) {
       if (t.status !== "atrasada") continue;
@@ -169,7 +169,7 @@ export default function Tarefas() {
       map.get(v.id)!.tarefas.push(t);
     }
     return Array.from(map.values()).sort((a, b) => b.tarefas.length - a.tarefas.length);
-  }, [items, isAdminOrGerente]);
+  }, [items, canViewAll]);
 
   // Reabrir tarefa (sem comentário). Concluir é feito via ConcluirTarefaDialog.
   async function reabrirTarefa(t: any) {

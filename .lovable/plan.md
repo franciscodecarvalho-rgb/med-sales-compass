@@ -1,21 +1,16 @@
-## Persistência de filtros no Funil de Vendas
+Corrigir a tela em branco causada pela tradução automática do navegador quando a interface já está em português.
 
-Hoje os filtros do `/funil-vendas` (linha, busca, UF, região, vendedor, view kanban/tabela, sort, finalizados) são `useState` puros — ao navegar para um deal e voltar, tudo zera.
+### Problema
+O `index.html` declara `<html lang="en">`. Como a interface do CRM já está em português, navegadores (Chrome, Edge, etc.) oferecem traduzir a página para PT. Quando o usuário aceita, o tradutor modifica o DOM diretamente, quebrando a reconciliação do React e causando tela em branco.
 
-### Mudanças em `src/pages/FunilVendas.tsx`
+### Solução
+Editar `index.html` com 3 mudanças simples:
 
-1. **Persistir filtros em `sessionStorage`** sob a chave `funil-vendas:filters:v1`:
-   - Campos salvos: `linhaId`, `search`, `filterEstado`, `filterRegiao`, `filterVendedor`, `showFinalizados`, `view`, `sortKey`, `sortDir`.
-   - Inicializar cada `useState` com lazy initializer que lê do `sessionStorage` (fallback para o default atual).
-   - `useEffect` único que grava o objeto serializado sempre que qualquer um desses estados mudar.
-   - `sessionStorage` (não `localStorage`) → some ao fechar o navegador, mas mantém durante toda a navegação da sessão.
+1. **Alterar idioma declarado** — mudar `<html lang="en">` para `<html lang="pt-BR" translate="no">`.
+2. **Bloquear tradução** — adicionar `<meta name="google" content="notranslate">` no `<head>` como camada extra.
+3. **Atualizar meta tags** — traduzir `description`, `og:description` e `twitter:description` para português para manter consistência com o idioma real da página.
 
-2. **Default = vendedor logado**:
-   - Na primeira visita da sessão (quando não há estado salvo), se o usuário logado tiver role `vendedor` (e não for admin/gerente), pré-selecionar `filterVendedor = user.id`.
-   - Usar `useAuth()` para obter `user` e `isAdminOrGerente`.
-   - Admin/gerente continua começando em "Todos vendedores" (eles costumam querer visão global).
-   - Se já existe valor salvo na sessão, respeitar o salvo (não sobrescrever).
+### Arquivo afetado
+- `index.html`
 
-3. **Botão "Limpar filtros"** (pequeno, ao lado dos selects) que reseta tudo para os defaults e limpa a chave do `sessionStorage` — para o caso de o usuário querer voltar à visão original sem recarregar.
-
-Nenhuma mudança em backend, schema ou outros arquivos.
+Nenhuma outra alteração no React, rotas, backend ou estilos será necessária.

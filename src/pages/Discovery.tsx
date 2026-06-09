@@ -187,6 +187,18 @@ export default function Discovery() {
     setItems((prev) => prev.map((it) => it.id === itemId ? { ...it, pasta_id: pastaId } : it));
   }
 
+  const toggleGroup = (key: string) => {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const expandAll = () => setExpandedGroups(new Set(grupos.map((g) => g.key)));
+  const collapseAll = () => setExpandedGroups(new Set());
+
   const vendedorNome = (id: string) =>
     vendedores.find((v) => v.id === id)?.nome ?? "—";
 

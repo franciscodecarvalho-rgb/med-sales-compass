@@ -25,7 +25,6 @@ import VendasAdvance from "./pages/VendasAdvance";
 import VendasAdvanceDetalhe from "./pages/VendasAdvanceDetalhe";
 import Tarefas from "./pages/Tarefas";
 import PosVenda from "./pages/PosVenda";
-import PainelGerencial from "./pages/PainelGerencial";
 import Stakeholders from "./pages/Stakeholders";
 import StakeholderDetail from "./pages/StakeholderDetail";
 import Configuracoes from "./pages/Configuracoes";
@@ -90,9 +89,6 @@ const App = () => (
               <Route path="/tarefas" element={<Tarefas />} />
               <Route path="/pos-venda" element={
                 <ProtectedRoute requirePermission="view_posvenda"><PosVenda /></ProtectedRoute>
-              } />
-              <Route path="/painel-gerencial" element={
-                <ProtectedRoute requirePermission="view_painel"><PainelGerencial /></ProtectedRoute>
               } />
               <Route path="/stakeholders" element={
                 <ProtectedRoute requirePermission="view_stakeholders"><Stakeholders /></ProtectedRoute>

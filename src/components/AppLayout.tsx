@@ -8,7 +8,6 @@ import {
   Kanban,
   CheckSquare,
   Settings,
-  Users,
   LogOut,
   Activity,
   Wrench,
@@ -43,7 +42,6 @@ const navItems: NavItem[] = [
   { to: "/tarefas", label: "Tarefas", icon: CheckSquare },
   { to: "/pos-venda", label: "Pós-Venda", icon: Wrench, permission: "view_posvenda" },
   { to: "/configuracoes", label: "Configurações", icon: Settings, adminOnly: true },
-  { to: "/usuarios", label: "Usuários", icon: Users, adminOnly: true },
   { to: "/painel-gerencial", label: "Painel Gerencial", icon: BarChart3, permission: "view_painel" },
   { to: "/stakeholders", label: "Stakeholders", icon: Handshake, permission: "view_stakeholders" },
 ];

@@ -34,13 +34,12 @@ const mainSections: NavSection[] = [
       { to: "/", label: "Dashboard", icon: LayoutDashboard },
       { to: "/tarefas", label: "Tarefas", icon: CheckSquare },
       { to: "/funil-vendas", label: "Funil de Vendas", icon: Kanban, permission: "view_funil_vendas" },
+      { to: "/recorrencia", label: "Recorrência", icon: RefreshCw, permission: "view_recorrencia" },
     ],
   },
   {
     label: "Comercial",
     items: [
-      { to: "/funil-vendas", label: "Funil de Vendas", icon: Kanban, permission: "view_funil_vendas" },
-      { to: "/recorrencia", label: "Recorrência", icon: RefreshCw, permission: "view_recorrencia" },
       { to: "/discovery", label: "Discovery", icon: SearchIcon, permission: "view_discovery" },
       { to: "/unidades", label: "Unidades de Saúde", icon: Building2, permission: "view_unidades" },
       { to: "/medicos", label: "Médicos", icon: UserRound, permission: "view_medicos" },

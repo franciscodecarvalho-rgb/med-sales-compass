@@ -210,6 +210,48 @@ export type Database = {
           },
         ]
       }
+      compras_consumiveis: {
+        Row: {
+          consumivel_id: string
+          created_at: string
+          data: string
+          id: string
+          observacao: string | null
+          registrado_por: string
+        }
+        Insert: {
+          consumivel_id: string
+          created_at?: string
+          data?: string
+          id?: string
+          observacao?: string | null
+          registrado_por: string
+        }
+        Update: {
+          consumivel_id?: string
+          created_at?: string
+          data?: string
+          id?: string
+          observacao?: string | null
+          registrado_por?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compras_consumiveis_consumivel_id_fkey"
+            columns: ["consumivel_id"]
+            isOneToOne: false
+            referencedRelation: "consumiveis_recorrencia"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compras_consumiveis_registrado_por_fkey"
+            columns: ["registrado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       config_contador: {
         Row: {
           created_at: string
@@ -236,6 +278,140 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      consumiveis_prospeccao: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          estagio: Database["public"]["Enums"]["consumivel_estagio"]
+          id: string
+          linha_id: string
+          notas: string | null
+          origem_equipamento: Database["public"]["Enums"]["origem_equipamento"]
+          unidade_id: string
+          updated_at: string
+          vendedor_id: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          estagio?: Database["public"]["Enums"]["consumivel_estagio"]
+          id?: string
+          linha_id: string
+          notas?: string | null
+          origem_equipamento?: Database["public"]["Enums"]["origem_equipamento"]
+          unidade_id: string
+          updated_at?: string
+          vendedor_id: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          estagio?: Database["public"]["Enums"]["consumivel_estagio"]
+          id?: string
+          linha_id?: string
+          notas?: string | null
+          origem_equipamento?: Database["public"]["Enums"]["origem_equipamento"]
+          unidade_id?: string
+          updated_at?: string
+          vendedor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consumiveis_prospeccao_linha_id_fkey"
+            columns: ["linha_id"]
+            isOneToOne: false
+            referencedRelation: "linhas_produto"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consumiveis_prospeccao_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "unidades_saude"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consumiveis_prospeccao_vendedor_id_fkey"
+            columns: ["vendedor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      consumiveis_recorrencia: {
+        Row: {
+          archived_at: string | null
+          ciclo_editado_dias: number | null
+          ciclo_estimado_dias: number | null
+          created_at: string
+          data_ultima_compra: string | null
+          id: string
+          linha_id: string
+          origem_equipamento: Database["public"]["Enums"]["origem_equipamento"]
+          pausa_ate: string | null
+          pausa_motivo: string | null
+          status: Database["public"]["Enums"]["consumivel_status"]
+          unidade_id: string
+          updated_at: string
+          vendedor_id: string
+        }
+        Insert: {
+          archived_at?: string | null
+          ciclo_editado_dias?: number | null
+          ciclo_estimado_dias?: number | null
+          created_at?: string
+          data_ultima_compra?: string | null
+          id?: string
+          linha_id: string
+          origem_equipamento?: Database["public"]["Enums"]["origem_equipamento"]
+          pausa_ate?: string | null
+          pausa_motivo?: string | null
+          status?: Database["public"]["Enums"]["consumivel_status"]
+          unidade_id: string
+          updated_at?: string
+          vendedor_id: string
+        }
+        Update: {
+          archived_at?: string | null
+          ciclo_editado_dias?: number | null
+          ciclo_estimado_dias?: number | null
+          created_at?: string
+          data_ultima_compra?: string | null
+          id?: string
+          linha_id?: string
+          origem_equipamento?: Database["public"]["Enums"]["origem_equipamento"]
+          pausa_ate?: string | null
+          pausa_motivo?: string | null
+          status?: Database["public"]["Enums"]["consumivel_status"]
+          unidade_id?: string
+          updated_at?: string
+          vendedor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consumiveis_recorrencia_linha_id_fkey"
+            columns: ["linha_id"]
+            isOneToOne: false
+            referencedRelation: "linhas_produto"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consumiveis_recorrencia_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "unidades_saude"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consumiveis_recorrencia_vendedor_id_fkey"
+            columns: ["vendedor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       contatos: {
         Row: {
@@ -975,6 +1151,44 @@ export type Database = {
         }
         Relationships: []
       }
+      historico_status_consumiveis: {
+        Row: {
+          changed_at: string
+          ciclo_efetivo_dias: number | null
+          consumivel_id: string
+          dias_desde_ultima_compra: number | null
+          id: string
+          status_anterior: Database["public"]["Enums"]["consumivel_status"]
+          status_novo: Database["public"]["Enums"]["consumivel_status"]
+        }
+        Insert: {
+          changed_at?: string
+          ciclo_efetivo_dias?: number | null
+          consumivel_id: string
+          dias_desde_ultima_compra?: number | null
+          id?: string
+          status_anterior: Database["public"]["Enums"]["consumivel_status"]
+          status_novo: Database["public"]["Enums"]["consumivel_status"]
+        }
+        Update: {
+          changed_at?: string
+          ciclo_efetivo_dias?: number | null
+          consumivel_id?: string
+          dias_desde_ultima_compra?: number | null
+          id?: string
+          status_anterior?: Database["public"]["Enums"]["consumivel_status"]
+          status_novo?: Database["public"]["Enums"]["consumivel_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historico_status_consumiveis_consumivel_id_fkey"
+            columns: ["consumivel_id"]
+            isOneToOne: false
+            referencedRelation: "consumiveis_recorrencia"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       instalacoes: {
         Row: {
           archived_at: string | null
@@ -1166,6 +1380,7 @@ export type Database = {
       linhas_produto: {
         Row: {
           archived_at: string | null
+          ciclo_consumivel_padrao_dias: number | null
           cor: string | null
           created_at: string
           descricao: string | null
@@ -1177,6 +1392,7 @@ export type Database = {
         }
         Insert: {
           archived_at?: string | null
+          ciclo_consumivel_padrao_dias?: number | null
           cor?: string | null
           created_at?: string
           descricao?: string | null
@@ -1188,6 +1404,7 @@ export type Database = {
         }
         Update: {
           archived_at?: string | null
+          ciclo_consumivel_padrao_dias?: number | null
           cor?: string | null
           created_at?: string
           descricao?: string | null
@@ -1809,6 +2026,7 @@ export type Database = {
           anotacao_id: string | null
           archived_at: string | null
           concluida_em: string | null
+          consumivel_id: string | null
           created_at: string
           criador_id: string
           data_vencimento: string | null
@@ -1829,6 +2047,7 @@ export type Database = {
           anotacao_id?: string | null
           archived_at?: string | null
           concluida_em?: string | null
+          consumivel_id?: string | null
           created_at?: string
           criador_id: string
           data_vencimento?: string | null
@@ -1849,6 +2068,7 @@ export type Database = {
           anotacao_id?: string | null
           archived_at?: string | null
           concluida_em?: string | null
+          consumivel_id?: string | null
           created_at?: string
           criador_id?: string
           data_vencimento?: string | null
@@ -1871,6 +2091,13 @@ export type Database = {
             columns: ["anotacao_id"]
             isOneToOne: false
             referencedRelation: "anotacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tarefas_consumivel_id_fkey"
+            columns: ["consumivel_id"]
+            isOneToOne: false
+            referencedRelation: "consumiveis_recorrencia"
             referencedColumns: ["id"]
           },
           {
@@ -2138,6 +2365,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calcular_status_consumivel: {
+        Args: { p_ciclo_efetivo: number; p_data_ultima_compra: string }
+        Returns: Database["public"]["Enums"]["consumivel_status"]
+      }
       can_view_deal: {
         Args: {
           _estagio: Database["public"]["Enums"]["deal_stage"]
@@ -2158,6 +2389,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin_or_gerente: { Args: { _user_id: string }; Returns: boolean }
+      job_recalcular_consumiveis: { Args: never; Returns: undefined }
       lab_increment_chamadas: {
         Args: { _n: number }
         Returns: {
@@ -2190,6 +2422,13 @@ export type Database = {
         | "logistica"
       chamado_prioridade: "critica" | "alta" | "media" | "baixa"
       chamado_status: "aberto" | "em_atendimento" | "resolvido" | "fechado"
+      consumivel_estagio: "interesse" | "convertido"
+      consumivel_status:
+        | "ativo"
+        | "atencao"
+        | "em_risco"
+        | "inativo"
+        | "pausado"
       contrato_status: "ativo" | "vencido" | "a_vencer"
       deal_resultado: "em_andamento" | "ganho" | "perdido"
       deal_stage:
@@ -2208,6 +2447,7 @@ export type Database = {
       garantia_status: "ativa" | "vencida" | "a_vencer"
       instalacao_status: "pendente" | "em_andamento" | "concluido"
       instalacao_tipo: "instalacao" | "aplicacao"
+      origem_equipamento: "proprio" | "concorrente" | "desconhecido"
       status_analise_credito:
         | "aprovado"
         | "reprovado"
@@ -2366,6 +2606,8 @@ export const Constants = {
       ],
       chamado_prioridade: ["critica", "alta", "media", "baixa"],
       chamado_status: ["aberto", "em_atendimento", "resolvido", "fechado"],
+      consumivel_estagio: ["interesse", "convertido"],
+      consumivel_status: ["ativo", "atencao", "em_risco", "inativo", "pausado"],
       contrato_status: ["ativo", "vencido", "a_vencer"],
       deal_resultado: ["em_andamento", "ganho", "perdido"],
       deal_stage: [
@@ -2386,6 +2628,7 @@ export const Constants = {
       garantia_status: ["ativa", "vencida", "a_vencer"],
       instalacao_status: ["pendente", "em_andamento", "concluido"],
       instalacao_tipo: ["instalacao", "aplicacao"],
+      origem_equipamento: ["proprio", "concorrente", "desconhecido"],
       status_analise_credito: [
         "aprovado",
         "reprovado",

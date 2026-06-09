@@ -83,7 +83,7 @@ const App = () => (
                 <ProtectedRoute requirePermission="view_vendas_advance"><VendasAdvanceDetalhe /></ProtectedRoute>
               } />
               <Route path="/tarefas" element={<Tarefas />} />
-              <Route path="/pos-venda" element={
+              <Route path="/pos-venda/:tab?" element={
                 <ProtectedRoute requirePermission="view_posvenda"><PosVenda /></ProtectedRoute>
               } />
               <Route path="/stakeholders" element={

@@ -16,7 +16,6 @@ import DiscoveryDetail from "./pages/DiscoveryDetail";
 import DiscoveryLab from "./pages/DiscoveryLab";
 import Medicos from "./pages/Medicos";
 import MedicoDetail from "./pages/MedicoDetail";
-import Equipamentos from "./pages/Equipamentos";
 import FunilVendas from "./pages/FunilVendas";
 import DealDetail from "./pages/DealDetail";
 import FunilManutencao from "./pages/FunilManutencao";
@@ -67,9 +66,6 @@ const App = () => (
               } />
               <Route path="/medicos/:id" element={
                 <ProtectedRoute requirePermission="view_medicos"><MedicoDetail /></ProtectedRoute>
-              } />
-              <Route path="/equipamentos" element={
-                <ProtectedRoute requirePermission="view_equipamentos"><Equipamentos /></ProtectedRoute>
               } />
               <Route path="/funil-vendas" element={
                 <ProtectedRoute requirePermission="view_funil_vendas"><FunilVendas /></ProtectedRoute>

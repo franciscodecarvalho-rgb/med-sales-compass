@@ -58,6 +58,9 @@ export default function Discovery() {
   // pastaFilter: "all" (todas) | "none" (sem pasta) | <pasta_id>
   const [pastaFilter, setPastaFilter] = useState<string>("all");
 
+  // grupos expandidos
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+
   // diálogos pasta
   const [pastaDialogOpen, setPastaDialogOpen] = useState(false);
   const [pastaEditando, setPastaEditando] = useState<Pasta | null>(null);

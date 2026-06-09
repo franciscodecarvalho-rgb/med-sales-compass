@@ -594,9 +594,6 @@ function LabSection() {
 }
 
 // ---------------- PermissoesSection ----------------
-import { Checkbox } from "@/components/ui/checkbox";
-import { ROLE_LABELS } from "@/contexts/AuthContext";
-import type { AppRole } from "@/contexts/AuthContext";
 
 const PERM_ROLES: AppRole[] = ["gerente", "vendedor", "pos_venda", "equipe_advance"];
 

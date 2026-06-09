@@ -44,22 +44,19 @@ export default function ProspeccaoTab({ unidadeId }: { unidadeId?: string }) {
 
   async function load() {
     setLoading(true);
-    const queries: Promise<any>[] = [
-      (() => {
+    const [prosp, ln, un] = await Promise.all([
+      (async () => {
         let q = supabase
           .from("consumiveis_prospeccao")
           .select("*, unidades_saude(nome), linhas_produto(nome, cor), profiles!consumiveis_prospeccao_vendedor_id_fkey(nome)")
           .is("archived_at", null)
           .order("created_at", { ascending: false });
         if (unidadeId) q = q.eq("unidade_id", unidadeId);
-        return q;
+        return await q;
       })(),
       supabase.from("linhas_produto").select("id, nome, cor").is("archived_at", null).order("nome"),
-    ];
-    if (!unidadeId) {
-      queries.push(supabase.from("unidades_saude").select("id, nome").is("archived_at", null).order("nome"));
-    }
-    const [prosp, ln, un] = await Promise.all(queries);
+      !unidadeId ? supabase.from("unidades_saude").select("id, nome").is("archived_at", null).order("nome") : Promise.resolve(null),
+    ] as Promise<any>[]);
     setItems((prosp.data ?? []) as Prospecto[]);
     setLinhas(ln.data ?? []);
     if (un) setUnidades(un.data ?? []);

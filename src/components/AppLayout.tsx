@@ -39,6 +39,8 @@ const mainSections: NavSection[] = [
   {
     label: "Comercial",
     items: [
+      { to: "/funil-vendas", label: "Funil de Vendas", icon: Kanban, permission: "view_funil_vendas" },
+      { to: "/recorrencia", label: "Recorrência", icon: RefreshCw, permission: "view_recorrencia" },
       { to: "/discovery", label: "Discovery", icon: SearchIcon, permission: "view_discovery" },
       { to: "/unidades", label: "Unidades de Saúde", icon: Building2, permission: "view_unidades" },
       { to: "/medicos", label: "Médicos", icon: UserRound, permission: "view_medicos" },
@@ -49,7 +51,6 @@ const mainSections: NavSection[] = [
     label: "Operação",
     items: [
       { to: "/vendas-advance", label: "Vendas Advance", icon: ClipboardCheck, permission: "view_vendas_advance", badgeKey: "advance_em_andamento" },
-      { to: "/recorrencia", label: "Recorrência", icon: RefreshCw, permission: "view_recorrencia" },
     ],
   },
 ];

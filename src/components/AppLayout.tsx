@@ -51,7 +51,6 @@ const mainSections: NavSection[] = [
     label: "Operação",
     items: [
       { to: "/vendas-advance", label: "Vendas Advance", icon: ClipboardCheck, permission: "view_vendas_advance", badgeKey: "advance_em_andamento" },
-      { to: "/recorrencia", label: "Recorrência", icon: RefreshCw, permission: "view_recorrencia" },
     ],
   },
 ];

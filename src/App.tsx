@@ -20,7 +20,6 @@ import FunilVendas from "./pages/FunilVendas";
 import DealDetail from "./pages/DealDetail";
 import FunilManutencao from "./pages/FunilManutencao";
 import DealManutencaoDetail from "./pages/DealManutencaoDetail";
-import Faturamento from "./pages/Faturamento";
 import VendasAdvance from "./pages/VendasAdvance";
 import VendasAdvanceDetalhe from "./pages/VendasAdvanceDetalhe";
 import Tarefas from "./pages/Tarefas";
@@ -76,9 +75,6 @@ const App = () => (
               } />
               <Route path="/deals-manutencao/:id" element={
                 <ProtectedRoute requirePermission="view_funil_manut"><DealManutencaoDetail /></ProtectedRoute>
-              } />
-              <Route path="/faturamento" element={
-                <ProtectedRoute requirePermission="view_faturamento"><Faturamento /></ProtectedRoute>
               } />
               <Route path="/vendas-advance" element={
                 <ProtectedRoute requirePermission="view_vendas_advance"><VendasAdvance /></ProtectedRoute>

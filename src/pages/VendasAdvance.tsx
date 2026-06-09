@@ -9,12 +9,13 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  ClipboardCheck, Search, AlertTriangle, CheckCircle2, Clock, Package,
+  ClipboardCheck, Search, AlertTriangle, CheckCircle2, Clock,
 } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { FaturamentoTab } from "@/components/FaturamentoTab";
 
 const FORMA_LABELS: Record<string, { label: string; color: string }> = {
   a_vista_cartao:       { label: "À Vista / Cartão",       color: "bg-green-100 text-green-800 border-green-300" },
@@ -116,6 +117,14 @@ export default function VendasAdvance() {
           </p>
         </div>
       </div>
+
+      <Tabs defaultValue="saidas">
+        <TabsList>
+          <TabsTrigger value="saidas">Saídas</TabsTrigger>
+          <TabsTrigger value="faturamento">Faturamento</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="saidas" className="space-y-4 mt-4">
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -310,6 +319,14 @@ export default function VendasAdvance() {
           </Table>
         </CardContent>
       </Card>
+
+        </TabsContent>
+
+        <TabsContent value="faturamento">
+          <FaturamentoTab />
+        </TabsContent>
+
+      </Tabs>
     </div>
   );
 }

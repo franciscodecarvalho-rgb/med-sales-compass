@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { formatCurrency } from "@/lib/crm";
 import { format } from "date-fns";
 
-export default function Faturamento() {
+export function FaturamentoTab() {
   const { user, hasRole, isAdminOrGerente } = useAuth();
   const canEdit = isAdminOrGerente || hasRole("equipe_advance");
 

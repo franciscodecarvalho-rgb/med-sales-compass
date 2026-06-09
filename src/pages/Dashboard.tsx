@@ -4,7 +4,7 @@ import { DashboardVendedor } from "@/components/dashboards/DashboardVendedor";
 import { DashboardGerente } from "@/components/dashboards/DashboardGerente";
 import { DashboardTecnico } from "@/components/dashboards/DashboardTecnico";
 import { DashboardAssistente } from "@/components/dashboards/DashboardAssistente";
-import PainelGerencial from "./PainelGerencial";
+import PainelGerencial from "@/components/dashboards/PainelGerencial";
 
 function MeuDashboard() {
   const { roles } = useAuth();

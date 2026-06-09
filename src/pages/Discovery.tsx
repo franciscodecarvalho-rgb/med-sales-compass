@@ -112,6 +112,26 @@ export default function Discovery() {
     return true;
   }), [items, search, estadoFilter, tipoFilter, pastaFilter]);
 
+  const grupos = useMemo(() => {
+    const map = new Map<string, { cidade: string; uf: string; key: string; items: any[] }>();
+    filtered.forEach((it) => {
+      const cidade = (it.cidade ?? "").trim();
+      const uf = it.estados?.sigla ?? "";
+      const key = cidade ? `${cidade}__${uf}` : "__none__";
+      if (!map.has(key)) map.set(key, { cidade, uf, key, items: [] });
+      map.get(key)!.items.push(it);
+    });
+    const arr = Array.from(map.values());
+    arr.sort((a, b) => {
+      if (!a.cidade && b.cidade) return 1;
+      if (a.cidade && !b.cidade) return -1;
+      const c = a.cidade.localeCompare(b.cidade, "pt-BR");
+      if (c !== 0) return c;
+      return a.uf.localeCompare(b.uf);
+    });
+    return arr;
+  }, [filtered]);
+
   const countByPasta = useMemo(() => {
     const all = items.length;
     const none = items.filter((it) => !it.pasta_id).length;

@@ -1,16 +1,36 @@
-Corrigir a tela em branco causada pela tradução automática do navegador quando a interface já está em português.
+## Objetivo
 
-### Problema
-O `index.html` declara `<html lang="en">`. Como a interface do CRM já está em português, navegadores (Chrome, Edge, etc.) oferecem traduzir a página para PT. Quando o usuário aceita, o tradutor modifica o DOM diretamente, quebrando a reconciliação do React e causando tela em branco.
+Na página **Discovery** (`/discovery`), agrupar visualmente os itens da listagem por **cidade**, mantendo todos os filtros e funcionalidades atuais (pastas, busca, status, vendedor, tipo, UF).
 
-### Solução
-Editar `index.html` com 3 mudanças simples:
+## Como vai funcionar
 
-1. **Alterar idioma declarado** — mudar `<html lang="en">` para `<html lang="pt-BR" translate="no">`.
-2. **Bloquear tradução** — adicionar `<meta name="google" content="notranslate">` no `<head>` como camada extra.
-3. **Atualizar meta tags** — traduzir `description`, `og:description` e `twitter:description` para português para manter consistência com o idioma real da página.
+Em vez de uma tabela única, a lista passa a ter cabeçalhos por cidade:
 
-### Arquivo afetado
-- `index.html`
+```text
+📍 São Paulo - SP  (5)
+   ─────────────────────────────────────────
+   Nome           Tipo    Pasta    Vendedor    Status    Criado
+   Hospital A     ...     ...      ...         ...       ...
+   Clínica B      ...     ...      ...         ...       ...
 
-Nenhuma outra alteração no React, rotas, backend ou estilos será necessária.
+📍 Campinas - SP  (2)
+   ─────────────────────────────────────────
+   ...
+
+📍 Sem cidade  (1)
+   ...
+```
+
+Detalhes:
+- Ordenação: cidades em ordem alfabética; "Sem cidade" no final.
+- Cada grupo mostra a contagem de itens.
+- Dentro de cada grupo mantém a ordenação por data de criação (mais recente primeiro).
+- A coluna "Cidade / UF" é removida da tabela (vira o cabeçalho do grupo) para evitar redundância.
+- Filtros, busca, abas de pasta e ação de mover entre pastas continuam funcionando igual.
+- Aplicado tanto quando filtro de vendedor é "Todos" quanto nos demais casos.
+
+## Arquivos afetados
+
+- `src/pages/Discovery.tsx` — substituir a tabela única pela listagem agrupada por cidade.
+
+Nenhuma mudança de backend, schema ou outras páginas.

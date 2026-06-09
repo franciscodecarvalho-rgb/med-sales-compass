@@ -335,79 +335,97 @@ export default function Discovery() {
         </div>
       ) : (
         <div className="space-y-4">
-          {grupos.map((g) => (
-            <div key={g.key} className="rounded-lg border-2 border-dashed border-border bg-card/50 overflow-hidden">
-              <div className="flex items-center justify-between gap-2 bg-muted/40 px-4 py-2 border-b border-border">
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-primary" />
-                  <span className="font-semibold">
-                    {g.cidade ? `${g.cidade}${g.uf ? ` - ${g.uf}` : ""}` : "Sem cidade"}
-                  </span>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={expandAll}>
+              <ChevronDown className="mr-1 h-4 w-4" /> Expandir todos
+            </Button>
+            <Button variant="outline" size="sm" onClick={collapseAll}>
+              <ChevronRight className="mr-1 h-4 w-4" /> Recolher todos
+            </Button>
+          </div>
+          {grupos.map((g) => {
+            const open = expandedGroups.has(g.key);
+            return (
+              <Collapsible key={g.key} open={open} onOpenChange={() => toggleGroup(g.key)}>
+                <div className="rounded-lg border-2 border-dashed border-border bg-card/50 overflow-hidden">
+                  <CollapsibleTrigger asChild>
+                    <div className="flex items-center justify-between gap-2 bg-muted/40 px-4 py-2 border-b border-border cursor-pointer hover:bg-muted/60 transition-colors">
+                      <div className="flex items-center gap-2">
+                        {open ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                        <MapPin className="h-4 w-4 text-primary" />
+                        <span className="font-semibold">
+                          {g.cidade ? `${g.cidade}${g.uf ? ` - ${g.uf}` : ""}` : "Sem cidade"}
+                        </span>
+                      </div>
+                      <Badge variant="secondary">{g.items.length} {g.items.length === 1 ? "item" : "itens"}</Badge>
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Nome</TableHead>
+                          <TableHead>Tipo</TableHead>
+                          <TableHead>Pasta</TableHead>
+                          <TableHead>Vendedor</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="text-right">Criado em</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {g.items.map((it, i) => (
+                          <TableRow key={it.id} className={i % 2 ? "bg-muted/30" : ""}>
+                            <TableCell className="font-medium">
+                              <Link to={`/discovery/${it.id}`} className="hover:text-primary inline-flex items-center gap-2">
+                                <SearchIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                                {it.nome}
+                              </Link>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground">
+                              {it.tipos_unidade?.nome ?? "—"}
+                            </TableCell>
+                            <TableCell>
+                              <Select
+                                value={it.pasta_id ?? "__none__"}
+                                onValueChange={(v) => moverItem(it.id, v === "__none__" ? null : v)}
+                              >
+                                <SelectTrigger className="h-8 w-[140px] text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="__none__">Sem pasta</SelectItem>
+                                  {pastas.map((p) => (
+                                    <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground text-sm">
+                              {vendedorNome(it.vendedor_id)}
+                            </TableCell>
+                            <TableCell>
+                              <Badge className={DISCOVERY_STATUS_BADGE[it.status as DiscoveryStatus]} variant="outline">
+                                {DISCOVERY_STATUS_LABELS[it.status as DiscoveryStatus]}
+                              </Badge>
+                              {it.status === "oficializado" && it.unidade_gerada_id && (
+                                <Link to={`/unidades/${it.unidade_gerada_id}`}
+                                  className="ml-2 inline-flex items-center text-xs text-primary hover:underline">
+                                  ver unidade <ExternalLink className="ml-1 h-3 w-3" />
+                                </Link>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right text-xs text-muted-foreground">
+                              {format(new Date(it.created_at), "dd MMM yyyy", { locale: ptBR })}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CollapsibleContent>
                 </div>
-                <Badge variant="secondary">{g.items.length} {g.items.length === 1 ? "item" : "itens"}</Badge>
-              </div>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Pasta</TableHead>
-                    <TableHead>Vendedor</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Criado em</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {g.items.map((it, i) => (
-                    <TableRow key={it.id} className={i % 2 ? "bg-muted/30" : ""}>
-                      <TableCell className="font-medium">
-                        <Link to={`/discovery/${it.id}`} className="hover:text-primary inline-flex items-center gap-2">
-                          <SearchIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                          {it.nome}
-                        </Link>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {it.tipos_unidade?.nome ?? "—"}
-                      </TableCell>
-                      <TableCell>
-                        <Select
-                          value={it.pasta_id ?? "__none__"}
-                          onValueChange={(v) => moverItem(it.id, v === "__none__" ? null : v)}
-                        >
-                          <SelectTrigger className="h-8 w-[140px] text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="__none__">Sem pasta</SelectItem>
-                            {pastas.map((p) => (
-                              <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {vendedorNome(it.vendedor_id)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={DISCOVERY_STATUS_BADGE[it.status as DiscoveryStatus]} variant="outline">
-                          {DISCOVERY_STATUS_LABELS[it.status as DiscoveryStatus]}
-                        </Badge>
-                        {it.status === "oficializado" && it.unidade_gerada_id && (
-                          <Link to={`/unidades/${it.unidade_gerada_id}`}
-                            className="ml-2 inline-flex items-center text-xs text-primary hover:underline">
-                            ver unidade <ExternalLink className="ml-1 h-3 w-3" />
-                          </Link>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right text-xs text-muted-foreground">
-                        {format(new Date(it.created_at), "dd MMM yyyy", { locale: ptBR })}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          ))}
+              </Collapsible>
+            );
+          })}
         </div>
       )}
 

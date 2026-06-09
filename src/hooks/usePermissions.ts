@@ -14,6 +14,7 @@ export type Permission =
   | "view_unidades"
   | "view_painel"
   | "view_stakeholders"
+  | "view_recorrencia"
   | "view_all_records"
   | "edit_all_records"
   | "export_data"

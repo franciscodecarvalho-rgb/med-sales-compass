@@ -13,6 +13,8 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Building2, MapPin, Phone, Mail, Globe, Plus, ArrowLeft, Trash2, Save, Send, Star } from "lucide-react";
 import { TarefasList } from "@/components/TarefasList";
 import PosVendaUnidadeTab from "@/components/posvenda/PosVendaUnidadeTab";
+import RadarTab from "@/components/recorrencia/RadarTab";
+import ProspeccaoTab from "@/components/recorrencia/ProspeccaoTab";
 import { toast } from "sonner";
 import { UNIDADE_STATUS_LABELS, UNIDADE_STATUS_BADGE, UnidadeStatus, TarefaPrioridade } from "@/lib/crm";
 import { format } from "date-fns";
@@ -159,6 +161,7 @@ export default function UnidadeDetail() {
           <TabsTrigger value="deals">Deals ({dealsUnidade.length + dealsManutUnidade.length})</TabsTrigger>
           <TabsTrigger value="tarefas">Tarefas ({tarefas.length})</TabsTrigger>
           <TabsTrigger value="posvenda">Pós-Venda</TabsTrigger>
+          <TabsTrigger value="consumiveis">Consumíveis</TabsTrigger>
         </TabsList>
 
         {/* DADOS */}
@@ -445,6 +448,21 @@ export default function UnidadeDetail() {
 
         <TabsContent value="posvenda">
           <PosVendaUnidadeTab unidadeId={id!} />
+        </TabsContent>
+
+        <TabsContent value="consumiveis" className="space-y-6">
+          <Tabs defaultValue="radar">
+            <TabsList>
+              <TabsTrigger value="radar">Radar</TabsTrigger>
+              <TabsTrigger value="prospeccao">Prospecção</TabsTrigger>
+            </TabsList>
+            <TabsContent value="radar" className="mt-4">
+              <RadarTab unidadeId={id!} />
+            </TabsContent>
+            <TabsContent value="prospeccao" className="mt-4">
+              <ProspeccaoTab unidadeId={id!} />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
       </Tabs>
     </div>

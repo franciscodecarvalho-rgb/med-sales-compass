@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Building2, UserRound, Kanban, CheckSquare,
   Settings, LogOut, Activity, Wrench, Search as SearchIcon,
   Handshake, ClipboardCheck, FileText, ShieldCheck, Smile,
-  ArrowLeft, ArrowRight, MessageSquare,
+  ArrowLeft, ArrowRight, MessageSquare, RefreshCw,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,6 +49,7 @@ const mainSections: NavSection[] = [
     label: "Operação",
     items: [
       { to: "/vendas-advance", label: "Vendas Advance", icon: ClipboardCheck, permission: "view_vendas_advance", badgeKey: "advance_em_andamento" },
+      { to: "/recorrencia", label: "Recorrência", icon: RefreshCw, permission: "view_recorrencia" },
     ],
   },
 ];

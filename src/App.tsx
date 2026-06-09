@@ -27,6 +27,7 @@ import PosVenda from "./pages/PosVenda";
 import Stakeholders from "./pages/Stakeholders";
 import StakeholderDetail from "./pages/StakeholderDetail";
 import Configuracoes from "./pages/Configuracoes";
+import Recorrencia from "./pages/Recorrencia";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -91,6 +92,9 @@ const App = () => (
               } />
               <Route path="/stakeholders/:id" element={
                 <ProtectedRoute requirePermission="view_stakeholders"><StakeholderDetail /></ProtectedRoute>
+              } />
+              <Route path="/recorrencia" element={
+                <ProtectedRoute requirePermission="view_recorrencia"><Recorrencia /></ProtectedRoute>
               } />
               <Route path="/configuracoes" element={
                 <ProtectedRoute requireRoles={["admin"]}><Configuracoes /></ProtectedRoute>

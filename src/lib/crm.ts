@@ -220,3 +220,41 @@ export function stageColorClass(days: number, verde: number, amarelo: number): s
   if (days <= amarelo) return "text-warning bg-warning/10 border-warning/30";
   return "text-destructive bg-destructive/10 border-destructive/30";
 }
+
+// ── Módulo Recorrência de Consumíveis ──────────────────────
+
+export type ConsumiveiStatus = "ativo" | "atencao" | "em_risco" | "inativo" | "pausado";
+export type ConsumiveiEstagio = "interesse" | "convertido";
+export type OrigemEquipamento = "proprio" | "concorrente" | "desconhecido";
+
+export const CONSUMIVEL_STATUS_LABELS: Record<ConsumiveiStatus, string> = {
+  ativo:    "Ativo",
+  atencao:  "Atenção",
+  em_risco: "Em Risco",
+  inativo:  "Inativo",
+  pausado:  "Pausado",
+};
+
+export const CONSUMIVEL_STATUS_BADGE: Record<ConsumiveiStatus, string> = {
+  ativo:    "bg-success/15 text-success border-success/30",
+  atencao:  "bg-warning/15 text-warning border-warning/30",
+  em_risco: "bg-destructive/15 text-destructive border-destructive/30",
+  inativo:  "bg-muted text-muted-foreground border-border",
+  pausado:  "bg-secondary/20 text-secondary-foreground border-secondary/40",
+};
+
+export const CONSUMIVEL_ESTAGIO_LABELS: Record<ConsumiveiEstagio, string> = {
+  interesse: "Interesse",
+  convertido: "Convertido",
+};
+
+export const CONSUMIVEL_ESTAGIO_BADGE: Record<ConsumiveiEstagio, string> = {
+  interesse:  "bg-info/15 text-info border-info/30",
+  convertido: "bg-success/15 text-success border-success/30",
+};
+
+export const ORIGEM_EQUIPAMENTO_LABELS: Record<OrigemEquipamento, string> = {
+  proprio:       "Equipamento próprio",
+  concorrente:   "Equipamento concorrente",
+  desconhecido:  "Origem desconhecida",
+};

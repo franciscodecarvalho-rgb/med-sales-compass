@@ -461,7 +461,10 @@ function DealCard({ deal, verdeLimit, amareloLimit, onEncerrar, dragging }: {
       }}
     >
       <div className="flex items-start justify-between gap-1">
-        <div className="font-medium text-sm leading-tight flex-1">{deal.titulo}</div>
+        <div className="font-medium text-sm leading-tight flex-1">
+          {(deal as any).numero != null && <span className="text-muted-foreground font-mono mr-1">#{(deal as any).numero}</span>}
+          {deal.titulo}
+        </div>
         {!isFinal && (
           <button
             type="button"

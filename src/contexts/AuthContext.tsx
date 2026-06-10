@@ -28,12 +28,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(newSession);
       setUser(newSession?.user ?? null);
       if (newSession?.user) {
+        setLoading(true);
         // Defer DB call para evitar deadlock
         setTimeout(() => {
-          fetchRoles(newSession.user.id);
+          fetchRoles(newSession.user.id).finally(() => setLoading(false));
         }, 0);
       } else {
         setRoles([]);
+        setLoading(false);
       }
     });
 
@@ -42,9 +44,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
       if (currentSession?.user) {
-        fetchRoles(currentSession.user.id);
+        fetchRoles(currentSession.user.id).finally(() => setLoading(false));
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => subscription.subscription.unsubscribe();

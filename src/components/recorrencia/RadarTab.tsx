@@ -187,6 +187,21 @@ export default function RadarTab({ unidadeId }: { unidadeId?: string }) {
                         <span className="text-muted-foreground italic">Sem compras registradas</span>
                       )}
                       {ciclo && <span>Ciclo: {ciclo}d{r.ciclo_editado_dias ? " (editado)" : ""}</span>}
+                      {r.data_ultima_compra && ciclo && (() => {
+                        const proxima = new Date(r.data_ultima_compra);
+                        proxima.setDate(proxima.getDate() + ciclo);
+                        const diasAteProx = Math.ceil((proxima.getTime() - Date.now()) / 86400000);
+                        const atrasada = diasAteProx < 0;
+                        return (
+                          <span>
+                            Próximo contato:{" "}
+                            <strong className={cn(atrasada ? "text-destructive" : diasAteProx <= 7 ? "text-warning" : "text-foreground")}>
+                              {format(proxima, "dd/MM/yyyy", { locale: ptBR })}
+                              {" "}({atrasada ? `${Math.abs(diasAteProx)}d atrás` : diasAteProx === 0 ? "hoje" : `em ${diasAteProx}d`})
+                            </strong>
+                          </span>
+                        );
+                      })()}
                       <span>{ORIGEM_EQUIPAMENTO_LABELS[r.origem_equipamento]}</span>
                       {!unidadeId && r.profiles?.nome && <span>Vendedor: {r.profiles.nome}</span>}
                     </div>

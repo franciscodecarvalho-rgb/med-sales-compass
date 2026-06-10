@@ -577,7 +577,10 @@ function TabelaDeals({ deals, sortKey, sortDir, onSort, verdeLimit, amareloLimit
               return (
                 <TableRow key={d.id} className={`cursor-pointer ${i % 2 === 1 ? "bg-muted/20" : ""}`}
                   onClick={() => navigate(`/deals/${d.id}`)}>
-                  <TableCell className="font-medium">{d.titulo}</TableCell>
+                  <TableCell className="font-medium">
+                    {(d as any).numero != null && <span className="text-muted-foreground font-mono mr-1">#{(d as any).numero}</span>}
+                    {d.titulo}
+                  </TableCell>
                   <TableCell>
                     {d.unidades_saude?.nome || (d.medicos?.nome && `Dr. ${d.medicos.nome}`) || "—"}
                     <div className="text-xs text-muted-foreground">

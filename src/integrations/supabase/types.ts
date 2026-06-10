@@ -654,6 +654,7 @@ export type Database = {
           medico_id: string | null
           motivo_perda: string | null
           motivo_perda_id: string | null
+          numero: number
           observacoes: string | null
           regiao: string
           resultado: Database["public"]["Enums"]["deal_resultado"]
@@ -683,6 +684,7 @@ export type Database = {
           medico_id?: string | null
           motivo_perda?: string | null
           motivo_perda_id?: string | null
+          numero?: number
           observacoes?: string | null
           regiao?: string
           resultado?: Database["public"]["Enums"]["deal_resultado"]
@@ -712,6 +714,7 @@ export type Database = {
           medico_id?: string | null
           motivo_perda?: string | null
           motivo_perda_id?: string | null
+          numero?: number
           observacoes?: string | null
           regiao?: string
           resultado?: Database["public"]["Enums"]["deal_resultado"]

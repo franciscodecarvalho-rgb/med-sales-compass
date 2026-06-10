@@ -28,6 +28,7 @@ import Stakeholders from "./pages/Stakeholders";
 import StakeholderDetail from "./pages/StakeholderDetail";
 import Configuracoes from "./pages/Configuracoes";
 import Recorrencia from "./pages/Recorrencia";
+import Favoritos from "./pages/Favoritos";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -96,6 +97,7 @@ const App = () => (
               <Route path="/recorrencia" element={
                 <ProtectedRoute requirePermission="view_recorrencia"><Recorrencia /></ProtectedRoute>
               } />
+              <Route path="/favoritos" element={<Favoritos />} />
               <Route path="/configuracoes" element={
                 <ProtectedRoute requireRoles={["admin"]}><Configuracoes /></ProtectedRoute>
               } />

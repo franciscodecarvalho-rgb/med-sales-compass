@@ -18,6 +18,7 @@ import { Plus, Search } from "lucide-react";
 import { toast } from "sonner";
 import { UNIDADE_STATUS_LABELS, UNIDADE_STATUS_BADGE, UnidadeStatus } from "@/lib/crm";
 import { useAuth } from "@/contexts/AuthContext";
+import { FavoritoStar } from "@/components/FavoritoStar";
 import { ExportButton, exportToExcel } from "@/lib/export";
 import { maskCnpj, maskTelefone, maskCep, isEmailValido } from "@/lib/masks";
 import { MultiSelectPopover } from "@/components/MultiSelectPopover";
@@ -174,7 +175,10 @@ export default function Unidades() {
               {filtered.map((u, i) => (
                 <TableRow key={u.id} className={`cursor-pointer ${i % 2 ? "bg-muted/30" : ""} ${u.archived_at ? "opacity-50" : ""}`}>
                   <TableCell className="font-medium">
-                    <Link to={`/unidades/${u.id}`} className="hover:text-primary">{u.nome}</Link>
+                    <div className="flex items-center gap-1.5">
+                      <FavoritoStar tipo="unidade" itemId={u.id} />
+                      <Link to={`/unidades/${u.id}`} className="hover:text-primary">{u.nome}</Link>
+                    </div>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {[u.cidade, u.estados?.sigla].filter(Boolean).join(" - ") || "—"}

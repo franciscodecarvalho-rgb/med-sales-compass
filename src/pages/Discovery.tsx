@@ -20,6 +20,7 @@ import {
 import { Plus, Search as SearchIcon, Sparkles, ExternalLink, FlaskConical, MapPin, ChevronDown, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { FavoritoStar } from "@/components/FavoritoStar";
 import {
   DISCOVERY_STATUS_LABELS, DISCOVERY_STATUS_BADGE, DiscoveryStatus,
 } from "@/lib/crm";
@@ -376,10 +377,13 @@ export default function Discovery() {
                         {g.items.map((it, i) => (
                           <TableRow key={it.id} className={i % 2 ? "bg-muted/30" : ""}>
                             <TableCell className="font-medium">
-                              <Link to={`/discovery/${it.id}`} className="hover:text-primary inline-flex items-center gap-2">
-                                <SearchIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                                {it.nome}
-                              </Link>
+                              <div className="flex items-center gap-1.5">
+                                <FavoritoStar tipo="discovery" itemId={it.id} />
+                                <Link to={`/discovery/${it.id}`} className="hover:text-primary inline-flex items-center gap-2">
+                                  <SearchIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                                  {it.nome}
+                                </Link>
+                              </div>
                             </TableCell>
                             <TableCell className="text-muted-foreground">
                               {it.tipos_unidade?.nome ?? "—"}

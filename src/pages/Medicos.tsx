@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { ExportButton, exportToExcel } from "@/lib/export";
 import { MultiSelectPopover } from "@/components/MultiSelectPopover";
+import { FavoritoStar } from "@/components/FavoritoStar";
 
 type Lookup = { id: string; nome: string };
 type UnidadeLk = { id: string; nome: string; cidade?: string | null };
@@ -136,7 +137,10 @@ export default function Medicos() {
               {filtered.map((m, i) => (
                 <TableRow key={m.id} className={i % 2 ? "bg-muted/30" : ""}>
                   <TableCell className="font-medium">
-                    <Link to={`/medicos/${m.id}`} className="hover:text-primary">Dr. {m.nome}</Link>
+                    <div className="flex items-center gap-1.5">
+                      <FavoritoStar tipo="medico" itemId={m.id} />
+                      <Link to={`/medicos/${m.id}`} className="hover:text-primary">Dr. {m.nome}</Link>
+                    </div>
                   </TableCell>
                   <TableCell className="text-muted-foreground">{m.crm ?? "—"}</TableCell>
                   <TableCell className="text-muted-foreground">

@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Building2, UserRound, Kanban, CheckSquare,
   Settings, LogOut, Activity, Wrench, Search as SearchIcon,
   Handshake, ClipboardCheck, FileText, ShieldCheck, Smile,
-  ArrowLeft, ArrowRight, MessageSquare, RefreshCw,
+  ArrowLeft, ArrowRight, MessageSquare, RefreshCw, Star,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,6 +32,7 @@ const mainSections: NavSection[] = [
   {
     items: [
       { to: "/", label: "Dashboard", icon: LayoutDashboard },
+      { to: "/favoritos", label: "Favoritos", icon: Star },
       { to: "/tarefas", label: "Tarefas", icon: CheckSquare },
       { to: "/funil-vendas", label: "Funil de Vendas", icon: Kanban, permission: "view_funil_vendas" },
       { to: "/recorrencia", label: "Recorrência", icon: RefreshCw, permission: "view_recorrencia" },

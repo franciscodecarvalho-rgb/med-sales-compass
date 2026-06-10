@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Search, Handshake } from "lucide-react";
 import { toast } from "sonner";
+import { FavoritoStar } from "@/components/FavoritoStar";
 
 const TIPOS = ["decisor", "influenciador", "financeiro", "político", "outro"];
 
@@ -104,9 +105,12 @@ export default function Stakeholders() {
               {filtered.map((s) => (
                 <tr key={s.id} className="border-t hover:bg-accent/30 cursor-pointer">
                   <td className="px-3 py-2">
-                    <Link to={`/stakeholders/${s.id}`} className="font-medium text-primary hover:underline">
-                      {s.nome}
-                    </Link>
+                    <div className="flex items-center gap-1.5">
+                      <FavoritoStar tipo="stakeholder" itemId={s.id} />
+                      <Link to={`/stakeholders/${s.id}`} className="font-medium text-primary hover:underline">
+                        {s.nome}
+                      </Link>
+                    </div>
                   </td>
                   <td className="px-3 py-2 text-muted-foreground">{s.cargo ?? "—"}</td>
                   <td className="px-3 py-2 text-muted-foreground">{s.organizacao ?? "—"}</td>

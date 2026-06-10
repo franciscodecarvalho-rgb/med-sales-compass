@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Clock, Search, XCircle, ArrowUpDown, ArrowDown, ArrowUp, Wrench } from "lucide-react";
 import { toast } from "sonner";
+import { FavoritoStar } from "@/components/FavoritoStar";
 import { STAGE_ORDER, STAGE_LABELS, formatCurrency, DealStage, ESTADOS_BR } from "@/lib/crm";
 import { ExportButton, exportToExcel } from "@/lib/export";
 import QuickUnidadeDialog from "@/components/QuickUnidadeDialog";
@@ -322,6 +323,7 @@ function DealCard({ deal, verdeLimit, amareloLimit, onEncerrar, dragging }: {
     >
       <div className="flex items-start justify-between gap-1">
         <div className="font-medium text-sm leading-tight flex-1">{deal.titulo}</div>
+        <FavoritoStar tipo="deal_manutencao" itemId={deal.id} />
         {!isFinal && (
           <button type="button" onClick={(e) => { e.stopPropagation(); onEncerrar(deal); }}
             className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive shrink-0"

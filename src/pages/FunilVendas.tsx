@@ -17,6 +17,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Download, Clock, Search, XCircle, ArrowUpDown, ArrowDown, ArrowUp, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { FavoritoStar } from "@/components/FavoritoStar";
 import {
   STAGE_ORDER, STAGE_LABELS, formatCurrency, DealStage, ESTADOS_BR, RESULTADO_LABELS, regiaoFromEstado, REGIAO_LABELS,
 } from "@/lib/crm";
@@ -465,6 +466,7 @@ function DealCard({ deal, verdeLimit, amareloLimit, onEncerrar, dragging }: {
           {(deal as any).numero != null && <span className="text-muted-foreground font-mono mr-1">#{(deal as any).numero}</span>}
           {deal.titulo}
         </div>
+        <FavoritoStar tipo="deal" itemId={deal.id} />
         {!isFinal && (
           <button
             type="button"

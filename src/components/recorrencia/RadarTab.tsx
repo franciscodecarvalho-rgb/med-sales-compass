@@ -19,6 +19,7 @@ import {
   type ConsumiveiStatus, type OrigemEquipamento,
 } from "@/lib/crm";
 import RegistrarCompraDialog from "./RegistrarCompraDialog";
+import { FavoritoStar } from "@/components/FavoritoStar";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -154,6 +155,7 @@ export default function RadarTab({ unidadeId }: { unidadeId?: string }) {
                 <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
                   <div className="flex-1 min-w-0 space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
+                      <FavoritoStar tipo="recorrencia" itemId={r.id} />
                       {unidadeId ? (
                         <span className="font-semibold text-sm">{r.linhas_produto?.nome}</span>
                       ) : (

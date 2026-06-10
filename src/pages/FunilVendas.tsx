@@ -461,7 +461,10 @@ function DealCard({ deal, verdeLimit, amareloLimit, onEncerrar, dragging }: {
       }}
     >
       <div className="flex items-start justify-between gap-1">
-        <div className="font-medium text-sm leading-tight flex-1">{deal.titulo}</div>
+        <div className="font-medium text-sm leading-tight flex-1">
+          {(deal as any).numero != null && <span className="text-muted-foreground font-mono mr-1">#{(deal as any).numero}</span>}
+          {deal.titulo}
+        </div>
         {!isFinal && (
           <button
             type="button"
@@ -574,7 +577,10 @@ function TabelaDeals({ deals, sortKey, sortDir, onSort, verdeLimit, amareloLimit
               return (
                 <TableRow key={d.id} className={`cursor-pointer ${i % 2 === 1 ? "bg-muted/20" : ""}`}
                   onClick={() => navigate(`/deals/${d.id}`)}>
-                  <TableCell className="font-medium">{d.titulo}</TableCell>
+                  <TableCell className="font-medium">
+                    {(d as any).numero != null && <span className="text-muted-foreground font-mono mr-1">#{(d as any).numero}</span>}
+                    {d.titulo}
+                  </TableCell>
                   <TableCell>
                     {d.unidades_saude?.nome || (d.medicos?.nome && `Dr. ${d.medicos.nome}`) || "—"}
                     <div className="text-xs text-muted-foreground">

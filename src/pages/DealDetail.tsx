@@ -108,7 +108,12 @@ export default function DealDetail() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-bold tracking-tight">{deal.titulo}</h1>
+            <h1 className="text-3xl font-bold tracking-tight">
+              {(deal as any).numero != null && (
+                <span className="text-muted-foreground font-mono mr-2">#{(deal as any).numero}</span>
+              )}
+              {deal.titulo}
+            </h1>
             {isFinalizado && (
               <Badge variant={deal.resultado === "ganho" ? "default" : "destructive"}>
                 {RESULTADO_LABELS[deal.resultado as keyof typeof RESULTADO_LABELS]}

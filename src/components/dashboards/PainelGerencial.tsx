@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { KpiCard } from "@/components/dashboards/KpiCard";
+import MetaAgendamentosGestor from "@/components/dashboards/MetaAgendamentosGestor";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend, CartesianGrid,
@@ -207,6 +208,8 @@ export default function PainelGerencial() {
 
           {/* ============ GERAL ============ */}
           <TabsContent value="geral" className="space-y-6">
+            <MetaAgendamentosGestor />
+
             {/* KPIs principais */}
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
               <KpiCard title="Receita Ganha" value={fmt(totais.receita)} icon={DollarSign} variant="primary" hint={`${totais.ganhos} deals ganhos`} />

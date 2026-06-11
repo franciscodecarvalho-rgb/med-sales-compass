@@ -729,6 +729,7 @@ function NovaTarefaDialog({ onSaved }: { onSaved: () => void }) {
     titulo: "", descricao: "", data: "", prioridade: "media" as TarefaPrioridade,
     vinculo: "livre" as VinculoFiltro, entidadeId: "",
     responsavelId: user?.id ?? "",
+    tipoAgendamento: "comum" as "comum" | "call" | "visita",
   });
   const [opcoes, setOpcoes] = useState<any[]>([]);
   const [responsaveis, setResponsaveis] = useState<any[]>([]);
@@ -786,6 +787,7 @@ function NovaTarefaDialog({ onSaved }: { onSaved: () => void }) {
       criador_id: user.id,
       prioridade: form.prioridade,
       data_vencimento: form.data || null,
+      tipo_agendamento: form.tipoAgendamento === "comum" ? null : form.tipoAgendamento,
     };
 
     if (form.vinculo === "deal") payload.deal_id = form.entidadeId;
@@ -829,6 +831,20 @@ function NovaTarefaDialog({ onSaved }: { onSaved: () => void }) {
               </SelectContent>
             </Select>
           </div>
+        </div>
+        <div className="space-y-2">
+          <Label>Tipo</Label>
+          <Select value={form.tipoAgendamento} onValueChange={(v) => setForm({ ...form, tipoAgendamento: v as "comum" | "call" | "visita" })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="comum">Tarefa comum</SelectItem>
+              <SelectItem value="call">📞 Agendamento de Call</SelectItem>
+              <SelectItem value="visita">🏥 Agendamento de Visita</SelectItem>
+            </SelectContent>
+          </Select>
+          {form.tipoAgendamento !== "comum" && (
+            <p className="text-[11px] text-muted-foreground">Conta para a sua meta diária de agendamentos.</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label>Vínculo</Label>

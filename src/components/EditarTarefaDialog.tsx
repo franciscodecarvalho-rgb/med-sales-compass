@@ -71,7 +71,11 @@ export function EditarTarefaDialogContent({ tarefa, onSaved }: { tarefa: any; on
     const { error } = await supabase.from("tarefas").update(updates).eq("id", tarefa.id);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    toast.success("Tarefa atualizada");
+    if (tarefa.status === "atrasada" && updates.status === "pendente") {
+      toast.success("Tarefa atualizada — voltou de Atrasada para Pendente (nova data futura)");
+    } else {
+      toast.success("Tarefa atualizada");
+    }
     setNovaNota("");
     onSaved();
   };

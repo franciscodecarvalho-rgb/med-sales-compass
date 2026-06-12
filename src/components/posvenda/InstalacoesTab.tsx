@@ -15,6 +15,7 @@ import {
   type InstalacaoTipo, type InstalacaoStatus,
 } from "@/lib/crm";
 import { Plus, Upload } from "lucide-react";
+import { format } from "date-fns";
 
 interface Inst {
   id: string;
@@ -43,6 +44,7 @@ export default function InstalacoesTab() {
   const [fTipo, setFTipo] = useState("all");
 
   const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     deal_id: "",
     unidade_id: "",
@@ -79,6 +81,7 @@ export default function InstalacoesTab() {
 
   async function createInst() {
     if (!form.unidade_id) { toast({ title: "Selecione uma unidade", variant: "destructive" }); return; }
+    setSaving(true);
     const { error } = await supabase.from("instalacoes").insert({
       deal_id: form.deal_id || null,
       unidade_id: form.unidade_id,
@@ -88,6 +91,7 @@ export default function InstalacoesTab() {
       observacoes: form.observacoes || null,
       created_by: user?.id ?? null,
     });
+    setSaving(false);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Registro criado" });
     setOpen(false);
@@ -97,7 +101,7 @@ export default function InstalacoesTab() {
 
   async function changeStatus(id: string, status: InstalacaoStatus) {
     const patch: any = { status };
-    if (status === "concluido") patch.data_conclusao = new Date().toISOString().slice(0, 10);
+    if (status === "concluido") patch.data_conclusao = format(new Date(), "yyyy-MM-dd");
     const { error } = await supabase.from("instalacoes").update(patch).eq("id", id);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     load();
@@ -108,7 +112,8 @@ export default function InstalacoesTab() {
     const up = await supabase.storage.from("posvenda-pdfs").upload(path, file, { upsert: true });
     if (up.error) { toast({ title: "Erro upload", description: up.error.message, variant: "destructive" }); return; }
     const { data: url } = supabase.storage.from("posvenda-pdfs").getPublicUrl(path);
-    await supabase.from("instalacoes").update({ pdf_url: url.publicUrl }).eq("id", id);
+    const { error: updErr } = await supabase.from("instalacoes").update({ pdf_url: url.publicUrl }).eq("id", id);
+    if (updErr) { toast({ title: "Erro ao vincular PDF", description: updErr.message, variant: "destructive" }); return; }
     toast({ title: "PDF enviado" });
     load();
   }
@@ -184,7 +189,7 @@ export default function InstalacoesTab() {
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-                <Button onClick={createInst}>Criar</Button>
+                <Button onClick={createInst} disabled={saving}>{saving ? "Criando..." : "Criar"}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>

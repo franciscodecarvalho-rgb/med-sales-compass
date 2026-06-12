@@ -11,6 +11,8 @@ export type FavoritoTipo =
 let cache: Set<string> | null = null;
 let cacheUserId: string | null = null;
 const listeners = new Set<() => void>();
+// Itens com requisição em andamento — evita estado inconsistente em cliques rápidos
+const inFlight = new Set<string>();
 
 function key(tipo: FavoritoTipo, itemId: string) {
   return `${tipo}:${itemId}`;
@@ -48,18 +50,24 @@ export function useFavoritos() {
   const toggle = useCallback(async (tipo: FavoritoTipo, itemId: string) => {
     if (!user || !cache) return;
     const k = key(tipo, itemId);
-    if (cache.has(k)) {
-      cache.delete(k);
-      notify();
-      const { error } = await supabase.from("favoritos")
-        .delete().eq("user_id", user.id).eq("tipo", tipo).eq("item_id", itemId);
-      if (error) { cache.add(k); notify(); toast.error(error.message); }
-    } else {
-      cache.add(k);
-      notify();
-      const { error } = await supabase.from("favoritos")
-        .insert({ user_id: user.id, tipo, item_id: itemId });
-      if (error) { cache.delete(k); notify(); toast.error(error.message); }
+    if (inFlight.has(k)) return;
+    inFlight.add(k);
+    try {
+      if (cache.has(k)) {
+        cache.delete(k);
+        notify();
+        const { error } = await supabase.from("favoritos")
+          .delete().eq("user_id", user.id).eq("tipo", tipo).eq("item_id", itemId);
+        if (error) { cache.add(k); notify(); toast.error(error.message); }
+      } else {
+        cache.add(k);
+        notify();
+        const { error } = await supabase.from("favoritos")
+          .insert({ user_id: user.id, tipo, item_id: itemId });
+        if (error) { cache.delete(k); notify(); toast.error(error.message); }
+      }
+    } finally {
+      inFlight.delete(k);
     }
   }, [user]);
 

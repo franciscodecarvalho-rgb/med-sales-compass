@@ -9,6 +9,7 @@ import { FavoritoStar } from "@/components/FavoritoStar";
 import type { FavoritoTipo } from "@/hooks/useFavoritos";
 import { CONSUMIVEL_STATUS_LABELS, CONSUMIVEL_STATUS_BADGE } from "@/lib/crm";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface FavRow { tipo: FavoritoTipo; item_id: string }
 
@@ -28,6 +29,7 @@ export default function Favoritos() {
 
   async function load() {
     setLoading(true);
+    try {
     const { data: favs } = await supabase
       .from("favoritos")
       .select("tipo, item_id")
@@ -126,7 +128,12 @@ export default function Favoritos() {
     ].filter(g => g.itens.length > 0);
 
     setGrupos(gs);
-    setLoading(false);
+    } catch (err) {
+      console.error("Erro ao carregar favoritos:", err);
+      toast.error("Erro ao carregar favoritos. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   const total = grupos.reduce((s, g) => s + g.itens.length, 0);

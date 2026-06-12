@@ -19,6 +19,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ExportButton, exportToExcel } from "@/lib/export";
 import { MultiSelectPopover } from "@/components/MultiSelectPopover";
 import { FavoritoStar } from "@/components/FavoritoStar";
+import { maskTelefone } from "@/lib/masks";
 
 type Lookup = { id: string; nome: string };
 type UnidadeLk = { id: string; nome: string; cidade?: string | null };
@@ -241,7 +242,7 @@ function MedicoForm({ especialidades, unidades, userId, onSaved }: { especialida
           <div className="space-y-2">
             <Label>Telefone</Label>
             <Input value={form.telefone}
-              onChange={(e) => setForm({ ...form, telefone: e.target.value })} />
+              onChange={(e) => setForm({ ...form, telefone: maskTelefone(e.target.value) })} />
           </div>
         </div>
         <div className="space-y-2">

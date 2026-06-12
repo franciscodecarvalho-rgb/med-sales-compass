@@ -237,11 +237,12 @@ export default function VendasAdvanceDetalhe() {
     const it = itens.find((i) => i.chave_item === chaveItem);
     if (!it) return;
 
-    await supabase.from("saidas_advance_itens").update({
+    const { error } = await supabase.from("saidas_advance_itens").update({
       concluido,
       concluido_por: concluido ? user.id : null,
       concluido_em: concluido ? new Date().toISOString() : null,
     }).eq("id", it.id);
+    if (error) { toast.error(error.message); return; }
 
     setItens((prev) =>
       prev.map((i) =>

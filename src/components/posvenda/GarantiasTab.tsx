@@ -32,6 +32,7 @@ export default function GarantiasTab() {
   const [fUnidade, setFUnidade] = useState("all");
 
   const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     unidade_id: "", descricao_equipamento: "", linha_id: "",
     data_inicio: "", data_fim: "",
@@ -72,11 +73,16 @@ export default function GarantiasTab() {
     if (!form.unidade_id || !form.descricao_equipamento || !form.data_inicio || !form.data_fim) {
       toast({ title: "Preencha todos os campos obrigatórios", variant: "destructive" }); return;
     }
+    if (form.data_inicio > form.data_fim) {
+      toast({ title: "Data de início não pode ser depois da data de fim", variant: "destructive" }); return;
+    }
+    setSaving(true);
     const { error } = await supabase.from("garantias").insert({
       unidade_id: form.unidade_id, descricao_equipamento: form.descricao_equipamento,
       linha_id: form.linha_id || null, data_inicio: form.data_inicio, data_fim: form.data_fim,
       status: computeVigenciaStatus(form.data_fim), created_by: user?.id ?? null,
     });
+    setSaving(false);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Garantia criada" });
     setOpen(false);
@@ -144,7 +150,7 @@ export default function GarantiasTab() {
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-                <Button onClick={create}>Criar</Button>
+                <Button onClick={create} disabled={saving}>{saving ? "Criando..." : "Criar"}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>

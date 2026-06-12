@@ -106,10 +106,11 @@ export default function AppLayout() {
 
   useEffect(() => {
     async function loadBadges() {
-      const { count } = await supabase
+      const { count, error } = await supabase
         .from("saidas_advance")
         .select("*", { count: "exact", head: true })
         .eq("status", "em_andamento");
+      if (error) { console.error("Erro ao carregar badges:", error.message); return; }
       setBadges({ advance_em_andamento: count ?? 0 });
     }
     void loadBadges();

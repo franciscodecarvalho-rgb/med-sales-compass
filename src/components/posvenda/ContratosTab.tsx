@@ -31,6 +31,7 @@ export default function ContratosTab() {
   const [fUnidade, setFUnidade] = useState("all");
 
   const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     unidade_id: "", linha_id: "", tipo_contrato: "",
     vigencia_inicio: "", vigencia_fim: "", valor: "0", cobertura: "",
@@ -66,6 +67,10 @@ export default function ContratosTab() {
     if (!form.unidade_id || !form.tipo_contrato || !form.vigencia_inicio || !form.vigencia_fim) {
       toast({ title: "Preencha unidade, tipo e vigência", variant: "destructive" }); return;
     }
+    if (form.vigencia_inicio > form.vigencia_fim) {
+      toast({ title: "Início da vigência não pode ser depois do fim", variant: "destructive" }); return;
+    }
+    setSaving(true);
     const { error } = await supabase.from("contratos_manutencao").insert({
       unidade_id: form.unidade_id, linha_id: form.linha_id || null,
       tipo_contrato: form.tipo_contrato, vigencia_inicio: form.vigencia_inicio,
@@ -73,6 +78,7 @@ export default function ContratosTab() {
       cobertura: form.cobertura || null, created_by: user?.id ?? null,
       status: computeVigenciaStatus(form.vigencia_fim) === "vencida" ? "vencido" : computeVigenciaStatus(form.vigencia_fim) === "a_vencer" ? "a_vencer" : "ativo",
     });
+    setSaving(false);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Contrato criado" });
     setOpen(false);
@@ -143,7 +149,7 @@ export default function ContratosTab() {
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-                <Button onClick={create}>Criar</Button>
+                <Button onClick={create} disabled={saving}>{saving ? "Criando..." : "Criar"}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>

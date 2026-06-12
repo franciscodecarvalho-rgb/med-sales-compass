@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { npsColorClass } from "@/lib/crm";
 import { Plus } from "lucide-react";
+import { format } from "date-fns";
 
 interface Nps { id: string; unidade_id: string; nota: number; data: string; comentarios: string | null; }
 
@@ -26,7 +27,8 @@ export default function NpsTab() {
   const [fFaixa, setFFaixa] = useState("all");
 
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ unidade_id: "", nota: "9", data: new Date().toISOString().slice(0, 10), comentarios: "" });
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({ unidade_id: "", nota: "9", data: format(new Date(), "yyyy-MM-dd"), comentarios: "" });
 
   async function load() {
     setLoading(true);
@@ -49,6 +51,12 @@ export default function NpsTab() {
   }), [items, fUnidade, fFaixa]);
 
   const avg = filtered.length ? (filtered.reduce((s, n) => s + n.nota, 0) / filtered.length).toFixed(1) : "—";
+  const npsScore = filtered.length
+    ? Math.round(
+        ((filtered.filter((n) => n.nota >= 9).length - filtered.filter((n) => n.nota <= 6).length) /
+          filtered.length) * 100,
+      )
+    : null;
   const unidadeName = (id: string) => unidades.find((u) => u.id === id)?.nome ?? "—";
 
   async function create() {
@@ -56,20 +64,28 @@ export default function NpsTab() {
     if (!form.unidade_id || isNaN(nota) || nota < 0 || nota > 10) {
       toast({ title: "Selecione unidade e nota (0-10)", variant: "destructive" }); return;
     }
+    setSaving(true);
     const { error } = await supabase.from("nps").insert({
       unidade_id: form.unidade_id, nota, data: form.data,
       comentarios: form.comentarios || null, created_by: user?.id ?? null,
     });
+    setSaving(false);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "NPS registrado" });
     setOpen(false);
-    setForm({ unidade_id: "", nota: "9", data: new Date().toISOString().slice(0, 10), comentarios: "" });
+    setForm({ unidade_id: "", nota: "9", data: format(new Date(), "yyyy-MM-dd"), comentarios: "" });
     load();
   }
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
+        <div className="rounded-md border bg-card px-4 py-2 text-sm">
+          <span className="text-muted-foreground">NPS:</span>{" "}
+          <span className={`font-bold text-lg ${npsScore === null ? "" : npsScore >= 50 ? "text-success" : npsScore >= 0 ? "text-warning" : "text-destructive"}`}>
+            {npsScore === null ? "—" : npsScore}
+          </span>
+        </div>
         <div className="rounded-md border bg-card px-4 py-2 text-sm">
           <span className="text-muted-foreground">Média:</span> <span className="font-bold text-lg">{avg}</span>
         </div>
@@ -113,7 +129,7 @@ export default function NpsTab() {
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-                <Button onClick={create}>Registrar</Button>
+                <Button onClick={create} disabled={saving}>{saving ? "Registrando..." : "Registrar"}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -139,7 +155,7 @@ export default function NpsTab() {
                 <TableCell>
                   <Badge variant="outline" className={`${npsColorClass(n.nota)} font-bold text-base px-3 py-0.5`}>{n.nota}</Badge>
                 </TableCell>
-                <TableCell>{new Date(n.data).toLocaleDateString("pt-BR")}</TableCell>
+                <TableCell>{new Date(n.data + "T00:00:00").toLocaleDateString("pt-BR")}</TableCell>
                 <TableCell className="max-w-[420px] truncate text-muted-foreground">{n.comentarios || "—"}</TableCell>
               </TableRow>
             ))}

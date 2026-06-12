@@ -14,6 +14,7 @@ import { UserRound, ArrowLeft, Plus, Stethoscope, Mail, Phone, Star, Save, Trash
 import { TarefaPrioridade } from "@/lib/crm";
 import { TarefasList } from "@/components/TarefasList";
 import { toast } from "sonner";
+import { maskTelefone } from "@/lib/masks";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
@@ -129,7 +130,9 @@ export default function MedicoDetail() {
                     <div className="flex items-center gap-2">
                       {isPrincipal && <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30">Tomador de decisão</Badge>}
                       <Button variant="ghost" size="sm" onClick={async () => {
-                        await supabase.from("medico_unidades").delete().eq("id", mu.id);
+                        if (!confirm("Desvincular esta unidade do médico?")) return;
+                        const { error } = await supabase.from("medico_unidades").delete().eq("id", mu.id);
+                        if (error) { toast.error(error.message); return; }
                         void load();
                       }}><Trash2 className="h-4 w-4" /></Button>
                     </div>
@@ -231,7 +234,7 @@ function DadosForm({ medico, especialidades, onSaved }: { medico: any; especiali
                 <SelectContent>{especialidades.map((e) => <SelectItem key={e.id} value={e.id}>{e.nome}</SelectItem>)}</SelectContent>
               </Select></div>
             <div className="space-y-2"><Label>Telefone</Label>
-              <Input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} /></div>
+              <Input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: maskTelefone(e.target.value) })} /></div>
           </div>
           <div className="space-y-2"><Label>Email</Label>
             <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>

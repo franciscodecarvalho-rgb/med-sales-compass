@@ -60,6 +60,7 @@ export default function ChamadosTab() {
 
   // Modal
   const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     unidade_id: "",
     descricao_equipamento: "",
@@ -109,6 +110,7 @@ export default function ChamadosTab() {
       toast({ title: "Preencha unidade, equipamento e problema", variant: "destructive" });
       return;
     }
+    setSaving(true);
     const { error } = await supabase.from("chamados").insert({
       unidade_id: form.unidade_id,
       descricao_equipamento: form.descricao_equipamento,
@@ -117,6 +119,7 @@ export default function ChamadosTab() {
       tecnico_id: form.tecnico_id || null,
       created_by: user?.id ?? null,
     });
+    setSaving(false);
     if (error) { toast({ title: "Erro ao criar chamado", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Chamado criado" });
     setOpen(false);
@@ -203,7 +206,7 @@ export default function ChamadosTab() {
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-                <Button onClick={createChamado}>Criar Chamado</Button>
+                <Button onClick={createChamado} disabled={saving}>{saving ? "Criando..." : "Criar Chamado"}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>

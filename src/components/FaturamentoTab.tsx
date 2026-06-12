@@ -66,8 +66,10 @@ export function FaturamentoTab() {
             !f.deals?.unidades_saude?.nome?.toLowerCase().includes(q) &&
             !f.numero_nf?.toLowerCase().includes(q)) return false;
       }
-      if (periodoIni && f.data_faturamento < periodoIni) return false;
-      if (periodoFim && f.data_faturamento > periodoFim) return false;
+      // data_faturamento pode vir com hora; normaliza para yyyy-MM-dd antes de comparar
+      const dataFat = (f.data_faturamento ?? "").slice(0, 10);
+      if (periodoIni && dataFat < periodoIni) return false;
+      if (periodoFim && dataFat > periodoFim) return false;
       return true;
     });
   }, [faturados, search, periodoIni, periodoFim]);
@@ -192,7 +194,7 @@ export function FaturamentoTab() {
                       <TableCell>{f.deals?.unidades_saude?.nome}</TableCell>
                       <TableCell className="text-right font-mono tabular-nums">{formatCurrency(f.deals?.valor_total)}</TableCell>
                       <TableCell><Badge variant="outline">{f.numero_nf}</Badge></TableCell>
-                      <TableCell className="text-sm">{format(new Date(f.data_faturamento), "dd/MM/yyyy")}</TableCell>
+                      <TableCell className="text-sm">{format(new Date(f.data_faturamento.slice(0, 10) + "T00:00:00"), "dd/MM/yyyy")}</TableCell>
                       <TableCell className="text-right font-mono tabular-nums font-semibold text-success">{formatCurrency(f.valor_faturado)}</TableCell>
                     </TableRow>
                   ))}

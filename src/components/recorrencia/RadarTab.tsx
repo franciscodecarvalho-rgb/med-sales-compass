@@ -20,7 +20,7 @@ import {
 } from "@/lib/crm";
 import RegistrarCompraDialog from "./RegistrarCompraDialog";
 import { FavoritoStar } from "@/components/FavoritoStar";
-import { format } from "date-fns";
+import { addDays, format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const STATUS_ORDER: ConsumiveiStatus[] = ["em_risco", "atencao", "inativo", "ativo", "pausado"];
@@ -89,7 +89,7 @@ export default function RadarTab({ unidadeId }: { unidadeId?: string }) {
 
   function diasDesde(data: string | null) {
     if (!data) return null;
-    return Math.floor((Date.now() - new Date(data).getTime()) / 86400000);
+    return Math.floor((Date.now() - parseISO(data).getTime()) / 86400000);
   }
 
   function cicloEfetivo(r: Rec) {
@@ -190,8 +190,7 @@ export default function RadarTab({ unidadeId }: { unidadeId?: string }) {
                       )}
                       {ciclo && <span>Ciclo: {ciclo}d{r.ciclo_editado_dias ? " (editado)" : ""}</span>}
                       {r.data_ultima_compra && ciclo && (() => {
-                        const proxima = new Date(r.data_ultima_compra);
-                        proxima.setDate(proxima.getDate() + ciclo);
+                        const proxima = addDays(parseISO(r.data_ultima_compra), ciclo);
                         const diasAteProx = Math.ceil((proxima.getTime() - Date.now()) / 86400000);
                         const atrasada = diasAteProx < 0;
                         return (
@@ -210,7 +209,7 @@ export default function RadarTab({ unidadeId }: { unidadeId?: string }) {
                     {r.status === "pausado" && r.pausa_motivo && (
                       <p className="text-xs text-muted-foreground italic">
                         Pausado: {r.pausa_motivo}
-                        {r.pausa_ate && ` (até ${format(new Date(r.pausa_ate), "dd/MM/yyyy", { locale: ptBR })})`}
+                        {r.pausa_ate && ` (até ${format(parseISO(r.pausa_ate), "dd/MM/yyyy", { locale: ptBR })})`}
                       </p>
                     )}
                   </div>
@@ -225,9 +224,10 @@ export default function RadarTab({ unidadeId }: { unidadeId?: string }) {
                         </Button>
                       ) : (
                         <Button size="sm" variant="ghost" onClick={async () => {
-                          await supabase.from("consumiveis_recorrencia")
+                          const { error } = await supabase.from("consumiveis_recorrencia")
                             .update({ status: "ativo", pausa_motivo: null, pausa_ate: null })
                             .eq("id", r.id);
+                          if (error) { toast.error(error.message); return; }
                           toast.success("Despausado");
                           void load();
                         }}>

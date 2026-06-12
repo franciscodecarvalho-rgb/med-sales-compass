@@ -98,7 +98,7 @@ export function EnviarParaFaturamentoModal({ open, deal, onClose, onSuccess }: P
     }
 
     // Persiste SEMPRE no banco
-    const { data: dbRow } = await supabase
+    const { data: dbRow, error: errAnalise } = await supabase
       .from("analises_credito")
       .insert({
         numero_analise: res.numero_analise,
@@ -116,14 +116,21 @@ export function EnviarParaFaturamentoModal({ open, deal, onClose, onSuccess }: P
       .select("id")
       .single();
 
+    if (errAnalise || !dbRow?.id) {
+      toast.error(errAnalise?.message ?? "Erro ao salvar a análise de crédito");
+      setConsultando(false);
+      return;
+    }
+
     setAnaliseResult({ ...res, status: statusFinal });
-    setAnaliseDbId(dbRow?.id ?? null);
+    setAnaliseDbId(dbRow.id);
     setConsultando(false);
   }
 
   // Verifica se pode enviar para o Advance
   function podeEnviar(): boolean {
-    if (forma === "a_vista_cartao" || forma === "financiamento_externo") return true;
+    if (forma === "a_vista_cartao") return true;
+    if (forma === "financiamento_externo") return instituicao.trim().length > 0;
     if (forma === "financiado_interno") {
       return analiseResult?.status === "aprovado";
     }
@@ -182,6 +189,8 @@ export function EnviarParaFaturamentoModal({ open, deal, onClose, onSuccess }: P
                 forma === "financiado_interno" ? analiseDbId : null,
               instituicao:
                 forma === "financiamento_externo" ? instituicao || null : null,
+              observacoes:
+                forma === "financiamento_externo" ? obsExterno.trim() || null : null,
             }
           : null,
     }));
@@ -267,7 +276,7 @@ export function EnviarParaFaturamentoModal({ open, deal, onClose, onSuccess }: P
           {forma === "financiamento_externo" && (
             <div className="space-y-3 rounded-md border p-3 bg-muted/20">
               <div className="space-y-1">
-                <Label className="text-xs">Instituição Financeira</Label>
+                <Label className="text-xs">Instituição Financeira *</Label>
                 <Input
                   placeholder="Ex: Banco Bradesco, Caixa Econômica..."
                   value={instituicao}

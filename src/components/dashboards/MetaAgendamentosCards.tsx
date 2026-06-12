@@ -71,7 +71,17 @@ export default function MetaAgendamentosCards({ userId, showHistorico = false }:
   }
 
   if (loading) return null;
-  if (metaDia === null) return null; // sem meta definida → não mostra nada
+  if (metaDia === null) {
+    // Sem meta definida → mostra aviso discreto em vez de sumir sem explicação
+    return (
+      <Card className="border-dashed">
+        <CardContent className="flex items-center gap-2 p-3 text-xs text-muted-foreground">
+          <CalendarCheck className="h-4 w-4 shrink-0" />
+          Meta de agendamentos não definida para você. Peça ao gestor para configurar em Configurações.
+        </CardContent>
+      </Card>
+    );
+  }
 
   const periodos = getPeriodos();
   const cards = [

@@ -213,7 +213,13 @@ export default function DealDetail() {
                   <div className="flex items-center gap-2">
                     <span className="font-semibold">{formatCurrency(de.quantidade * Number(de.valor_unitario))}</span>
                     <Button variant="ghost" size="icon" onClick={async () => {
-                      await supabase.from("deal_equipamentos").delete().eq("id", de.id);
+                      if (!confirm(`Remover "${de.equipamentos?.nome ?? de.descricao ?? "equipamento"}" do deal?`)) return;
+                      const { error } = await supabase.from("deal_equipamentos").delete().eq("id", de.id);
+                      if (error) { toast.error(error.message); return; }
+                      // Recalcula valor total do deal (mesma regra do adicionar)
+                      const { data: items } = await supabase.from("deal_equipamentos").select("quantidade, valor_unitario").eq("deal_id", id!);
+                      const total = (items ?? []).reduce((s, i) => s + i.quantidade * Number(i.valor_unitario), 0);
+                      await supabase.from("deals").update({ valor_total: total }).eq("id", id!);
                       void load();
                     }}>
                       <Trash2 className="h-4 w-4" />

@@ -16,6 +16,7 @@ import PosVendaUnidadeTab from "@/components/posvenda/PosVendaUnidadeTab";
 import RadarTab from "@/components/recorrencia/RadarTab";
 import ProspeccaoTab from "@/components/recorrencia/ProspeccaoTab";
 import { toast } from "sonner";
+import { maskCnpj, maskTelefone, maskCep } from "@/lib/masks";
 import { UNIDADE_STATUS_LABELS, UNIDADE_STATUS_BADGE, UnidadeStatus, TarefaPrioridade } from "@/lib/crm";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -191,7 +192,9 @@ export default function UnidadeDetail() {
                       <div className="text-[10px] uppercase text-muted-foreground">unidade(s)</div>
                     </div>
                     <Button variant="ghost" size="sm" onClick={async () => {
-                      await supabase.from("parque_instalado").update({ archived_at: new Date().toISOString() }).eq("id", p.id);
+                      if (!confirm(`Remover "${p.linhas_produto?.nome ?? "equipamento"}" do parque instalado?`)) return;
+                      const { error } = await supabase.from("parque_instalado").update({ archived_at: new Date().toISOString() }).eq("id", p.id);
+                      if (error) { toast.error(error.message); return; }
                       void load();
                     }}>
                       <Trash2 className="h-4 w-4" />
@@ -250,7 +253,9 @@ export default function UnidadeDetail() {
                       </div>
                     </div>
                     <Button variant="ghost" size="sm" onClick={async () => {
-                      await supabase.from("medico_unidades").delete().eq("id", mv.id);
+                      if (!confirm(`Desvincular Dr. ${mv.medicos.nome} desta unidade?`)) return;
+                      const { error } = await supabase.from("medico_unidades").delete().eq("id", mv.id);
+                      if (error) { toast.error(error.message); return; }
                       void load();
                     }}>
                       <Trash2 className="h-4 w-4" />
@@ -282,7 +287,9 @@ export default function UnidadeDetail() {
                       </div>
                     </div>
                     <Button variant="ghost" size="sm" onClick={async () => {
-                      await supabase.from("contatos").update({ archived_at: new Date().toISOString() }).eq("id", c.id);
+                      if (!confirm(`Remover o contato "${c.nome}"?`)) return;
+                      const { error } = await supabase.from("contatos").update({ archived_at: new Date().toISOString() }).eq("id", c.id);
+                      if (error) { toast.error(error.message); return; }
                       void load();
                     }}>
                       <Trash2 className="h-4 w-4" />
@@ -507,7 +514,7 @@ function DadosForm({ unidade, tipos, estados, onSaved }: { unidade: any; tipos: 
             <div className="space-y-2"><Label>Nome *</Label>
               <Input required value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} /></div>
             <div className="space-y-2"><Label>CNPJ</Label>
-              <Input value={form.cnpj} onChange={(e) => setForm({ ...form, cnpj: e.target.value })} /></div>
+              <Input value={form.cnpj} onChange={(e) => setForm({ ...form, cnpj: maskCnpj(e.target.value) })} /></div>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-2"><Label>Tipo</Label>
@@ -543,9 +550,9 @@ function DadosForm({ unidade, tipos, estados, onSaved }: { unidade: any; tipos: 
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-2"><Label>CEP</Label>
-              <Input value={form.cep} onChange={(e) => setForm({ ...form, cep: e.target.value })} /></div>
+              <Input value={form.cep} onChange={(e) => setForm({ ...form, cep: maskCep(e.target.value) })} /></div>
             <div className="space-y-2"><Label>Telefone</Label>
-              <Input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} /></div>
+              <Input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: maskTelefone(e.target.value) })} /></div>
             <div className="space-y-2"><Label>Email</Label>
               <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
           </div>
@@ -674,7 +681,7 @@ function ContatoAdd({ unidadeId, papeis, onAdded }: { unidadeId: string; papeis:
             <SelectContent>{papeis.map((p) => <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>)}</SelectContent>
           </Select>
           <Input placeholder="Setor" value={form.setor} onChange={(e) => setForm({ ...form, setor: e.target.value })} />
-          <Input placeholder="Telefone" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} />
+          <Input placeholder="Telefone" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: maskTelefone(e.target.value) })} />
           <div className="flex gap-2">
             <Input placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
             <Button type="submit"><Plus className="h-4 w-4" /></Button>

@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Plus, Search, Handshake } from "lucide-react";
 import { toast } from "sonner";
 import { FavoritoStar } from "@/components/FavoritoStar";
+import { maskTelefone } from "@/lib/masks";
 
 const TIPOS = ["decisor", "influenciador", "financeiro", "político", "outro"];
 
@@ -210,7 +211,7 @@ export function StakeholderDialog({
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
             <Label>Telefone</Label>
-            <Input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} />
+            <Input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: maskTelefone(e.target.value) })} />
           </div>
           <div className="space-y-2">
             <Label>Email</Label>

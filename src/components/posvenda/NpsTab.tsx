@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { npsColorClass } from "@/lib/crm";
 import { Plus } from "lucide-react";
 import { format } from "date-fns";
+import { LoadMoreBar, PAGE_SIZE } from "@/components/LoadMoreBar";
 
 interface Nps { id: string; unidade_id: string; nota: number; data: string; comentarios: string | null; }
 
@@ -28,19 +29,22 @@ export default function NpsTab() {
 
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const [form, setForm] = useState({ unidade_id: "", nota: "9", data: format(new Date(), "yyyy-MM-dd"), comentarios: "" });
 
-  async function load() {
+  async function load(p = 1) {
     setLoading(true);
-    const [{ data: n }, { data: u }] = await Promise.all([
-      supabase.from("nps").select("*").is("archived_at", null).order("data", { ascending: false }),
+    const [{ data: n, count }, { data: u }] = await Promise.all([
+      supabase.from("nps").select("*", { count: "exact" }).is("archived_at", null).order("data", { ascending: false }).range(0, p * PAGE_SIZE - 1),
       supabase.from("unidades_saude").select("id,nome").is("archived_at", null).order("nome"),
     ]);
     setItems((n ?? []) as Nps[]);
+    setTotal(count ?? 0);
     setUnidades(u ?? []);
     setLoading(false);
   }
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(page); }, [page]);
 
   const filtered = useMemo(() => items.filter((n) => {
     if (fUnidade !== "all" && n.unidade_id !== fUnidade) return false;
@@ -161,6 +165,7 @@ export default function NpsTab() {
             ))}
           </TableBody>
         </Table>
+        <LoadMoreBar loaded={items.length} total={total} loading={loading} onLoadMore={() => setPage((p) => p + 1)} />
       </div>
     </div>
   );

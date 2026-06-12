@@ -16,6 +16,7 @@ import {
 } from "@/lib/crm";
 import { Plus, Upload } from "lucide-react";
 import { format } from "date-fns";
+import { LoadMoreBar, PAGE_SIZE } from "@/components/LoadMoreBar";
 
 interface Inst {
   id: string;
@@ -45,6 +46,8 @@ export default function InstalacoesTab() {
 
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const [form, setForm] = useState({
     deal_id: "",
     unidade_id: "",
@@ -54,21 +57,22 @@ export default function InstalacoesTab() {
     observacoes: "",
   });
 
-  async function load() {
+  async function load(p = 1) {
     setLoading(true);
-    const [{ data: inst }, { data: un }, { data: dl }, { data: tec }] = await Promise.all([
-      supabase.from("instalacoes").select("*").is("archived_at", null).order("data_prevista", { ascending: false, nullsFirst: false }),
+    const [{ data: inst, count }, { data: un }, { data: dl }, { data: tec }] = await Promise.all([
+      supabase.from("instalacoes").select("*", { count: "exact" }).is("archived_at", null).order("data_prevista", { ascending: false, nullsFirst: false }).range(0, p * PAGE_SIZE - 1),
       supabase.from("unidades_saude").select("id,nome").is("archived_at", null).order("nome"),
       supabase.from("deals").select("id,titulo,unidade_id,resultado").eq("resultado", "ganho"),
       supabase.from("user_roles").select("user_id, role, profiles!inner(id,nome)").in("role", ["pos_venda"]),
     ]);
     setItems((inst ?? []) as Inst[]);
+    setTotal(count ?? 0);
     setUnidades(un ?? []);
     setDeals((dl ?? []) as any);
     setTecnicos((tec ?? []).map((r: any) => ({ id: r.user_id, nome: r.profiles?.nome ?? "—" })));
     setLoading(false);
   }
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(page); }, [page]);
 
   const filtered = useMemo(() => items.filter((i) =>
     (fStatus === "all" || i.status === fStatus) &&
@@ -247,6 +251,7 @@ export default function InstalacoesTab() {
             ))}
           </TableBody>
         </Table>
+        <LoadMoreBar loaded={items.length} total={total} loading={loading} onLoadMore={() => setPage((p) => p + 1)} />
       </div>
     </div>
   );

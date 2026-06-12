@@ -12,6 +12,7 @@ import {
   TAREFA_PRIORIDADE_LABELS, TAREFA_PRIORIDADE_BADGE,
   TarefaStatus, TarefaPrioridade,
 } from "@/lib/crm";
+import { sortTarefas } from "@/lib/tarefas";
 
 type Tarefa = {
   id: string;
@@ -37,21 +38,7 @@ export function TarefasList({ tarefas, onChange }: { tarefas: Tarefa[]; onChange
     onChange();
   }
 
-  // Sort: atrasada > hoje > futuras > concluida
-  const ordered = [...tarefas].sort((a, b) => {
-    const score = (t: Tarefa) => {
-      if (t.status === "concluida") return 4;
-      if (t.status === "atrasada") return 0;
-      if (t.data_vencimento && isToday(new Date(t.data_vencimento))) return 1;
-      if (t.data_vencimento && isPast(new Date(t.data_vencimento))) return 0;
-      return 2;
-    };
-    const sa = score(a), sb = score(b);
-    if (sa !== sb) return sa - sb;
-    const da = a.data_vencimento ? new Date(a.data_vencimento).getTime() : Infinity;
-    const db = b.data_vencimento ? new Date(b.data_vencimento).getTime() : Infinity;
-    return da - db;
-  });
+  const ordered = sortTarefas(tarefas);
 
   return (
     <div className="space-y-2">

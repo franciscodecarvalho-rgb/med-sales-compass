@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { GARANTIA_STATUS_BADGE, GARANTIA_STATUS_LABELS, computeVigenciaStatus } from "@/lib/crm";
 import { Plus, Sparkles } from "lucide-react";
 import { NewDealManutDialog } from "@/pages/FunilManutencao";
+import { LoadMoreBar, PAGE_SIZE } from "@/components/LoadMoreBar";
 
 interface Garantia {
   id: string; unidade_id: string; descricao_equipamento: string;
@@ -33,6 +34,8 @@ export default function GarantiasTab() {
 
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const [form, setForm] = useState({
     unidade_id: "", descricao_equipamento: "", linha_id: "",
     data_inicio: "", data_fim: "",
@@ -46,19 +49,20 @@ export default function GarantiasTab() {
       .then(({ data }) => setVendedores(data ?? []));
   }, []);
 
-  async function load() {
+  async function load(p = 1) {
     setLoading(true);
-    const [{ data: g }, { data: u }, { data: l }] = await Promise.all([
-      supabase.from("garantias").select("*").is("archived_at", null).order("data_fim"),
+    const [{ data: g, count }, { data: u }, { data: l }] = await Promise.all([
+      supabase.from("garantias").select("*", { count: "exact" }).is("archived_at", null).order("data_fim").range(0, p * PAGE_SIZE - 1),
       supabase.from("unidades_saude").select("id,nome").is("archived_at", null).order("nome"),
       supabase.from("linhas_produto").select("id,nome").is("archived_at", null).order("nome"),
     ]);
     setItems((g ?? []) as Garantia[]);
+    setTotal(count ?? 0);
     setUnidades(u ?? []);
     setLinhas(l ?? []);
     setLoading(false);
   }
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(page); }, [page]);
 
   const enriched = useMemo(() => items.map((g) => ({ ...g, computed: computeVigenciaStatus(g.data_fim) })), [items]);
   const filtered = useMemo(() => enriched.filter((g) =>
@@ -195,6 +199,7 @@ export default function GarantiasTab() {
             })}
           </TableBody>
         </Table>
+        <LoadMoreBar loaded={items.length} total={total} loading={loading} onLoadMore={() => setPage((p) => p + 1)} />
       </div>
 
       {/* Modal de geração de oportunidade de manutenção */}

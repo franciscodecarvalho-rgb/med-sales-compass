@@ -27,6 +27,7 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import ImportarPlanilhaDialog from "@/components/ImportarPlanilhaDialog";
+import { LoadMoreBar, PAGE_SIZE } from "@/components/LoadMoreBar";
 import { Plus as PlusIcon, Pencil, Trash2, FolderOpen, Folder } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -71,9 +72,12 @@ export default function Discovery() {
   const [novoOpen, setNovoOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
 
-  useEffect(() => { void load(); /* eslint-disable-next-line */ }, [statusFilter, vendedorFilter]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
 
-  async function load() {
+  useEffect(() => { void load(page); /* eslint-disable-next-line */ }, [statusFilter, vendedorFilter, page]);
+
+  async function load(pg = 1) {
     if (!user) return;
     setLoading(true);
 
@@ -82,7 +86,7 @@ export default function Discovery() {
       tipos_unidade(id, nome),
       estados(id, sigla),
       unidade_gerada_id
-    `).is("archived_at", null).order("created_at", { ascending: false });
+    `, { count: "exact" }).is("archived_at", null).order("created_at", { ascending: false }).range(0, pg * PAGE_SIZE - 1);
 
     if (statusFilter !== "all") q = q.eq("status", statusFilter as any);
 
@@ -100,6 +104,7 @@ export default function Discovery() {
 
     if (d.error) toast.error(d.error.message);
     setItems(d.data ?? []);
+    setTotal(d.count ?? 0);
     setVendedores((v.data ?? []) as Vendedor[]);
     setTipos((t.data ?? []) as Lookup[]);
     setEstados((e.data ?? []) as Lookup[]);
@@ -430,6 +435,7 @@ export default function Discovery() {
               </Collapsible>
             );
           })}
+          <LoadMoreBar loaded={items.length} total={total} loading={loading} onLoadMore={() => setPage((p) => p + 1)} />
         </div>
       )}
 

@@ -20,6 +20,7 @@ import { ExportButton, exportToExcel } from "@/lib/export";
 import { MultiSelectPopover } from "@/components/MultiSelectPopover";
 import { FavoritoStar } from "@/components/FavoritoStar";
 import { maskTelefone } from "@/lib/masks";
+import { LoadMoreBar, PAGE_SIZE } from "@/components/LoadMoreBar";
 
 type Lookup = { id: string; nome: string };
 type UnidadeLk = { id: string; nome: string; cidade?: string | null };
@@ -34,21 +35,24 @@ export default function Medicos() {
   const [filterEsp, setFilterEsp] = useState<string>("all");
   const [filterCidade, setFilterCidade] = useState<string>("all");
   const [open, setOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
 
-  useEffect(() => { void load(); }, []);
-  async function load() {
+  useEffect(() => { void load(page); }, [page]);
+  async function load(p = 1) {
     setLoading(true);
     const [m, esp, un] = await Promise.all([
       supabase.from("medicos").select(`
         *,
         especialidades_medicas(id, nome),
         medico_unidades(unidade_id, unidades_saude(id, nome, cidade))
-      `).is("archived_at", null).order("nome"),
+      `, { count: "exact" }).is("archived_at", null).order("nome").range(0, p * PAGE_SIZE - 1),
       supabase.from("especialidades_medicas").select("id, nome").is("archived_at", null).order("nome"),
       supabase.from("unidades_saude").select("id, nome, cidade").is("archived_at", null).order("nome"),
     ]);
     if (m.error) toast.error(m.error.message);
     setItems(m.data ?? []);
+    setTotal(m.count ?? 0);
     setEspecialidades((esp.data ?? []) as Lookup[]);
     setUnidadesLk((un.data ?? []) as UnidadeLk[]);
     setLoading(false);
@@ -172,6 +176,7 @@ export default function Medicos() {
               )}
             </TableBody>
           </Table>
+          <LoadMoreBar loaded={items.length} total={total} loading={loading} onLoadMore={() => setPage((p) => p + 1)} />
         </div>
       )}
     </div>

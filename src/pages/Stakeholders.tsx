@@ -14,6 +14,7 @@ import { Plus, Search, Handshake } from "lucide-react";
 import { toast } from "sonner";
 import { FavoritoStar } from "@/components/FavoritoStar";
 import { maskTelefone } from "@/lib/masks";
+import { LoadMoreBar, PAGE_SIZE } from "@/components/LoadMoreBar";
 
 const TIPOS = ["decisor", "influenciador", "financeiro", "político", "outro"];
 
@@ -31,17 +32,21 @@ export default function Stakeholders() {
   const [search, setSearch] = useState("");
   const [tipoFilter, setTipoFilter] = useState<string>("todos");
   const [openNew, setOpenNew] = useState(false);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => { void load(page); }, [page]);
 
-  async function load() {
-    const { data, error } = await supabase
+  async function load(p = 1) {
+    const { data, error, count } = await supabase
       .from("stakeholders")
-      .select("*")
+      .select("*", { count: "exact" })
       .is("archived_at", null)
-      .order("nome");
+      .order("nome")
+      .range(0, p * PAGE_SIZE - 1);
     if (error) { toast.error(error.message); return; }
     setItems(data ?? []);
+    setTotal(count ?? 0);
   }
 
   const filtered = useMemo(() => {
@@ -131,6 +136,7 @@ export default function Stakeholders() {
               )}
             </tbody>
           </table>
+          <LoadMoreBar loaded={items.length} total={total} onLoadMore={() => setPage((p) => p + 1)} />
         </CardContent>
       </Card>
     </div>

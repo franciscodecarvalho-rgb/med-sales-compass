@@ -21,6 +21,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { FavoritoStar } from "@/components/FavoritoStar";
 import { ExportButton, exportToExcel } from "@/lib/export";
 import { maskCnpj, maskTelefone, maskCep, isEmailValido } from "@/lib/masks";
+import { LoadMoreBar, PAGE_SIZE } from "@/components/LoadMoreBar";
 import { MultiSelectPopover } from "@/components/MultiSelectPopover";
 
 type Lookup = { id: string; nome: string; sigla?: string };
@@ -39,10 +40,12 @@ export default function Unidades() {
   const [showInativos, setShowInativos] = useState(false);
   const [open, setOpen] = useState(false);
   const [sortBy, setSortBy] = useState<"nome" | "score" | "status">("nome");
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
 
-  useEffect(() => { void load(); }, [showInativos]);
+  useEffect(() => { void load(page); }, [showInativos, page]);
 
-  async function load() {
+  async function load(p = 1) {
     setLoading(true);
     const query = supabase
       .from("unidades_saude")
@@ -52,13 +55,15 @@ export default function Unidades() {
         estados(id, sigla),
         medicos:medico_principal_id(id, nome),
         parque_instalado(quantidade, archived_at)
-      `)
-      .order("nome");
-    const { data, error } = showInativos
+      `, { count: "exact" })
+      .order("nome")
+      .range(0, p * PAGE_SIZE - 1);
+    const { data, error, count } = showInativos
       ? await query
       : await query.is("archived_at", null);
     if (error) toast.error(error.message);
     setItems(data ?? []);
+    setTotal(count ?? 0);
     const [t, e, md] = await Promise.all([
       supabase.from("tipos_unidade").select("id, nome").is("archived_at", null).order("nome"),
       supabase.from("estados").select("id, sigla, nome").is("archived_at", null).order("sigla"),
@@ -208,6 +213,7 @@ export default function Unidades() {
               )}
             </TableBody>
           </Table>
+          <LoadMoreBar loaded={items.length} total={total} loading={loading} onLoadMore={() => setPage((p) => p + 1)} />
         </div>
       )}
     </div>

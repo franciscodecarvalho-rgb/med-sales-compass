@@ -23,32 +23,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1) Listener PRIMEIRO
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    // Caminho único para listener + sessão inicial.
+    // Dedupe por usuário: TOKEN_REFRESHED e o overlap listener/getSession
+    // não disparam novo fetch de roles nem piscam o loading global.
+    let fetchSeq = 0;
+    let lastUserFetched: string | null = null;
+
+    const handleSession = (newSession: Session | null) => {
       setSession(newSession);
       setUser(newSession?.user ?? null);
       if (newSession?.user) {
+        const uid = newSession.user.id;
+        if (lastUserFetched === uid) return;
+        lastUserFetched = uid;
+        const seq = ++fetchSeq;
         setLoading(true);
-        // Defer DB call para evitar deadlock
+        // Defer DB call para evitar deadlock dentro do callback de auth
         setTimeout(() => {
-          fetchRoles(newSession.user.id).finally(() => setLoading(false));
+          fetchRoles(uid).finally(() => { if (seq === fetchSeq) setLoading(false); });
         }, 0);
       } else {
+        lastUserFetched = null;
         setRoles([]);
         setLoading(false);
       }
-    });
+    };
 
-    // 2) DEPOIS recupera sessão atual
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
-      if (currentSession?.user) {
-        fetchRoles(currentSession.user.id).finally(() => setLoading(false));
-      } else {
-        setLoading(false);
-      }
-    });
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, newSession) => handleSession(newSession));
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => handleSession(currentSession));
 
     return () => subscription.subscription.unsubscribe();
   }, []);

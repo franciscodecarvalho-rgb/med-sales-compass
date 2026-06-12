@@ -29,6 +29,7 @@ import { EditarTarefaDialog } from "@/components/EditarTarefaDialog";
 import { usePermissions } from "@/hooks/usePermissions";
 import { format, isToday, isThisWeek, isThisMonth, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { sortTarefas } from "@/lib/tarefas";
 
 type VinculoFiltro = "todos" | "deal" | "medico" | "unidade" | "discovery" | "stakeholder" | "livre";
 type StatusFiltro = "abertas" | "concluidas" | "atrasadas" | "todas";
@@ -374,23 +375,7 @@ function tipoOf(t: any): TipoKey {
 
 // ============= Lista compacta (tabela) =============
 function CompactList({ tarefas, onReabrir, onChanged }: { tarefas: any[]; onReabrir: (t: any) => void; onChanged: () => void }) {
-  const ordenadas = useMemo(() => {
-    const score = (t: any) => {
-      if (t.status === "concluida") return 4;
-      if (!t.data_vencimento) return 3;
-      const d = new Date(t.data_vencimento);
-      if (t.status === "atrasada" || (d < new Date() && !isToday(d))) return 0;
-      if (isToday(d)) return 1;
-      return 2;
-    };
-    return [...tarefas].sort((a, b) => {
-      const sa = score(a), sb = score(b);
-      if (sa !== sb) return sa - sb;
-      const da = a.data_vencimento ? new Date(a.data_vencimento).getTime() : Infinity;
-      const db = b.data_vencimento ? new Date(b.data_vencimento).getTime() : Infinity;
-      return da - db;
-    });
-  }, [tarefas]);
+  const ordenadas = useMemo(() => sortTarefas(tarefas), [tarefas]);
 
   return (
     <Card>
@@ -608,25 +593,7 @@ function Secao({ titulo, icon, tarefas, onToggle, onChanged, emptyText, highligh
   emptyText: string;
   highlight?: boolean;
 }) {
-  const ordenadas = useMemo(() => {
-    const atrasadas: any[] = [];
-    const hoje: any[] = [];
-    const futuras: any[] = [];
-    const semData: any[] = [];
-    for (const t of tarefas) {
-      if (!t.data_vencimento) { semData.push(t); continue; }
-      const d = new Date(t.data_vencimento);
-      if (t.status === "atrasada" || (t.status !== "concluida" && d < new Date() && !isToday(d))) {
-        atrasadas.push(t);
-      } else if (isToday(d)) {
-        hoje.push(t);
-      } else {
-        futuras.push(t);
-      }
-    }
-    const cmp = (a: any, b: any) => new Date(a.data_vencimento).getTime() - new Date(b.data_vencimento).getTime();
-    return [...atrasadas.sort(cmp), ...hoje.sort(cmp), ...futuras.sort(cmp), ...semData];
-  }, [tarefas]);
+  const ordenadas = useMemo(() => sortTarefas(tarefas), [tarefas]);
 
   return (
     <Card className={highlight ? "border-l-4 border-l-primary bg-primary/[0.02]" : ""}>

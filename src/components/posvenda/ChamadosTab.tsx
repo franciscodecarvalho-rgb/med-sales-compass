@@ -17,6 +17,7 @@ import {
 } from "@/lib/crm";
 import { Plus, Search } from "lucide-react";
 import { ExportButton, exportToExcel } from "@/lib/export";
+import { LoadMoreBar, PAGE_SIZE } from "@/components/LoadMoreBar";
 
 interface Chamado {
   id: string;
@@ -30,17 +31,13 @@ interface Chamado {
   data_resolucao: string | null;
 }
 
-function elapsedLabel(from: string) {
+// Tempo decorrido desde a abertura: label + cor (SLA: <1d verde, <3d amarelo, depois vermelho)
+function elapsedInfo(from: string) {
   const ms = Date.now() - new Date(from).getTime();
   const d = Math.floor(ms / 86400000);
   const h = Math.floor((ms % 86400000) / 3600000);
-  return `${d}d ${h}h`;
-}
-function elapsedColor(from: string) {
-  const days = (Date.now() - new Date(from).getTime()) / 86400000;
-  if (days < 1) return "text-success";
-  if (days < 3) return "text-warning";
-  return "text-destructive";
+  const color = d < 1 ? "text-success" : d < 3 ? "text-warning" : "text-destructive";
+  return { label: `${d}d ${h}h`, color };
 }
 
 export default function ChamadosTab() {
@@ -52,6 +49,8 @@ export default function ChamadosTab() {
   const [tecnicos, setTecnicos] = useState<{ id: string; nome: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [_, force] = useState(0);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
 
   // Filtros
   const [fStatus, setFStatus] = useState<string>("all");
@@ -75,20 +74,21 @@ export default function ChamadosTab() {
     return () => clearInterval(t);
   }, []);
 
-  async function load() {
+  async function load(p = 1) {
     setLoading(true);
-    const [{ data: ch }, { data: un }, { data: tec }] = await Promise.all([
-      supabase.from("chamados").select("*").is("archived_at", null).order("data_abertura", { ascending: false }),
+    const [{ data: ch, count }, { data: un }, { data: tec }] = await Promise.all([
+      supabase.from("chamados").select("*", { count: "exact" }).is("archived_at", null).order("data_abertura", { ascending: false }).range(0, p * PAGE_SIZE - 1),
       supabase.from("unidades_saude").select("id,nome").is("archived_at", null).order("nome"),
       supabase.from("user_roles").select("user_id, role, profiles!inner(id,nome)").in("role", ["pos_venda"]),
     ]);
     setItems((ch ?? []) as Chamado[]);
+    setTotal(count ?? 0);
     setUnidades(un ?? []);
     const tecList = (tec ?? []).map((r: any) => ({ id: r.user_id, nome: r.profiles?.nome ?? "—" }));
     setTecnicos(tecList);
     setLoading(false);
   }
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(page); }, [page]);
 
   const filtered = useMemo(() => {
     return items.filter((c) => {
@@ -240,8 +240,8 @@ export default function ChamadosTab() {
                   <TableCell><Badge variant="outline" className={CHAMADO_PRIORIDADE_BADGE[c.prioridade]}>{CHAMADO_PRIORIDADE_LABELS[c.prioridade]}</Badge></TableCell>
                   <TableCell>{tecnicoName(c.tecnico_id)}</TableCell>
                   <TableCell><Badge variant="outline" className={CHAMADO_STATUS_BADGE[c.status]}>{CHAMADO_STATUS_LABELS[c.status]}</Badge></TableCell>
-                  <TableCell className={`text-right font-mono text-xs ${isOpen ? elapsedColor(c.data_abertura) : "text-muted-foreground"}`}>
-                    {isOpen ? elapsedLabel(c.data_abertura) : "—"}
+                  <TableCell className={`text-right font-mono text-xs ${isOpen ? elapsedInfo(c.data_abertura).color : "text-muted-foreground"}`}>
+                    {isOpen ? elapsedInfo(c.data_abertura).label : "—"}
                   </TableCell>
                   <TableCell>
                     {canWrite && isOpen && (
@@ -260,6 +260,7 @@ export default function ChamadosTab() {
             })}
           </TableBody>
         </Table>
+        <LoadMoreBar loaded={items.length} total={total} loading={loading} onLoadMore={() => setPage((p) => p + 1)} />
       </div>
     </div>
   );

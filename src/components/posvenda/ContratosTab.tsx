@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { CONTRATO_STATUS_BADGE, CONTRATO_STATUS_LABELS, computeVigenciaStatus, formatCurrency } from "@/lib/crm";
 import { Plus } from "lucide-react";
+import { LoadMoreBar, PAGE_SIZE } from "@/components/LoadMoreBar";
 
 interface Contrato {
   id: string; unidade_id: string; linha_id: string | null;
@@ -32,24 +33,27 @@ export default function ContratosTab() {
 
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const [form, setForm] = useState({
     unidade_id: "", linha_id: "", tipo_contrato: "",
     vigencia_inicio: "", vigencia_fim: "", valor: "0", cobertura: "",
   });
 
-  async function load() {
+  async function load(p = 1) {
     setLoading(true);
-    const [{ data: c }, { data: u }, { data: l }] = await Promise.all([
-      supabase.from("contratos_manutencao").select("*").is("archived_at", null).order("vigencia_fim"),
+    const [{ data: c, count }, { data: u }, { data: l }] = await Promise.all([
+      supabase.from("contratos_manutencao").select("*", { count: "exact" }).is("archived_at", null).order("vigencia_fim").range(0, p * PAGE_SIZE - 1),
       supabase.from("unidades_saude").select("id,nome").is("archived_at", null).order("nome"),
       supabase.from("linhas_produto").select("id,nome").is("archived_at", null).order("nome"),
     ]);
     setItems((c ?? []) as Contrato[]);
+    setTotal(count ?? 0);
     setUnidades(u ?? []);
     setLinhas(l ?? []);
     setLoading(false);
   }
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(page); }, [page]);
 
   const enriched = useMemo(() => items.map((c) => ({
     ...c, computed: computeVigenciaStatus(c.vigencia_fim),
@@ -186,6 +190,7 @@ export default function ContratosTab() {
             })}
           </TableBody>
         </Table>
+        <LoadMoreBar loaded={items.length} total={total} loading={loading} onLoadMore={() => setPage((p) => p + 1)} />
       </div>
     </div>
   );

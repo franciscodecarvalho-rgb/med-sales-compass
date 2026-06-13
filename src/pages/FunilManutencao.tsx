@@ -113,6 +113,9 @@ export default function FunilManutencao() {
     setDeals(data ?? []);
   }
 
+  // Um único timer no board alimenta os contadores de todos os cards (antes era 1 timer por card).
+  const now = useNow(1000);
+
   const linhaAtual = linhas.find((l) => l.id === linhaId);
   const verdeLimit = linhaAtual?.limite_verde_dias && linhaAtual.limite_verde_dias !== 7
     ? linhaAtual.limite_verde_dias : config.verde;
@@ -252,18 +255,18 @@ export default function FunilManutencao() {
               return (
                 <Column key={stage} stage={stage} deals={list}
                   verdeLimit={verdeLimit} amareloLimit={amareloLimit}
-                  onEncerrar={(d) => setPerdaDeal(d)} />
+                  onEncerrar={(d) => setPerdaDeal(d)} now={now} />
               );
             })}
           </div>
           <DragOverlay>
-            {activeDeal && <DealCard deal={activeDeal} verdeLimit={verdeLimit} amareloLimit={amareloLimit} onEncerrar={() => {}} dragging />}
+            {activeDeal && <DealCard deal={activeDeal} verdeLimit={verdeLimit} amareloLimit={amareloLimit} onEncerrar={() => {}} dragging now={now} />}
           </DragOverlay>
         </DndContext>
       ) : (
         <TabelaDeals deals={filtered} sortKey={sortKey} sortDir={sortDir} onSort={toggleSort}
           verdeLimit={verdeLimit} amareloLimit={amareloLimit}
-          onEncerrar={(d) => setPerdaDeal(d)} />
+          onEncerrar={(d) => setPerdaDeal(d)} now={now} />
       )}
 
       <Dialog open={!!perdaDeal} onOpenChange={(o) => !o && setPerdaDeal(null)}>
@@ -274,8 +277,8 @@ export default function FunilManutencao() {
 }
 
 // ============= Coluna Kanban =============
-function Column({ stage, deals, verdeLimit, amareloLimit, onEncerrar }: {
-  stage: DealStage; deals: any[]; verdeLimit: number; amareloLimit: number; onEncerrar: (d: any) => void;
+function Column({ stage, deals, verdeLimit, amareloLimit, onEncerrar, now }: {
+  stage: DealStage; deals: any[]; verdeLimit: number; amareloLimit: number; onEncerrar: (d: any) => void; now: number;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: stage });
   const total = deals.reduce((s, d) => s + Number(d.valor_total || 0), 0);
@@ -293,7 +296,7 @@ function Column({ stage, deals, verdeLimit, amareloLimit, onEncerrar }: {
       </div>
       <div className="space-y-2 overflow-y-auto" style={{ maxHeight: "calc(100vh - 350px)" }}>
         {deals.map((d) => (
-          <DealCard key={d.id} deal={d} verdeLimit={verdeLimit} amareloLimit={amareloLimit} onEncerrar={onEncerrar} />
+          <DealCard key={d.id} deal={d} verdeLimit={verdeLimit} amareloLimit={amareloLimit} onEncerrar={onEncerrar} now={now} />
         ))}
       </div>
     </div>
@@ -301,12 +304,11 @@ function Column({ stage, deals, verdeLimit, amareloLimit, onEncerrar }: {
 }
 
 // ============= Card =============
-function DealCard({ deal, verdeLimit, amareloLimit, onEncerrar, dragging }: {
-  deal: any; verdeLimit: number; amareloLimit: number; onEncerrar: (d: any) => void; dragging?: boolean;
+function DealCard({ deal, verdeLimit, amareloLimit, onEncerrar, dragging, now }: {
+  deal: any; verdeLimit: number; amareloLimit: number; onEncerrar: (d: any) => void; dragging?: boolean; now: number;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: deal.id });
   const navigate = useNavigate();
-  const now = useNow(1000);
   const isFinal = deal.estagio === "finalizado";
   const colorClass = isFinal ? "" : counterColorClass(deal.data_entrada_estagio, now, verdeLimit, amareloLimit);
 
@@ -364,12 +366,11 @@ function DealCard({ deal, verdeLimit, amareloLimit, onEncerrar, dragging }: {
 }
 
 // ============= Tabela =============
-function TabelaDeals({ deals, sortKey, sortDir, onSort, verdeLimit, amareloLimit, onEncerrar }: {
+function TabelaDeals({ deals, sortKey, sortDir, onSort, verdeLimit, amareloLimit, onEncerrar, now }: {
   deals: any[]; sortKey: SortKey; sortDir: SortDir; onSort: (k: SortKey) => void;
-  verdeLimit: number; amareloLimit: number; onEncerrar: (d: any) => void;
+  verdeLimit: number; amareloLimit: number; onEncerrar: (d: any) => void; now: number;
 }) {
   const navigate = useNavigate();
-  const now = useNow(1000);
   const sorted = useMemo(() => {
     const arr = [...deals];
     arr.sort((a, b) => {

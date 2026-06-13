@@ -210,6 +210,38 @@ export function formatCurrency(value: number | null | undefined): string {
     .format(value ?? 0);
 }
 
+/**
+ * Taxa de conversão canônica: ganhos sobre deals DECIDIDOS (ganhos + perdidos),
+ * em %. Deals em andamento NÃO entram no denominador. Usada em todos os dashboards
+ * para evitar fórmulas divergentes. Retorna 0 quando não há deals decididos.
+ */
+export function taxaConversao(ganhos: number, perdidos: number): number {
+  const decididos = ganhos + perdidos;
+  return decididos > 0 ? (ganhos / decididos) * 100 : 0;
+}
+
+/**
+ * Busca TODAS as linhas de uma query paginando de pageSize em pageSize, em vez de
+ * confiar no teto silencioso do PostgREST (1000) ou num .limit() arbitrário.
+ * `buildQuery(from, to)` deve aplicar .range(from, to) e uma ordenação determinística.
+ */
+export async function fetchAllPaginated<T>(
+  buildQuery: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>,
+  pageSize = 1000,
+): Promise<T[]> {
+  const out: T[] = [];
+  let from = 0;
+  for (;;) {
+    const { data, error } = await buildQuery(from, from + pageSize - 1);
+    if (error) throw error;
+    const rows = data ?? [];
+    out.push(...rows);
+    if (rows.length < pageSize) break;
+    from += pageSize;
+  }
+  return out;
+}
+
 export function daysBetween(from: string | Date, to: Date = new Date()): number {
   const a = typeof from === "string" ? new Date(from) : from;
   return Math.floor((to.getTime() - a.getTime()) / (1000 * 60 * 60 * 24));

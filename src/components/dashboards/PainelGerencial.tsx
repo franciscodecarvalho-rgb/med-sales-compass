@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { taxaConversao, fetchAllPaginated } from "@/lib/crm";
 
 type Periodo = "7d" | "30d" | "90d" | "ano" | "tudo";
 
@@ -65,28 +66,29 @@ export default function PainelGerencial() {
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const [pRes, dRes, tRes, discRes] = await Promise.all([
+      // Busca paginada (sem teto silencioso de 1000) com ordenação determinística.
+      const [pRes, deals, tarefas, discoveries] = await Promise.all([
         supabase.from("profiles").select("id, nome, email").eq("ativo", true),
-        (() => {
+        fetchAllPaginated<Deal>((f, t) => {
           let q = supabase.from("deals").select("id, vendedor_id, estagio, resultado, valor_total, created_at, data_fechamento").is("archived_at", null);
           if (desde) q = q.gte("created_at", desde);
-          return q;
-        })(),
-        (() => {
+          return q.order("id").range(f, t);
+        }),
+        fetchAllPaginated<Tarefa>((f, t) => {
           let q = supabase.from("tarefas").select("id, responsavel_id, status, created_at, concluida_em, data_vencimento").is("archived_at", null);
           if (desde) q = q.gte("created_at", desde);
-          return q;
-        })(),
-        (() => {
+          return q.order("id").range(f, t);
+        }),
+        fetchAllPaginated<Discovery>((f, t) => {
           let q = supabase.from("discovery").select("id, vendedor_id, status, created_at, unidade_gerada_id").is("archived_at", null);
           if (desde) q = q.gte("created_at", desde);
-          return q;
-        })(),
+          return q.order("id").range(f, t);
+        }),
       ]);
       setProfiles((pRes.data as Profile[]) ?? []);
-      setDeals((dRes.data as Deal[]) ?? []);
-      setTarefas((tRes.data as Tarefa[]) ?? []);
-      setDiscoveries((discRes.data as Discovery[]) ?? []);
+      setDeals(deals);
+      setTarefas(tarefas);
+      setDiscoveries(discoveries);
       setLoading(false);
     }
     load();
@@ -107,7 +109,7 @@ export default function PainelGerencial() {
       andamento: deals.length - ganhos.length - perdidos.length,
       receita,
       ticket_medio: ganhos.length ? receita / ganhos.length : 0,
-      conversao: deals.length ? (ganhos.length / deals.length) * 100 : 0,
+      conversao: taxaConversao(ganhos.length, perdidos.length),
       tarefas_total: tarefas.length,
       tarefas_concluidas: tarefasConc.length,
       tarefas_atrasadas: tarefasAtr.length,
@@ -136,7 +138,7 @@ export default function PainelGerencial() {
         deals_andamento: ud.length - ganhos.length - perdidos.length,
         receita,
         ticket_medio: ganhos.length ? receita / ganhos.length : 0,
-        conversao: ud.length ? (ganhos.length / ud.length) * 100 : 0,
+        conversao: taxaConversao(ganhos.length, perdidos.length),
         tarefas_total: ut.length,
         tarefas_concluidas: utConc.length,
         tarefas_atrasadas: utAtr.length,
@@ -213,7 +215,7 @@ export default function PainelGerencial() {
             {/* KPIs principais */}
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
               <KpiCard title="Receita Ganha" value={fmt(totais.receita)} icon={DollarSign} variant="primary" hint={`${totais.ganhos} deals ganhos`} />
-              <KpiCard title="Conversão" value={`${totais.conversao.toFixed(1)}%`} icon={Target} variant="success" hint={`${totais.ganhos}/${totais.deals_total}`} />
+              <KpiCard title="Conversão" value={`${totais.conversao.toFixed(1)}%`} icon={Target} variant="success" hint={`${totais.ganhos}/${totais.ganhos + totais.perdidos} decididos`} />
               <KpiCard title="Ticket Médio" value={fmt(totais.ticket_medio)} icon={TrendingUp} variant="info" />
               <KpiCard title="Deals em Andamento" value={totais.andamento} icon={Trophy} variant="default" />
             </div>

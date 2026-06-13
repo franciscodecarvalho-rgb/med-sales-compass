@@ -1,9 +1,8 @@
-import * as XLSX from "xlsx";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { toast } from "sonner";
 
-export function exportToExcel<T extends Record<string, any>>(
+export async function exportToExcel<T extends Record<string, any>>(
   rows: T[],
   filename: string,
   sheetName = "Dados",
@@ -13,6 +12,7 @@ export function exportToExcel<T extends Record<string, any>>(
     return;
   }
   try {
+    const XLSX = await import("xlsx");
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(rows);
     XLSX.utils.book_append_sheet(wb, ws, sheetName.slice(0, 31));

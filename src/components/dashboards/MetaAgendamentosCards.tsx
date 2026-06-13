@@ -63,7 +63,7 @@ export default function MetaAgendamentosCards({ userId, showHistorico = false }:
     const { count } = await supabase
       .from("tarefas")
       .select("id", { count: "exact", head: true })
-      .eq("criador_id", uid)
+      .eq("responsavel_id", uid)
       .not("tipo_agendamento", "is", null)
       .gte("created_at", ini.toISOString())
       .lt("created_at", fim.toISOString());

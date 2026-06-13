@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -6,32 +7,41 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import AppLayout from "@/components/AppLayout";
-import AuthPage from "./pages/Auth";
-import ResetPassword from "./pages/ResetPassword";
-import Dashboard from "./pages/Dashboard";
-import Unidades from "./pages/Unidades";
-import UnidadeDetail from "./pages/UnidadeDetail";
-import Discovery from "./pages/Discovery";
-import DiscoveryDetail from "./pages/DiscoveryDetail";
-import DiscoveryLab from "./pages/DiscoveryLab";
-import Medicos from "./pages/Medicos";
-import MedicoDetail from "./pages/MedicoDetail";
-import FunilVendas from "./pages/FunilVendas";
-import DealDetail from "./pages/DealDetail";
-import FunilManutencao from "./pages/FunilManutencao";
-import DealManutencaoDetail from "./pages/DealManutencaoDetail";
-import VendasAdvance from "./pages/VendasAdvance";
-import VendasAdvanceDetalhe from "./pages/VendasAdvanceDetalhe";
-import Tarefas from "./pages/Tarefas";
-import PosVenda from "./pages/PosVenda";
-import Stakeholders from "./pages/Stakeholders";
-import StakeholderDetail from "./pages/StakeholderDetail";
-import Configuracoes from "./pages/Configuracoes";
-import Recorrencia from "./pages/Recorrencia";
-import Favoritos from "./pages/Favoritos";
-import NotFound from "./pages/NotFound";
+
+// Páginas carregadas sob demanda (code-splitting) — cada rota vira um chunk próprio,
+// mantendo recharts/xlsx/dnd-kit fora do bundle inicial.
+const AuthPage = lazy(() => import("./pages/Auth"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Unidades = lazy(() => import("./pages/Unidades"));
+const UnidadeDetail = lazy(() => import("./pages/UnidadeDetail"));
+const Discovery = lazy(() => import("./pages/Discovery"));
+const DiscoveryDetail = lazy(() => import("./pages/DiscoveryDetail"));
+const DiscoveryLab = lazy(() => import("./pages/DiscoveryLab"));
+const Medicos = lazy(() => import("./pages/Medicos"));
+const MedicoDetail = lazy(() => import("./pages/MedicoDetail"));
+const FunilVendas = lazy(() => import("./pages/FunilVendas"));
+const DealDetail = lazy(() => import("./pages/DealDetail"));
+const FunilManutencao = lazy(() => import("./pages/FunilManutencao"));
+const DealManutencaoDetail = lazy(() => import("./pages/DealManutencaoDetail"));
+const VendasAdvance = lazy(() => import("./pages/VendasAdvance"));
+const VendasAdvanceDetalhe = lazy(() => import("./pages/VendasAdvanceDetalhe"));
+const Tarefas = lazy(() => import("./pages/Tarefas"));
+const PosVenda = lazy(() => import("./pages/PosVenda"));
+const Stakeholders = lazy(() => import("./pages/Stakeholders"));
+const StakeholderDetail = lazy(() => import("./pages/StakeholderDetail"));
+const Configuracoes = lazy(() => import("./pages/Configuracoes"));
+const Recorrencia = lazy(() => import("./pages/Recorrencia"));
+const Favoritos = lazy(() => import("./pages/Favoritos"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
+
+const PageFallback = () => (
+  <div className="flex h-screen items-center justify-center">
+    <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted border-t-primary" />
+  </div>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -40,6 +50,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <Suspense fallback={<PageFallback />}>
           <Routes>
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/reset-password" element={<ResetPassword />} />
@@ -105,6 +116,7 @@ const App = () => (
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

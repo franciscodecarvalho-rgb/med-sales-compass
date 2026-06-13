@@ -11,14 +11,13 @@ import {
 } from "lucide-react";
 import {
   formatCurrency, daysBetween, STAGE_LABELS, STAGE_ORDER,
-  UNIDADE_CICLO_LABELS,
+  UNIDADE_CICLO_LABELS, taxaConversao, fetchAllPaginated,
 } from "@/lib/crm";
 import { KpiCard } from "./KpiCard";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   PieChart, Pie, Cell, Legend,
 } from "recharts";
-import * as XLSX from "xlsx";
 import { toast } from "sonner";
 
 type Filtros = {
@@ -55,25 +54,26 @@ export function DashboardGerente() {
   async function load() {
     setLoading(true);
     await supabase.rpc("marcar_tarefas_atrasadas");
+    // Busca paginada (sem teto silencioso) com ordenação determinística por id.
     const [deals, unis, anots, tarefas] = await Promise.all([
-      supabase.from("deals").select("id, titulo, valor_total, estagio, resultado, data_entrada_estagio, data_fechamento, vendedor_id, linha_id, unidade_id, motivo_perda, motivos_perda(nome), unidades_saude(nome, cidade, estado), linhas_produto(nome, cor, limite_amarelo_dias), profiles!deals_vendedor_profile_fkey(nome)").is("archived_at", null).limit(2000),
-      supabase.from("unidades_saude").select("id, nome, status, estado, cidade").is("archived_at", null).limit(2000),
-      supabase.from("anotacoes").select("autor_id, created_at").is("archived_at", null).gte("created_at", new Date(Date.now() - 7 * 86400000).toISOString()).limit(2000),
-      supabase.from("tarefas").select("responsavel_id, status, updated_at").is("archived_at", null).limit(5000),
+      fetchAllPaginated<any>((f, t) => supabase.from("deals").select("id, titulo, valor_total, estagio, resultado, data_entrada_estagio, data_fechamento, vendedor_id, linha_id, unidade_id, motivo_perda, motivos_perda(nome), unidades_saude(nome, cidade, estado), linhas_produto(nome, cor, limite_amarelo_dias), profiles!deals_vendedor_profile_fkey(nome)").is("archived_at", null).order("id").range(f, t)),
+      fetchAllPaginated<any>((f, t) => supabase.from("unidades_saude").select("id, nome, status, estado, cidade").is("archived_at", null).order("id").range(f, t)),
+      fetchAllPaginated<any>((f, t) => supabase.from("anotacoes").select("autor_id, created_at").is("archived_at", null).gte("created_at", new Date(Date.now() - 7 * 86400000).toISOString()).order("created_at").range(f, t)),
+      fetchAllPaginated<any>((f, t) => supabase.from("tarefas").select("responsavel_id, status, updated_at").is("archived_at", null).order("id").range(f, t)),
     ]);
 
-    setAllDeals(deals.data ?? []);
-    setAllUnidades(unis.data ?? []);
-    setEstados(Array.from(new Set((unis.data ?? []).map((u: any) => u.estado).filter(Boolean))).sort());
-    setCidades(Array.from(new Set((unis.data ?? []).map((u: any) => u.cidade).filter(Boolean))).sort());
+    setAllDeals(deals);
+    setAllUnidades(unis);
+    setEstados(Array.from(new Set(unis.map((u: any) => u.estado).filter(Boolean))).sort());
+    setCidades(Array.from(new Set(unis.map((u: any) => u.cidade).filter(Boolean))).sort());
 
     // agrega atividade de vendedores
     const aggMap: Record<string, any> = {};
-    (anots.data ?? []).forEach((a: any) => {
+    anots.forEach((a: any) => {
       aggMap[a.autor_id] ||= { id: a.autor_id, anotacoes: 0, tarefas_concluidas: 0, tarefas_atrasadas: 0 };
       aggMap[a.autor_id].anotacoes++;
     });
-    (tarefas.data ?? []).forEach((t: any) => {
+    tarefas.forEach((t: any) => {
       aggMap[t.responsavel_id] ||= { id: t.responsavel_id, anotacoes: 0, tarefas_concluidas: 0, tarefas_atrasadas: 0 };
       if (t.status === "concluida") aggMap[t.responsavel_id].tarefas_concluidas++;
       if (t.status === "atrasada") aggMap[t.responsavel_id].tarefas_atrasadas++;
@@ -102,8 +102,7 @@ export function DashboardGerente() {
   const ganhos = dealsFiltrados.filter(d => d.resultado === "ganho");
   const perdidos = dealsFiltrados.filter(d => d.resultado === "perdido");
   const valorGanhos = ganhos.reduce((s, d) => s + Number(d.valor_total || 0), 0);
-  const taxaConv = (ganhos.length + perdidos.length) > 0
-    ? Math.round((ganhos.length / (ganhos.length + perdidos.length)) * 100) : 0;
+  const taxaConv = Math.round(taxaConversao(ganhos.length, perdidos.length));
 
   // pipeline por estágio × linha
   const pipePorEstagio = useMemo(() => STAGE_ORDER.filter(s => s !== "finalizado").map(s => {
@@ -144,8 +143,9 @@ export function DashboardGerente() {
     return Object.entries(c).map(([e, q]) => ({ estado: e, qtd: q })).sort((a, b) => b.qtd - a.qtd).slice(0, 8);
   }, [allUnidades]);
 
-  function exportarExcel() {
+  async function exportarExcel() {
     try {
+      const XLSX = await import("xlsx");
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dealsFiltrados.map(d => ({
         Titulo: d.titulo, Valor: Number(d.valor_total),

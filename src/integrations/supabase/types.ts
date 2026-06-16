@@ -1106,6 +1106,38 @@ export type Database = {
           },
         ]
       }
+      favoritos: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          tipo: Database["public"]["Enums"]["favorito_tipo"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          tipo: Database["public"]["Enums"]["favorito_tipo"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          tipo?: Database["public"]["Enums"]["favorito_tipo"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favoritos_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       garantias: {
         Row: {
           archived_at: string | null
@@ -2443,6 +2475,14 @@ export type Database = {
         | "fechamento"
         | "finalizado"
       discovery_status: "em_pesquisa" | "oficializado" | "descartado"
+      favorito_tipo:
+        | "unidade"
+        | "medico"
+        | "deal"
+        | "deal_manutencao"
+        | "discovery"
+        | "stakeholder"
+        | "recorrencia"
       forma_pagamento_tipo:
         | "a_vista_cartao"
         | "financiado_interno"
@@ -2623,6 +2663,15 @@ export const Constants = {
         "finalizado",
       ],
       discovery_status: ["em_pesquisa", "oficializado", "descartado"],
+      favorito_tipo: [
+        "unidade",
+        "medico",
+        "deal",
+        "deal_manutencao",
+        "discovery",
+        "stakeholder",
+        "recorrencia",
+      ],
       forma_pagamento_tipo: [
         "a_vista_cartao",
         "financiado_interno",

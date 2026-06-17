@@ -579,6 +579,57 @@ export type Database = {
           },
         ]
       }
+      deal_playbook_progress: {
+        Row: {
+          checked: boolean
+          checked_at: string | null
+          checked_by: string | null
+          created_at: string
+          deal_id: string
+          etapa: string
+          id: string
+          item_id: string
+          playbook: string
+        }
+        Insert: {
+          checked?: boolean
+          checked_at?: string | null
+          checked_by?: string | null
+          created_at?: string
+          deal_id: string
+          etapa: string
+          id?: string
+          item_id: string
+          playbook: string
+        }
+        Update: {
+          checked?: boolean
+          checked_at?: string | null
+          checked_by?: string | null
+          created_at?: string
+          deal_id?: string
+          etapa?: string
+          id?: string
+          item_id?: string
+          playbook?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_playbook_progress_checked_by_fkey"
+            columns: ["checked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_playbook_progress_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deal_stage_history: {
         Row: {
           changed_at: string
@@ -1630,6 +1681,51 @@ export type Database = {
           },
         ]
       }
+      metas_atividade: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          created_by: string
+          id: string
+          meta_agendamentos_dia: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          created_by: string
+          id?: string
+          meta_agendamentos_dia: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          created_by?: string
+          id?: string
+          meta_agendamentos_dia?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metas_atividade_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "metas_atividade_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       motivos_perda: {
         Row: {
           archived_at: string | null
@@ -2074,6 +2170,9 @@ export type Database = {
           responsavel_id: string
           stakeholder_id: string | null
           status: Database["public"]["Enums"]["tarefa_status"]
+          tipo_agendamento:
+            | Database["public"]["Enums"]["tipo_agendamento"]
+            | null
           titulo: string
           unidade_id: string | null
           updated_at: string
@@ -2095,6 +2194,9 @@ export type Database = {
           responsavel_id: string
           stakeholder_id?: string | null
           status?: Database["public"]["Enums"]["tarefa_status"]
+          tipo_agendamento?:
+            | Database["public"]["Enums"]["tipo_agendamento"]
+            | null
           titulo: string
           unidade_id?: string | null
           updated_at?: string
@@ -2116,6 +2218,9 @@ export type Database = {
           responsavel_id?: string
           stakeholder_id?: string | null
           status?: Database["public"]["Enums"]["tarefa_status"]
+          tipo_agendamento?:
+            | Database["public"]["Enums"]["tipo_agendamento"]
+            | null
           titulo?: string
           unidade_id?: string | null
           updated_at?: string
@@ -2505,6 +2610,7 @@ export type Database = {
         | "concluida"
         | "cancelada"
         | "atrasada"
+      tipo_agendamento: "call" | "visita"
       tipo_saida_advance:
         | "venda"
         | "demonstracao"
@@ -2697,6 +2803,7 @@ export const Constants = {
         "cancelada",
         "atrasada",
       ],
+      tipo_agendamento: ["call", "visita"],
       tipo_saida_advance: [
         "venda",
         "demonstracao",

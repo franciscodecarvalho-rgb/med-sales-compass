@@ -63,7 +63,7 @@ export default function Favoritos() {
         : Promise.resolve({ data: [] }),
     ]);
 
-    const gs: Grupo[] = [
+    const gs: Grupo[] = ([
       {
         tipo: "unidade", titulo: "Unidades de Saúde", icon: Building2,
         itens: ((unidades.data ?? []) as any[]).map(u => ({

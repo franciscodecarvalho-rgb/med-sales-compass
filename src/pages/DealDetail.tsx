@@ -23,6 +23,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { EditarTarefaDialog } from "@/components/EditarTarefaDialog";
 import UnidadeCombobox from "@/components/UnidadeCombobox";
+import PlaybookTab from "@/components/deals/PlaybookTab";
 
 export default function DealDetail() {
   const { id } = useParams();
@@ -195,6 +196,7 @@ export default function DealDetail() {
           <TabsTrigger value="equipamentos">Equipamentos ({dealEquips.length})</TabsTrigger>
           <TabsTrigger value="anotacoes">Anotações ({anotacoes.length})</TabsTrigger>
           <TabsTrigger value="tarefas">Tarefas ({tarefas.length})</TabsTrigger>
+          <TabsTrigger value="playbook">Playbook</TabsTrigger>
           <TabsTrigger value="historico">Histórico</TabsTrigger>
         </TabsList>
 
@@ -293,6 +295,14 @@ export default function DealDetail() {
               onSaved={() => { setEditTarefa(null); void load(); }}
             />
           )}
+        </TabsContent>
+
+        <TabsContent value="playbook">
+          <PlaybookTab
+            dealId={id!}
+            linhaNome={deal.linhas_produto?.nome}
+            estagioAtual={deal.estagio}
+          />
         </TabsContent>
 
         <TabsContent value="historico" className="space-y-2">

@@ -158,16 +158,22 @@ export default function Tarefas() {
     return { deals, relacionamento, discovery, livres };
   }, [filtered]);
 
-  // View: agrupamento por vendedor com atraso (gerente)
+  // View: agrupamento por vendedor com atraso (gerente).
+  // Usa a MESMA regra do contador "Atrasadas" (status === 'atrasada' OU data vencida e não hoje)
+  // e agrupa por responsavel_id mesmo quando o join de profiles falha.
   const atrasadasPorVendedor = useMemo(() => {
     if (!canViewAll) return null;
-    const map = new Map<string, { vendedor: any; tarefas: any[] }>();
+    const now = new Date();
+    const map = new Map<string, { vendedor: { id: string; nome: string }; tarefas: any[] }>();
     for (const t of items) {
-      if (t.status !== "atrasada") continue;
-      const v = t.responsavel;
-      if (!v) continue;
-      if (!map.has(v.id)) map.set(v.id, { vendedor: v, tarefas: [] });
-      map.get(v.id)!.tarefas.push(t);
+      if (t.status === "concluida") continue;
+      const d = t.data_vencimento ? new Date(t.data_vencimento) : null;
+      const atrasada = t.status === "atrasada" || (d && d < now && !isToday(d));
+      if (!atrasada) continue;
+      const id = t.responsavel?.id ?? t.responsavel_id ?? "sem-responsavel";
+      const nome = t.responsavel?.nome ?? "Sem responsável";
+      if (!map.has(id)) map.set(id, { vendedor: { id, nome }, tarefas: [] });
+      map.get(id)!.tarefas.push(t);
     }
     return Array.from(map.values()).sort((a, b) => b.tarefas.length - a.tarefas.length);
   }, [items, canViewAll]);

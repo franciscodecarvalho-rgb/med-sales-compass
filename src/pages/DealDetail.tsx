@@ -298,11 +298,7 @@ export default function DealDetail() {
         </TabsContent>
 
         <TabsContent value="playbook">
-          <PlaybookTab
-            dealId={id!}
-            linhaNome={deal.linhas_produto?.nome}
-            estagioAtual={deal.estagio}
-          />
+          <PlaybookTab dealId={id!} />
         </TabsContent>
 
         <TabsContent value="historico" className="space-y-2">

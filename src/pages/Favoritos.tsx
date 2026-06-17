@@ -125,7 +125,7 @@ export default function Favoritos() {
           link: `/recorrencia`,
         })),
       },
-    ].filter(g => g.itens.length > 0);
+    ] as Grupo[]).filter(g => g.itens.length > 0);
 
     setGrupos(gs);
     } catch (err) {

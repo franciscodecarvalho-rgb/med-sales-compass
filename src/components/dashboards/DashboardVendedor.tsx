@@ -15,8 +15,10 @@ import {
 } from "@/lib/crm";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { KpiCard } from "./KpiCard";
 import MetaAgendamentosCards from "./MetaAgendamentosCards";
+import AgendaTab from "./AgendaTab";
 import { toast } from "sonner";
 
 export function DashboardVendedor() {
@@ -136,12 +138,20 @@ export function DashboardVendedor() {
   return (
     <div className="space-y-6 p-6">
       {/* Meta diária — primeira coisa que o vendedor vê ao abrir o painel */}
-      {user && <MetaAgendamentosCards userId={user.id} showHistorico />}
+      {user && <MetaAgendamentosCards userId={user.id} showHistorico canRegister />}
 
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Meu painel</h1>
         <p className="text-sm text-muted-foreground">Sua atividade comercial em um relance</p>
       </div>
+
+      <Tabs defaultValue="painel">
+        <TabsList>
+          <TabsTrigger value="painel">Painel</TabsTrigger>
+          <TabsTrigger value="agenda">Agenda</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="painel" className="mt-6 space-y-6">
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <KpiCard title="Deals abertos" value={kpis.dealsAbertos} icon={Kanban} variant="primary" />
@@ -280,6 +290,12 @@ export function DashboardVendedor() {
           </div>
         </CardContent>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="agenda" className="mt-6">
+          {user && <AgendaTab userId={user.id} />}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

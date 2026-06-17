@@ -1681,6 +1681,36 @@ export type Database = {
           },
         ]
       }
+      ligacoes: {
+        Row: {
+          created_at: string
+          deal_id: string | null
+          id: string
+          medico_id: string | null
+          observacao: string | null
+          unidade_id: string | null
+          vendedor_id: string
+        }
+        Insert: {
+          created_at?: string
+          deal_id?: string | null
+          id?: string
+          medico_id?: string | null
+          observacao?: string | null
+          unidade_id?: string | null
+          vendedor_id: string
+        }
+        Update: {
+          created_at?: string
+          deal_id?: string | null
+          id?: string
+          medico_id?: string | null
+          observacao?: string | null
+          unidade_id?: string | null
+          vendedor_id?: string
+        }
+        Relationships: []
+      }
       metas_atividade: {
         Row: {
           ativo: boolean
@@ -1688,6 +1718,7 @@ export type Database = {
           created_by: string
           id: string
           meta_agendamentos_dia: number
+          meta_ligacoes_dia: number | null
           updated_at: string
           user_id: string
         }
@@ -1697,6 +1728,7 @@ export type Database = {
           created_by: string
           id?: string
           meta_agendamentos_dia: number
+          meta_ligacoes_dia?: number | null
           updated_at?: string
           user_id: string
         }
@@ -1706,6 +1738,7 @@ export type Database = {
           created_by?: string
           id?: string
           meta_agendamentos_dia?: number
+          meta_ligacoes_dia?: number | null
           updated_at?: string
           user_id?: string
         }

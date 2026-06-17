@@ -18,8 +18,10 @@ export default function MetaAgendamentosGestor() {
   const [vendedores, setVendedores] = useState<Vendedor[]>([]);
   const [selecionado, setSelecionado] = useState<string>("");
   const [metaAtual, setMetaAtual] = useState<number | null>(null);
+  const [metaLigAtual, setMetaLigAtual] = useState<number | null>(null);
   const [openEdit, setOpenEdit] = useState(false);
   const [novaMeta, setNovaMeta] = useState("");
+  const [novaMetaLig, setNovaMetaLig] = useState("");
   const [saving, setSaving] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -34,17 +36,21 @@ export default function MetaAgendamentosGestor() {
 
   async function loadMeta() {
     const { data } = await supabase.from("metas_atividade")
-      .select("meta_agendamentos_dia")
+      .select("meta_agendamentos_dia, meta_ligacoes_dia")
       .eq("user_id", selecionado).eq("ativo", true)
       .maybeSingle();
     setMetaAtual(data?.meta_agendamentos_dia ?? null);
+    setMetaLigAtual(data?.meta_ligacoes_dia ?? null);
     setNovaMeta(data?.meta_agendamentos_dia?.toString() ?? "");
+    setNovaMetaLig(data?.meta_ligacoes_dia?.toString() ?? "");
   }
 
   async function salvarMeta(e: React.FormEvent) {
     e.preventDefault();
     const valor = Number(novaMeta);
-    if (!valor || valor < 1) { toast.error("Meta deve ser ao menos 1"); return; }
+    if (!valor || valor < 1) { toast.error("Meta de agendamentos deve ser ao menos 1"); return; }
+    const valorLig = novaMetaLig ? Number(novaMetaLig) : null;
+    if (valorLig !== null && valorLig < 1) { toast.error("Meta de ligações deve ser ao menos 1"); return; }
     if (!user) return;
     setSaving(true);
 
@@ -56,6 +62,7 @@ export default function MetaAgendamentosGestor() {
     const { error } = await supabase.from("metas_atividade").insert({
       user_id: selecionado,
       meta_agendamentos_dia: valor,
+      meta_ligacoes_dia: valorLig,
       created_by: user.id,
     });
     setSaving(false);
@@ -83,19 +90,24 @@ export default function MetaAgendamentosGestor() {
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm">
                   <Settings2 className="mr-1 h-3.5 w-3.5" />
-                  {metaAtual ? `Meta: ${metaAtual}/dia` : "Definir meta"}
+                  {metaAtual ? `Metas: ${metaLigAtual ?? "—"} lig · ${metaAtual} ag` : "Definir metas"}
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-sm">
-                <DialogHeader><DialogTitle>Meta de agendamentos/dia</DialogTitle></DialogHeader>
+                <DialogHeader><DialogTitle>Metas diárias de atividade</DialogTitle></DialogHeader>
                 <form onSubmit={salvarMeta} className="space-y-3">
                   <p className="text-sm text-muted-foreground">
-                    {vendedores.find(v => v.id === selecionado)?.nome} — call + visita somados, dias úteis (seg–sex).
+                    {vendedores.find(v => v.id === selecionado)?.nome} — dias úteis (seg–sex). Funil ligações → agendamentos.
                   </p>
                   <div className="space-y-2">
-                    <Label>Agendamentos por dia *</Label>
+                    <Label>Ligações por dia</Label>
+                    <Input type="number" min={1} value={novaMetaLig}
+                      onChange={e => setNovaMetaLig(e.target.value)} placeholder="Ex: 20" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Agendamentos por dia * <span className="font-normal text-muted-foreground">(call + visita)</span></Label>
                     <Input type="number" min={1} required value={novaMeta}
-                      onChange={e => setNovaMeta(e.target.value)} placeholder="Ex: 5" />
+                      onChange={e => setNovaMeta(e.target.value)} placeholder="Ex: 4" />
                   </div>
                   <DialogFooter>
                     <Button type="submit" disabled={saving}>{saving ? "Salvando..." : "Salvar"}</Button>

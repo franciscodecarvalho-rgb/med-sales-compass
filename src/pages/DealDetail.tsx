@@ -17,7 +17,7 @@ import { ArrowLeft, Clock, Plus, Trash2, History, XCircle, Pencil, Check, X } fr
 import { EnviarParaFaturamentoModal } from "@/components/EnviarParaFaturamentoModal";
 import { toast } from "sonner";
 import {
-  STAGE_ORDER, STAGE_LABELS, formatCurrency, daysBetween, stageColorClass, DealStage, RESULTADO_LABELS, ESTADOS_BR, regiaoFromEstado, REGIAO_LABELS,
+  STAGE_ORDER, STAGE_LABELS, formatCurrency, daysBetween, stageColorClass, DealStage, RESULTADO_LABELS, ESTADOS_BR, regiaoFromEstado, REGIAO_LABELS, TarefaPrioridade,
 } from "@/lib/crm";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -267,6 +267,9 @@ export default function DealDetail() {
         </TabsContent>
 
         <TabsContent value="tarefas" className="space-y-2">
+          <div className="flex justify-end">
+            <NovaTarefaDealDialog dealId={id!} userId={user?.id} onCreated={load} />
+          </div>
           {tarefas.map((t) => (
             <Card
               key={t.id}
@@ -703,6 +706,78 @@ function EditDealDialog({
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={onClose}>Cancelar</Button>
             <Button type="submit" disabled={saving}>{saving ? "Salvando..." : "Salvar alterações"}</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function NovaTarefaDealDialog({ dealId, userId, onCreated }: { dealId: string; userId?: string; onCreated: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [titulo, setTitulo] = useState("");
+  const [descricao, setDescricao] = useState("");
+  const [data, setData] = useState("");
+  const [prioridade, setPrioridade] = useState<TarefaPrioridade>("media");
+  const [saving, setSaving] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userId) { toast.error("Usuário não autenticado"); return; }
+    setSaving(true);
+    const { error } = await supabase.from("tarefas").insert({
+      titulo,
+      descricao: descricao || null,
+      data_vencimento: data || null,
+      prioridade,
+      deal_id: dealId,
+      criador_id: userId,
+      responsavel_id: userId,
+      status: "pendente",
+    });
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Tarefa criada");
+    setTitulo(""); setDescricao(""); setData(""); setPrioridade("media");
+    setOpen(false);
+    onCreated();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm"><Plus className="h-4 w-4 mr-1" />Nova tarefa</Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-md">
+        <DialogHeader><DialogTitle>Nova tarefa</DialogTitle></DialogHeader>
+        <form onSubmit={submit} className="space-y-3">
+          <div className="space-y-2">
+            <Label>Descrição *</Label>
+            <Input required value={titulo} onChange={(e) => setTitulo(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label>Notas (opcional)</Label>
+            <Textarea rows={2} value={descricao} onChange={(e) => setDescricao(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Data e hora</Label>
+              <Input type="datetime-local" value={data} onChange={(e) => setData(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>Prioridade</Label>
+              <Select value={prioridade} onValueChange={(v) => setPrioridade(v as TarefaPrioridade)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="alta">Alta</SelectItem>
+                  <SelectItem value="media">Média</SelectItem>
+                  <SelectItem value="baixa">Baixa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="submit" disabled={saving}>{saving ? "Salvando..." : "Criar tarefa"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

@@ -135,12 +135,13 @@ export function DashboardVendedor() {
 
   return (
     <div className="space-y-6 p-6">
+      {/* Meta diária — primeira coisa que o vendedor vê ao abrir o painel */}
+      {user && <MetaAgendamentosCards userId={user.id} showHistorico />}
+
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Meu painel</h1>
         <p className="text-sm text-muted-foreground">Sua atividade comercial em um relance</p>
       </div>
-
-      {user && <MetaAgendamentosCards userId={user.id} showHistorico />}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <KpiCard title="Deals abertos" value={kpis.dealsAbertos} icon={Kanban} variant="primary" />

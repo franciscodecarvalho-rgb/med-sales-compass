@@ -141,6 +141,7 @@ function NovaTarefaStakeholderDialog({
 }: { stakeholderId: string; userId?: string; onSaved: () => void }) {
   const [form, setForm] = useState({
     titulo: "", descricao: "", data: "", prioridade: "media" as TarefaPrioridade,
+    tipoAgendamento: "comum" as "comum" | "call" | "visita",
   });
   const [saving, setSaving] = useState(false);
 
@@ -148,6 +149,7 @@ function NovaTarefaStakeholderDialog({
     e.preventDefault();
     if (!userId) return;
     if (!form.titulo.trim()) { toast.error("Descreva a tarefa"); return; }
+    if (form.tipoAgendamento !== "comum" && !form.data) { toast.error("Defina data e hora para o agendamento"); return; }
     setSaving(true);
     const { error } = await supabase.from("tarefas").insert({
       titulo: form.titulo.trim(),
@@ -156,6 +158,7 @@ function NovaTarefaStakeholderDialog({
       criador_id: userId,
       prioridade: form.prioridade,
       data_vencimento: form.data || null,
+      tipo_agendamento: form.tipoAgendamento === "comum" ? null : form.tipoAgendamento,
       stakeholder_id: stakeholderId,
     });
     setSaving(false);
@@ -175,6 +178,17 @@ function NovaTarefaStakeholderDialog({
         <div className="space-y-2">
           <Label>Notas</Label>
           <Textarea rows={2} value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} />
+        </div>
+        <div className="space-y-2">
+          <Label>Tipo</Label>
+          <Select value={form.tipoAgendamento} onValueChange={(v) => setForm({ ...form, tipoAgendamento: v as "comum" | "call" | "visita" })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="comum">Tarefa comum</SelectItem>
+              <SelectItem value="call">📞 Agendamento de Call</SelectItem>
+              <SelectItem value="visita">🏥 Agendamento de Visita</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">

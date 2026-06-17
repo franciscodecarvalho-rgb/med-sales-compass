@@ -719,17 +719,20 @@ function NovaTarefaDealDialog({ dealId, userId, onCreated }: { dealId: string; u
   const [descricao, setDescricao] = useState("");
   const [data, setData] = useState("");
   const [prioridade, setPrioridade] = useState<TarefaPrioridade>("media");
+  const [tipoAgendamento, setTipoAgendamento] = useState<"comum" | "call" | "visita">("comum");
   const [saving, setSaving] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userId) { toast.error("Usuário não autenticado"); return; }
+    if (tipoAgendamento !== "comum" && !data) { toast.error("Defina data e hora para o agendamento"); return; }
     setSaving(true);
     const { error } = await supabase.from("tarefas").insert({
       titulo,
       descricao: descricao || null,
       data_vencimento: data || null,
       prioridade,
+      tipo_agendamento: tipoAgendamento === "comum" ? null : tipoAgendamento,
       deal_id: dealId,
       criador_id: userId,
       responsavel_id: userId,
@@ -737,8 +740,8 @@ function NovaTarefaDealDialog({ dealId, userId, onCreated }: { dealId: string; u
     });
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    toast.success("Tarefa criada");
-    setTitulo(""); setDescricao(""); setData(""); setPrioridade("media");
+    toast.success(tipoAgendamento === "comum" ? "Tarefa criada" : "Agendamento criado");
+    setTitulo(""); setDescricao(""); setData(""); setPrioridade("media"); setTipoAgendamento("comum");
     setOpen(false);
     onCreated();
   };
@@ -758,6 +761,17 @@ function NovaTarefaDealDialog({ dealId, userId, onCreated }: { dealId: string; u
           <div className="space-y-2">
             <Label>Notas (opcional)</Label>
             <Textarea rows={2} value={descricao} onChange={(e) => setDescricao(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label>Tipo</Label>
+            <Select value={tipoAgendamento} onValueChange={(v) => setTipoAgendamento(v as "comum" | "call" | "visita")}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="comum">Tarefa comum</SelectItem>
+                <SelectItem value="call">📞 Agendamento de Call</SelectItem>
+                <SelectItem value="visita">🏥 Agendamento de Visita</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">

@@ -63,7 +63,7 @@ export default function Favoritos() {
         : Promise.resolve({ data: [] }),
     ]);
 
-    const gs: Grupo[] = [
+    const gs: Grupo[] = ([
       {
         tipo: "unidade", titulo: "Unidades de Saúde", icon: Building2,
         itens: ((unidades.data ?? []) as any[]).map(u => ({
@@ -125,7 +125,7 @@ export default function Favoritos() {
           link: `/recorrencia`,
         })),
       },
-    ].filter(g => g.itens.length > 0);
+    ] as Grupo[]).filter(g => g.itens.length > 0);
 
     setGrupos(gs);
     } catch (err) {

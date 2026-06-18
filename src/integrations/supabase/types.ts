@@ -154,6 +154,7 @@ export type Database = {
       chamados: {
         Row: {
           archived_at: string | null
+          codigo: string | null
           created_at: string
           created_by: string | null
           data_abertura: string
@@ -163,6 +164,7 @@ export type Database = {
           id: string
           observacoes: string | null
           prioridade: Database["public"]["Enums"]["chamado_prioridade"]
+          seq_num: number | null
           status: Database["public"]["Enums"]["chamado_status"]
           tecnico_id: string | null
           unidade_id: string
@@ -170,6 +172,7 @@ export type Database = {
         }
         Insert: {
           archived_at?: string | null
+          codigo?: string | null
           created_at?: string
           created_by?: string | null
           data_abertura?: string
@@ -179,6 +182,7 @@ export type Database = {
           id?: string
           observacoes?: string | null
           prioridade?: Database["public"]["Enums"]["chamado_prioridade"]
+          seq_num?: number | null
           status?: Database["public"]["Enums"]["chamado_status"]
           tecnico_id?: string | null
           unidade_id: string
@@ -186,6 +190,7 @@ export type Database = {
         }
         Update: {
           archived_at?: string | null
+          codigo?: string | null
           created_at?: string
           created_by?: string | null
           data_abertura?: string
@@ -195,6 +200,7 @@ export type Database = {
           id?: string
           observacoes?: string | null
           prioridade?: Database["public"]["Enums"]["chamado_prioridade"]
+          seq_num?: number | null
           status?: Database["public"]["Enums"]["chamado_status"]
           tecnico_id?: string | null
           unidade_id?: string
@@ -2637,7 +2643,7 @@ export type Database = {
         | "fechamento"
         | "finalizado"
       discovery_origem: "manual" | "lab" | "planilha"
-      discovery_status: "em_pesquisa" | "oficializado" | "descartado" | "nao_interessado"
+      discovery_status: "em_pesquisa" | "oficializado" | "descartado"
       favorito_tipo:
         | "unidade"
         | "medico"
@@ -2675,7 +2681,7 @@ export type Database = {
         | "comodato"
         | "locacao"
         | "troca"
-      unidade_status: "lead" | "cliente" | "inativo" | "nao_interessado"
+      unidade_status: "lead" | "cliente" | "inativo"
       unidade_tipo: "hospital" | "clinica" | "ubs" | "laboratorio" | "outro"
     }
     CompositeTypes: {
@@ -2827,7 +2833,7 @@ export const Constants = {
         "finalizado",
       ],
       discovery_origem: ["manual", "lab", "planilha"],
-      discovery_status: ["em_pesquisa", "oficializado", "descartado", "nao_interessado"],
+      discovery_status: ["em_pesquisa", "oficializado", "descartado"],
       favorito_tipo: [
         "unidade",
         "medico",
@@ -2870,7 +2876,7 @@ export const Constants = {
         "locacao",
         "troca",
       ],
-      unidade_status: ["lead", "cliente", "inativo", "nao_interessado"],
+      unidade_status: ["lead", "cliente", "inativo"],
       unidade_tipo: ["hospital", "clinica", "ubs", "laboratorio", "outro"],
     },
   },

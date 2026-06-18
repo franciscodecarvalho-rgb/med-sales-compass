@@ -79,7 +79,9 @@ export default function Unidades() {
     const list = items.filter((u) => {
       if (search && !u.nome.toLowerCase().includes(search.toLowerCase()) &&
           !(u.cidade ?? "").toLowerCase().includes(search.toLowerCase())) return false;
-      if (filterCiclo !== "all" && u.status !== filterCiclo) return false;
+      // "Todos" mostra só ativos; "Não interessado" fica num filtro próprio (LGPD)
+      if (filterCiclo === "all") { if (u.status === "nao_interessado") return false; }
+      else if (u.status !== filterCiclo) return false;
       if (filterEstado !== "all" && u.estados?.sigla !== filterEstado) return false;
       if (filterTipo !== "all" && u.tipos_unidade?.id !== filterTipo) return false;
       return true;
@@ -128,7 +130,7 @@ export default function Unidades() {
         <Select value={filterCiclo} onValueChange={setFilterCiclo}>
           <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos os status</SelectItem>
+            <SelectItem value="all">Todos (ativos)</SelectItem>
             {Object.entries(UNIDADE_STATUS_LABELS).map(([k, v]) =>
               <SelectItem key={k} value={k}>{v}</SelectItem>)}
           </SelectContent>

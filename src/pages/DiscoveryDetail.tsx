@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   ArrowLeft, Check, Search as SearchIcon, RotateCcw, Save, Plus, Trash2,
-  UserPlus, Stethoscope, Package, Phone, Mail, Pencil,
+  UserPlus, Stethoscope, Package, Phone, Mail, Pencil, Ban,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -139,6 +139,15 @@ export default function DiscoveryDetail() {
       .update({ status: "em_pesquisa" }).eq("id", item.id);
     if (error) { toast.error(error.message); return; }
     toast.success("Item recuperado");
+    void load();
+  }
+
+  async function marcarNaoInteressado() {
+    if (!item) return;
+    const { error } = await supabase.from("discovery")
+      .update({ status: "nao_interessado" }).eq("id", item.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Marcado como Não interessado — não será mais contatado (LGPD).");
     void load();
   }
 
@@ -334,7 +343,8 @@ export default function DiscoveryDetail() {
 
   const isDescartado = item.status === "descartado";
   const isOficializado = item.status === "oficializado";
-  const readOnly = isOficializado || isDescartado;
+  const isNaoInteressado = item.status === "nao_interessado";
+  const readOnly = isOficializado || isDescartado || isNaoInteressado;
 
   // médicos não vinculados ainda
   const medicosDisponiveis = medicosAll.filter(
@@ -346,6 +356,15 @@ export default function DiscoveryDetail() {
       <Link to="/discovery" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="mr-1 h-4 w-4" /> Voltar
       </Link>
+
+      {isNaoInteressado && (
+        <div className="flex flex-wrap items-center gap-3 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm">
+          <Ban className="h-5 w-5 shrink-0 text-destructive" />
+          <span className="font-semibold text-destructive">NÃO CONTATAR</span>
+          <span className="text-muted-foreground">Lead marcado como não interessado (LGPD) — não inclua em prospecção/contatos.</span>
+          <Button variant="outline" size="sm" className="ml-auto" onClick={ressuscitar}>Reativar contato</Button>
+        </div>
+      )}
 
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="flex gap-4">
@@ -421,6 +440,10 @@ export default function DiscoveryDetail() {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
+
+              <Button variant="ghost" className="text-destructive hover:text-destructive" onClick={marcarNaoInteressado}>
+                <Ban className="mr-2 h-4 w-4" /> Não interessado
+              </Button>
             </>
           )}
           {isDescartado && (

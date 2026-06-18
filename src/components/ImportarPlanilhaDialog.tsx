@@ -119,25 +119,35 @@ export default function ImportarPlanilhaDialog({ open, onOpenChange, onImported 
     }
 
     const etiquetaFinal = etiqueta.trim() || pastaNome;
-    const payload = sel.map(r => ({
-      nome: r.nome.trim(),
-      cidade: r.cidade,
-      estado_id: r.estado_id,
-      tipo_id: r.tipo_id,
-      telefone: r.telefone,
-      site: r.site,
-      informacoes_adicionais: r.informacoes_adicionais,
-      vendedor_id: user.id,
-      created_by: user.id,
-      pasta_id: destinoPastaId,
-      status: "em_pesquisa" as const,
-      origem: "planilha" as const,
-      origem_etiqueta: etiquetaFinal,
-    }));
-    const { error } = await supabase.from("discovery").insert(payload);
+
+    // Insere linha a linha para pular duplicados (CNPJ/telefone) sem abortar o lote inteiro
+    let ok = 0;
+    const duplicados: string[] = [];
+    for (const r of sel) {
+      const { error } = await supabase.from("discovery").insert({
+        nome: r.nome.trim(),
+        cidade: r.cidade,
+        estado_id: r.estado_id,
+        tipo_id: r.tipo_id,
+        telefone: r.telefone,
+        site: r.site,
+        informacoes_adicionais: r.informacoes_adicionais,
+        vendedor_id: user.id,
+        created_by: user.id,
+        pasta_id: destinoPastaId,
+        status: "em_pesquisa" as const,
+        origem: "planilha" as const,
+        origem_etiqueta: etiquetaFinal,
+      });
+      if (error) {
+        if (/duplicad|cadastrad/i.test(error.message)) duplicados.push(r.nome.trim());
+        else { setImporting(false); toast.error(error.message); return; }
+      } else ok++;
+    }
     setImporting(false);
-    if (error) { toast.error(error.message); return; }
-    toast.success(`${sel.length} ${sel.length === 1 ? "item importado" : "itens importados"}`);
+    const sufixo = duplicados.length ? ` · ${duplicados.length} ignorado(s) por duplicidade` : "";
+    if (ok > 0) toast.success(`${ok} ${ok === 1 ? "item importado" : "itens importados"}${sufixo}`);
+    else toast.error(`Nenhum item importado — ${duplicados.length} duplicado(s) (CNPJ/telefone já cadastrado).`);
     onImported();
     close();
   };

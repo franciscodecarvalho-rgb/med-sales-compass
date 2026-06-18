@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Building2, MapPin, Phone, Mail, Globe, Plus, ArrowLeft, Trash2, Save, Send, Star } from "lucide-react";
+import { Building2, MapPin, Phone, Mail, Globe, Plus, ArrowLeft, Trash2, Save, Send, Star, Ban } from "lucide-react";
 import { TarefasList } from "@/components/TarefasList";
 import PosVendaUnidadeTab from "@/components/posvenda/PosVendaUnidadeTab";
 import RadarTab from "@/components/recorrencia/RadarTab";
@@ -92,6 +92,22 @@ export default function UnidadeDetail() {
     void load();
   }
 
+  async function marcarNaoInteressado() {
+    const { error } = await supabase.from("unidades_saude")
+      .update({ status: "nao_interessado" as UnidadeStatus }).eq("id", id!);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Marcada como Não interessado — não será mais contatada (LGPD).");
+    void load();
+  }
+
+  async function reativarContato() {
+    const { error } = await supabase.from("unidades_saude")
+      .update({ status: "lead" as UnidadeStatus }).eq("id", id!);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Contato reativado (Lead).");
+    void load();
+  }
+
   async function enviarParaFunil() {
     if (!unidade) return;
     const { error } = await supabase.from("unidades_saude")
@@ -108,6 +124,21 @@ export default function UnidadeDetail() {
       <Link to="/unidades" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="mr-1 h-4 w-4" /> Voltar
       </Link>
+
+      {unidade.status === "nao_interessado" ? (
+        <div className="flex flex-wrap items-center gap-3 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm">
+          <Ban className="h-5 w-5 shrink-0 text-destructive" />
+          <span className="font-semibold text-destructive">NÃO CONTATAR</span>
+          <span className="text-muted-foreground">Marcada como não interessado (LGPD) — não inclua em prospecção/contatos.</span>
+          <Button variant="outline" size="sm" className="ml-auto" onClick={reativarContato}>Reativar contato</Button>
+        </div>
+      ) : (
+        <div className="flex justify-end">
+          <Button variant="outline" size="sm" onClick={marcarNaoInteressado}>
+            <Ban className="mr-1 h-3.5 w-3.5" /> Não contatar
+          </Button>
+        </div>
+      )}
 
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">

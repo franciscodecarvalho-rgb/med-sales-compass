@@ -2637,7 +2637,7 @@ export type Database = {
         | "fechamento"
         | "finalizado"
       discovery_origem: "manual" | "lab" | "planilha"
-      discovery_status: "em_pesquisa" | "oficializado" | "descartado"
+      discovery_status: "em_pesquisa" | "oficializado" | "descartado" | "nao_interessado"
       favorito_tipo:
         | "unidade"
         | "medico"
@@ -2675,7 +2675,7 @@ export type Database = {
         | "comodato"
         | "locacao"
         | "troca"
-      unidade_status: "lead" | "cliente" | "inativo"
+      unidade_status: "lead" | "cliente" | "inativo" | "nao_interessado"
       unidade_tipo: "hospital" | "clinica" | "ubs" | "laboratorio" | "outro"
     }
     CompositeTypes: {
@@ -2827,7 +2827,7 @@ export const Constants = {
         "finalizado",
       ],
       discovery_origem: ["manual", "lab", "planilha"],
-      discovery_status: ["em_pesquisa", "oficializado", "descartado"],
+      discovery_status: ["em_pesquisa", "oficializado", "descartado", "nao_interessado"],
       favorito_tipo: [
         "unidade",
         "medico",
@@ -2870,7 +2870,7 @@ export const Constants = {
         "locacao",
         "troca",
       ],
-      unidade_status: ["lead", "cliente", "inativo"],
+      unidade_status: ["lead", "cliente", "inativo", "nao_interessado"],
       unidade_tipo: ["hospital", "clinica", "ubs", "laboratorio", "outro"],
     },
   },

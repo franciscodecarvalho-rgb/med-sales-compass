@@ -88,7 +88,9 @@ export default function Discovery() {
       unidade_gerada_id
     `, { count: "exact" }).is("archived_at", null).order("created_at", { ascending: false }).range(0, pg * PAGE_SIZE - 1);
 
-    if (statusFilter !== "all") q = q.eq("status", statusFilter as any);
+    // "Todos" mostra só os ativos — "Não interessado" fica segregado num filtro próprio (LGPD)
+    if (statusFilter === "all") q = q.neq("status", "nao_interessado" as any);
+    else q = q.eq("status", statusFilter as any);
 
     if (vendedorFilter === "eu") q = q.eq("vendedor_id", user.id);
     else if (vendedorFilter !== "todos") q = q.eq("vendedor_id", vendedorFilter);
@@ -304,7 +306,8 @@ export default function Discovery() {
             <SelectItem value="em_pesquisa">Em Pesquisa</SelectItem>
             <SelectItem value="oficializado">Oficializado</SelectItem>
             <SelectItem value="descartado">Descartado</SelectItem>
-            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="nao_interessado">Não interessado</SelectItem>
+            <SelectItem value="all">Todos (ativos)</SelectItem>
           </SelectContent>
         </Select>
         <Select value={vendedorFilter} onValueChange={setVendedorFilter}>

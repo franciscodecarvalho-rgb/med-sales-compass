@@ -131,24 +131,28 @@ export const UNIDADE_STATUS_LABELS: Record<UnidadeStatus, string> = {
   lead: "Lead",
   cliente: "Cliente",
   inativo: "Inativo",
+  nao_interessado: "Não interessado",
 };
 
 export const UNIDADE_STATUS_BADGE: Record<UnidadeStatus, string> = {
   lead: "bg-info/15 text-info border-info/30",
   cliente: "bg-warning/15 text-warning border-warning/30",
   inativo: "bg-muted text-muted-foreground border-border",
+  nao_interessado: "bg-destructive/15 text-destructive border-destructive/30",
 };
 
 export const DISCOVERY_STATUS_LABELS: Record<DiscoveryStatus, string> = {
   em_pesquisa: "Em Pesquisa",
   oficializado: "Oficializado",
   descartado: "Descartado",
+  nao_interessado: "Não interessado",
 };
 
 export const DISCOVERY_STATUS_BADGE: Record<DiscoveryStatus, string> = {
   em_pesquisa: "bg-info/15 text-info border-info/30",
   oficializado: "bg-success/15 text-success border-success/30",
   descartado: "bg-muted text-muted-foreground border-border",
+  nao_interessado: "bg-destructive/15 text-destructive border-destructive/30",
 };
 
 // Backward-compat aliases (deprecated, prefer *_STATUS_*)

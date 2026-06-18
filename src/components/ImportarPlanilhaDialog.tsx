@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -44,12 +45,27 @@ export default function ImportarPlanilhaDialog({ open, onOpenChange, onImported 
   const [etiqueta, setEtiqueta] = useState("");
   const [rows, setRows] = useState<ParsedRow[]>([]);
   const [importing, setImporting] = useState(false);
+  const [pastas, setPastas] = useState<{ id: string; nome: string }[]>([]);
+  const [pastaId, setPastaId] = useState("");      // "" | id existente | "__nova__"
+  const [novaPasta, setNovaPasta] = useState("");
+
+  useEffect(() => {
+    if (!open) return;
+    void (supabase as any).from("discovery_pastas")
+      .select("id, nome").is("archived_at", null).order("ordem").order("nome")
+      .then(({ data }: { data: { id: string; nome: string }[] | null }) => setPastas(data ?? []));
+  }, [open]);
+
+  // Pasta obrigatória: existente selecionada OU nova com nome preenchido
+  const pastaDeterminada = pastaId !== "" && (pastaId !== "__nova__" || novaPasta.trim().length > 0);
 
   const reset = () => {
     setStep("input");
     setRawText("");
     setEtiqueta("");
     setRows([]);
+    setPastaId("");
+    setNovaPasta("");
   };
 
   const close = () => {
@@ -85,10 +101,24 @@ export default function ImportarPlanilhaDialog({ open, onOpenChange, onImported 
 
   const importar = async () => {
     if (!user) return;
-    if (!etiqueta.trim()) { toast.error("Informe uma etiqueta para esta importação"); return; }
+    if (!pastaDeterminada) { toast.error("Determine uma pasta para a importação"); return; }
     const sel = rows.filter(r => r._selected && r.nome.trim());
     if (sel.length === 0) { toast.error("Selecione ao menos uma linha"); return; }
     setImporting(true);
+
+    // Resolve a pasta de destino (cria a nova, se for o caso)
+    let destinoPastaId = pastaId;
+    let pastaNome = pastas.find(p => p.id === pastaId)?.nome ?? "";
+    if (pastaId === "__nova__") {
+      const { data: nova, error: errP } = await (supabase as any).from("discovery_pastas")
+        .insert({ nome: novaPasta.trim(), cor: null, ordem: pastas.length, created_by: user.id })
+        .select("id, nome").single();
+      if (errP) { setImporting(false); toast.error(errP.message); return; }
+      destinoPastaId = nova.id;
+      pastaNome = nova.nome;
+    }
+
+    const etiquetaFinal = etiqueta.trim() || pastaNome;
     const payload = sel.map(r => ({
       nome: r.nome.trim(),
       cidade: r.cidade,
@@ -99,9 +129,10 @@ export default function ImportarPlanilhaDialog({ open, onOpenChange, onImported 
       informacoes_adicionais: r.informacoes_adicionais,
       vendedor_id: user.id,
       created_by: user.id,
+      pasta_id: destinoPastaId,
       status: "em_pesquisa" as const,
       origem: "planilha" as const,
-      origem_etiqueta: etiqueta.trim(),
+      origem_etiqueta: etiquetaFinal,
     }));
     const { error } = await supabase.from("discovery").insert(payload);
     setImporting(false);
@@ -135,7 +166,28 @@ export default function ImportarPlanilhaDialog({ open, onOpenChange, onImported 
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Etiqueta desta importação *</Label>
+              <Label>Pasta de destino *</Label>
+              <Select value={pastaId} onValueChange={setPastaId}>
+                <SelectTrigger><SelectValue placeholder="Escolha uma pasta..." /></SelectTrigger>
+                <SelectContent>
+                  {pastas.map(p => <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>)}
+                  <SelectItem value="__nova__">➕ Nova pasta…</SelectItem>
+                </SelectContent>
+              </Select>
+              {pastaId === "__nova__" && (
+                <Input
+                  value={novaPasta}
+                  onChange={(e) => setNovaPasta(e.target.value)}
+                  placeholder="Nome da nova pasta"
+                  maxLength={60}
+                />
+              )}
+              <p className="text-xs text-muted-foreground">
+                Toda importação precisa de uma pasta — todos os itens entram nela.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label>Etiqueta desta importação <span className="font-normal text-muted-foreground">(opcional)</span></Label>
               <Input
                 value={etiqueta}
                 onChange={(e) => setEtiqueta(e.target.value)}
@@ -143,7 +195,7 @@ export default function ImportarPlanilhaDialog({ open, onOpenChange, onImported 
                 maxLength={60}
               />
               <p className="text-xs text-muted-foreground">
-                Identifica a origem dos itens importados (aparece como tag em cada Discovery).
+                Tag de origem em cada item. Se vazia, usa o nome da pasta.
               </p>
             </div>
             <div className="space-y-2">
@@ -245,7 +297,7 @@ export default function ImportarPlanilhaDialog({ open, onOpenChange, onImported 
           {step === "input" && (
             <>
               <Button variant="outline" onClick={close}>Cancelar</Button>
-              <Button onClick={processar} disabled={rawText.trim().length < 5 || !etiqueta.trim()}>
+              <Button onClick={processar} disabled={rawText.trim().length < 5 || !pastaDeterminada}>
                 <Sparkles className="mr-2 h-4 w-4" />
                 Processar com IA
               </Button>

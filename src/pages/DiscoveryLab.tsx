@@ -560,6 +560,7 @@ export default function DiscoveryLab() {
         vendedor_id: user.id,
         created_by: user.id,
         status: "em_pesquisa",
+        origem: "lab",
       }).select("id").single();
 
       if (error) {

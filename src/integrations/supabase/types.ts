@@ -895,6 +895,8 @@ export type Database = {
           id: string
           informacoes_adicionais: string | null
           nome: string
+          origem: Database["public"]["Enums"]["discovery_origem"]
+          origem_etiqueta: string | null
           pasta_id: string | null
           porte: string | null
           site: string | null
@@ -917,6 +919,8 @@ export type Database = {
           id?: string
           informacoes_adicionais?: string | null
           nome: string
+          origem?: Database["public"]["Enums"]["discovery_origem"]
+          origem_etiqueta?: string | null
           pasta_id?: string | null
           porte?: string | null
           site?: string | null
@@ -939,6 +943,8 @@ export type Database = {
           id?: string
           informacoes_adicionais?: string | null
           nome?: string
+          origem?: Database["public"]["Enums"]["discovery_origem"]
+          origem_etiqueta?: string | null
           pasta_id?: string | null
           porte?: string | null
           site?: string | null
@@ -2570,6 +2576,7 @@ export type Database = {
         | "decisao"
         | "fechamento"
         | "finalizado"
+      discovery_origem: "manual" | "lab" | "planilha"
       discovery_status: "em_pesquisa" | "oficializado" | "descartado"
       favorito_tipo:
         | "unidade"
@@ -2759,6 +2766,7 @@ export const Constants = {
         "fechamento",
         "finalizado",
       ],
+      discovery_origem: ["manual", "lab", "planilha"],
       discovery_status: ["em_pesquisa", "oficializado", "descartado"],
       favorito_tipo: [
         "unidade",

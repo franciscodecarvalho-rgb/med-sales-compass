@@ -154,6 +154,7 @@ export type Database = {
       chamados: {
         Row: {
           archived_at: string | null
+          codigo: string | null
           created_at: string
           created_by: string | null
           data_abertura: string
@@ -163,6 +164,7 @@ export type Database = {
           id: string
           observacoes: string | null
           prioridade: Database["public"]["Enums"]["chamado_prioridade"]
+          seq_num: number | null
           status: Database["public"]["Enums"]["chamado_status"]
           tecnico_id: string | null
           unidade_id: string
@@ -170,6 +172,7 @@ export type Database = {
         }
         Insert: {
           archived_at?: string | null
+          codigo?: string | null
           created_at?: string
           created_by?: string | null
           data_abertura?: string
@@ -179,6 +182,7 @@ export type Database = {
           id?: string
           observacoes?: string | null
           prioridade?: Database["public"]["Enums"]["chamado_prioridade"]
+          seq_num?: number | null
           status?: Database["public"]["Enums"]["chamado_status"]
           tecnico_id?: string | null
           unidade_id: string
@@ -186,6 +190,7 @@ export type Database = {
         }
         Update: {
           archived_at?: string | null
+          codigo?: string | null
           created_at?: string
           created_by?: string | null
           data_abertura?: string
@@ -195,6 +200,7 @@ export type Database = {
           id?: string
           observacoes?: string | null
           prioridade?: Database["public"]["Enums"]["chamado_prioridade"]
+          seq_num?: number | null
           status?: Database["public"]["Enums"]["chamado_status"]
           tecnico_id?: string | null
           unidade_id?: string
@@ -2007,46 +2013,61 @@ export type Database = {
           created_at: string
           criado_em: string
           criado_por: string
-          deal_id: string
+          deal_id: string | null
           finalizado_em: string | null
           finalizado_por: string | null
+          forma_pagamento: string | null
           id: string
           id_olist: string | null
+          linha_produto_id: string | null
           observacoes_gerais: string | null
           pedido_olist: string | null
           proposta_olist: string | null
           status: Database["public"]["Enums"]["status_saida_advance"]
           tipo_saida: Database["public"]["Enums"]["tipo_saida_advance"] | null
+          titulo: string | null
+          unidade_id: string | null
+          valor_total: number | null
         }
         Insert: {
           created_at?: string
           criado_em?: string
           criado_por: string
-          deal_id: string
+          deal_id?: string | null
           finalizado_em?: string | null
           finalizado_por?: string | null
+          forma_pagamento?: string | null
           id?: string
           id_olist?: string | null
+          linha_produto_id?: string | null
           observacoes_gerais?: string | null
           pedido_olist?: string | null
           proposta_olist?: string | null
           status?: Database["public"]["Enums"]["status_saida_advance"]
           tipo_saida?: Database["public"]["Enums"]["tipo_saida_advance"] | null
+          titulo?: string | null
+          unidade_id?: string | null
+          valor_total?: number | null
         }
         Update: {
           created_at?: string
           criado_em?: string
           criado_por?: string
-          deal_id?: string
+          deal_id?: string | null
           finalizado_em?: string | null
           finalizado_por?: string | null
+          forma_pagamento?: string | null
           id?: string
           id_olist?: string | null
+          linha_produto_id?: string | null
           observacoes_gerais?: string | null
           pedido_olist?: string | null
           proposta_olist?: string | null
           status?: Database["public"]["Enums"]["status_saida_advance"]
           tipo_saida?: Database["public"]["Enums"]["tipo_saida_advance"] | null
+          titulo?: string | null
+          unidade_id?: string | null
+          valor_total?: number | null
         }
         Relationships: [
           {
@@ -2054,6 +2075,20 @@ export type Database = {
             columns: ["deal_id"]
             isOneToOne: true
             referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saidas_advance_linha_produto_id_fkey"
+            columns: ["linha_produto_id"]
+            isOneToOne: false
+            referencedRelation: "linhas_produto"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saidas_advance_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "unidades_saude"
             referencedColumns: ["id"]
           },
         ]
@@ -2637,7 +2672,11 @@ export type Database = {
         | "fechamento"
         | "finalizado"
       discovery_origem: "manual" | "lab" | "planilha"
-      discovery_status: "em_pesquisa" | "oficializado" | "descartado" | "nao_interessado"
+      discovery_status:
+        | "em_pesquisa"
+        | "oficializado"
+        | "descartado"
+        | "nao_interessado"
       favorito_tipo:
         | "unidade"
         | "medico"
@@ -2827,7 +2866,12 @@ export const Constants = {
         "finalizado",
       ],
       discovery_origem: ["manual", "lab", "planilha"],
-      discovery_status: ["em_pesquisa", "oficializado", "descartado", "nao_interessado"],
+      discovery_status: [
+        "em_pesquisa",
+        "oficializado",
+        "descartado",
+        "nao_interessado",
+      ],
       favorito_tipo: [
         "unidade",
         "medico",

@@ -245,7 +245,7 @@ export default function ImportarPlanilhaDialog({ open, onOpenChange, onImported 
           {step === "input" && (
             <>
               <Button variant="outline" onClick={close}>Cancelar</Button>
-              <Button onClick={processar} disabled={rawText.trim().length < 5}>
+              <Button onClick={processar} disabled={rawText.trim().length < 5 || !etiqueta.trim()}>
                 <Sparkles className="mr-2 h-4 w-4" />
                 Processar com IA
               </Button>

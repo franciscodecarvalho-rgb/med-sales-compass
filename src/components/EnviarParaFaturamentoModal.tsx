@@ -116,7 +116,9 @@ export function EnviarParaFaturamentoModal({ open, deal, onClose, onSuccess }: P
     if (forma === "a_vista_cartao") return true;
     if (forma === "financiamento_externo") return instituicao.trim().length > 0;
     if (forma === "financiado_interno") {
-      return analiseResult?.status === "aprovado";
+      // TEMP: análise de crédito opcional enquanto refinamos o fluxo.
+      // Estrutura mantida — quando reativar, exigir: analiseResult?.status === "aprovado"
+      return true;
     }
     return false;
   }
@@ -252,7 +254,7 @@ export function EnviarParaFaturamentoModal({ open, deal, onClose, onSuccess }: P
             <div className="space-y-3 rounded-md border p-3 bg-muted/20">
               <div className="space-y-1">
                 <Label className="text-xs font-semibold">
-                  Número da Análise de Crédito *
+                  Número da Análise de Crédito <span className="text-muted-foreground font-normal">(opcional)</span>
                 </Label>
                 <div className="flex gap-2">
                   <Input

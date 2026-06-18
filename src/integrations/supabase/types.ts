@@ -2013,46 +2013,61 @@ export type Database = {
           created_at: string
           criado_em: string
           criado_por: string
-          deal_id: string
+          deal_id: string | null
           finalizado_em: string | null
           finalizado_por: string | null
+          forma_pagamento: string | null
           id: string
           id_olist: string | null
+          linha_produto_id: string | null
           observacoes_gerais: string | null
           pedido_olist: string | null
           proposta_olist: string | null
           status: Database["public"]["Enums"]["status_saida_advance"]
           tipo_saida: Database["public"]["Enums"]["tipo_saida_advance"] | null
+          titulo: string | null
+          unidade_id: string | null
+          valor_total: number | null
         }
         Insert: {
           created_at?: string
           criado_em?: string
           criado_por: string
-          deal_id: string
+          deal_id?: string | null
           finalizado_em?: string | null
           finalizado_por?: string | null
+          forma_pagamento?: string | null
           id?: string
           id_olist?: string | null
+          linha_produto_id?: string | null
           observacoes_gerais?: string | null
           pedido_olist?: string | null
           proposta_olist?: string | null
           status?: Database["public"]["Enums"]["status_saida_advance"]
           tipo_saida?: Database["public"]["Enums"]["tipo_saida_advance"] | null
+          titulo?: string | null
+          unidade_id?: string | null
+          valor_total?: number | null
         }
         Update: {
           created_at?: string
           criado_em?: string
           criado_por?: string
-          deal_id?: string
+          deal_id?: string | null
           finalizado_em?: string | null
           finalizado_por?: string | null
+          forma_pagamento?: string | null
           id?: string
           id_olist?: string | null
+          linha_produto_id?: string | null
           observacoes_gerais?: string | null
           pedido_olist?: string | null
           proposta_olist?: string | null
           status?: Database["public"]["Enums"]["status_saida_advance"]
           tipo_saida?: Database["public"]["Enums"]["tipo_saida_advance"] | null
+          titulo?: string | null
+          unidade_id?: string | null
+          valor_total?: number | null
         }
         Relationships: [
           {
@@ -2060,6 +2075,20 @@ export type Database = {
             columns: ["deal_id"]
             isOneToOne: true
             referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saidas_advance_linha_produto_id_fkey"
+            columns: ["linha_produto_id"]
+            isOneToOne: false
+            referencedRelation: "linhas_produto"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saidas_advance_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "unidades_saude"
             referencedColumns: ["id"]
           },
         ]
@@ -2643,7 +2672,11 @@ export type Database = {
         | "fechamento"
         | "finalizado"
       discovery_origem: "manual" | "lab" | "planilha"
-      discovery_status: "em_pesquisa" | "oficializado" | "descartado"
+      discovery_status:
+        | "em_pesquisa"
+        | "oficializado"
+        | "descartado"
+        | "nao_interessado"
       favorito_tipo:
         | "unidade"
         | "medico"
@@ -2681,7 +2714,7 @@ export type Database = {
         | "comodato"
         | "locacao"
         | "troca"
-      unidade_status: "lead" | "cliente" | "inativo"
+      unidade_status: "lead" | "cliente" | "inativo" | "nao_interessado"
       unidade_tipo: "hospital" | "clinica" | "ubs" | "laboratorio" | "outro"
     }
     CompositeTypes: {
@@ -2833,7 +2866,12 @@ export const Constants = {
         "finalizado",
       ],
       discovery_origem: ["manual", "lab", "planilha"],
-      discovery_status: ["em_pesquisa", "oficializado", "descartado"],
+      discovery_status: [
+        "em_pesquisa",
+        "oficializado",
+        "descartado",
+        "nao_interessado",
+      ],
       favorito_tipo: [
         "unidade",
         "medico",
@@ -2876,7 +2914,7 @@ export const Constants = {
         "locacao",
         "troca",
       ],
-      unidade_status: ["lead", "cliente", "inativo"],
+      unidade_status: ["lead", "cliente", "inativo", "nao_interessado"],
       unidade_tipo: ["hospital", "clinica", "ubs", "laboratorio", "outro"],
     },
   },

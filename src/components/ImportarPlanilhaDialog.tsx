@@ -41,12 +41,14 @@ export default function ImportarPlanilhaDialog({ open, onOpenChange, onImported 
   const { user } = useAuth();
   const [step, setStep] = useState<Step>("input");
   const [rawText, setRawText] = useState("");
+  const [etiqueta, setEtiqueta] = useState("");
   const [rows, setRows] = useState<ParsedRow[]>([]);
   const [importing, setImporting] = useState(false);
 
   const reset = () => {
     setStep("input");
     setRawText("");
+    setEtiqueta("");
     setRows([]);
   };
 
@@ -83,6 +85,7 @@ export default function ImportarPlanilhaDialog({ open, onOpenChange, onImported 
 
   const importar = async () => {
     if (!user) return;
+    if (!etiqueta.trim()) { toast.error("Informe uma etiqueta para esta importação"); return; }
     const sel = rows.filter(r => r._selected && r.nome.trim());
     if (sel.length === 0) { toast.error("Selecione ao menos uma linha"); return; }
     setImporting(true);
@@ -97,6 +100,8 @@ export default function ImportarPlanilhaDialog({ open, onOpenChange, onImported 
       vendedor_id: user.id,
       created_by: user.id,
       status: "em_pesquisa" as const,
+      origem: "planilha" as const,
+      origem_etiqueta: etiqueta.trim(),
     }));
     const { error } = await supabase.from("discovery").insert(payload);
     setImporting(false);
@@ -130,9 +135,21 @@ export default function ImportarPlanilhaDialog({ open, onOpenChange, onImported 
               </div>
             </div>
             <div className="space-y-2">
+              <Label>Etiqueta desta importação *</Label>
+              <Input
+                value={etiqueta}
+                onChange={(e) => setEtiqueta(e.target.value)}
+                placeholder="Ex: Planilha Hospitais MG · Out/2026"
+                maxLength={60}
+              />
+              <p className="text-xs text-muted-foreground">
+                Identifica a origem dos itens importados (aparece como tag em cada Discovery).
+              </p>
+            </div>
+            <div className="space-y-2">
               <Label>Conteúdo bruto</Label>
               <Textarea
-                rows={14}
+                rows={12}
                 placeholder={`Ex:\nHospital Santa Mônica\tBelo Horizonte\tMG\tHospital\t(31) 3333-4444\nClínica São Lucas\tContagem\tMG\tClínica\nLab Imagem\tBetim\tMG\tLaboratório\t(31) 9999-0000\twww.labimagem.com.br`}
                 value={rawText}
                 onChange={(e) => setRawText(e.target.value)}
@@ -228,7 +245,7 @@ export default function ImportarPlanilhaDialog({ open, onOpenChange, onImported 
           {step === "input" && (
             <>
               <Button variant="outline" onClick={close}>Cancelar</Button>
-              <Button onClick={processar} disabled={rawText.trim().length < 5}>
+              <Button onClick={processar} disabled={rawText.trim().length < 5 || !etiqueta.trim()}>
                 <Sparkles className="mr-2 h-4 w-4" />
                 Processar com IA
               </Button>

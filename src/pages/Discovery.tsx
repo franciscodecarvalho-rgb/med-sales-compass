@@ -82,7 +82,7 @@ export default function Discovery() {
     setLoading(true);
 
     let q = supabase.from("discovery").select(`
-      id, nome, cidade, status, created_at, vendedor_id, pasta_id,
+      id, nome, cidade, status, created_at, vendedor_id, pasta_id, origem, origem_etiqueta,
       tipos_unidade(id, nome),
       estados(id, sigla),
       unidade_gerada_id
@@ -371,6 +371,7 @@ export default function Discovery() {
                       <TableHeader>
                         <TableRow>
                           <TableHead>Nome</TableHead>
+                          <TableHead>Origem</TableHead>
                           <TableHead>Tipo</TableHead>
                           <TableHead>Pasta</TableHead>
                           <TableHead>Vendedor</TableHead>
@@ -390,6 +391,7 @@ export default function Discovery() {
                                 </Link>
                               </div>
                             </TableCell>
+                            <TableCell><OrigemBadge origem={it.origem} etiqueta={it.origem_etiqueta} /></TableCell>
                             <TableCell className="text-muted-foreground">
                               {it.tipos_unidade?.nome ?? "—"}
                             </TableCell>
@@ -465,6 +467,21 @@ export default function Discovery() {
       </AlertDialog>
     </div>
   );
+}
+
+function OrigemBadge({ origem, etiqueta }: { origem?: string | null; etiqueta?: string | null }) {
+  if (origem === "lab") {
+    return <Badge variant="outline" className="border-orange-500/40 bg-orange-500/10 text-orange-700 dark:text-orange-300 gap-1"><FlaskConical className="h-3 w-3" />LAB</Badge>;
+  }
+  if (origem === "planilha") {
+    return (
+      <Badge variant="outline" className="border-blue-500/40 bg-blue-500/10 text-blue-700 dark:text-blue-300 gap-1">
+        <Sparkles className="h-3 w-3" />
+        Planilha{etiqueta ? ` · ${etiqueta}` : ""}
+      </Badge>
+    );
+  }
+  return <Badge variant="outline" className="text-muted-foreground gap-1"><PlusIcon className="h-3 w-3" />Manual</Badge>;
 }
 
 function PastaTab({
@@ -564,6 +581,7 @@ function NovoDiscoveryDialog({ onCreated }: { onCreated: () => void }) {
       vendedor_id: user.id,
       created_by: user.id,
       status: "em_pesquisa",
+      origem: "manual",
     });
     setSaving(false);
     if (error) { toast.error(error.message); return; }

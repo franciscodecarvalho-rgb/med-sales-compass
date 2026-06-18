@@ -82,7 +82,7 @@ export default function Discovery() {
     setLoading(true);
 
     let q = supabase.from("discovery").select(`
-      id, nome, cidade, status, created_at, vendedor_id, pasta_id,
+      id, nome, cidade, status, created_at, vendedor_id, pasta_id, origem, origem_etiqueta,
       tipos_unidade(id, nome),
       estados(id, sigla),
       unidade_gerada_id

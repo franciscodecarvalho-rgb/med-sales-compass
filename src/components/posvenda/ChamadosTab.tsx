@@ -230,12 +230,13 @@ export default function ChamadosTab() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {loading && <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Carregando...</TableCell></TableRow>}
-            {!loading && filtered.length === 0 && <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhum chamado.</TableCell></TableRow>}
+            {loading && <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Carregando...</TableCell></TableRow>}
+            {!loading && filtered.length === 0 && <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Nenhum chamado.</TableCell></TableRow>}
             {filtered.map((c, i) => {
               const isOpen = c.status !== "resolvido" && c.status !== "fechado";
               return (
                 <TableRow key={c.id} className={i % 2 === 0 ? "" : "bg-muted/30"}>
+                  <TableCell className="font-mono text-xs">{c.codigo ?? "—"}</TableCell>
                   <TableCell className="font-medium">{unidadeName(c.unidade_id)}</TableCell>
                   <TableCell>{c.descricao_equipamento}</TableCell>
                   <TableCell className="max-w-[280px] truncate">{c.descricao_problema}</TableCell>

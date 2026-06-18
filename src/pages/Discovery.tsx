@@ -469,6 +469,21 @@ export default function Discovery() {
   );
 }
 
+function OrigemBadge({ origem, etiqueta }: { origem?: string | null; etiqueta?: string | null }) {
+  if (origem === "lab") {
+    return <Badge variant="outline" className="border-orange-500/40 bg-orange-500/10 text-orange-700 dark:text-orange-300 gap-1"><FlaskConical className="h-3 w-3" />LAB</Badge>;
+  }
+  if (origem === "planilha") {
+    return (
+      <Badge variant="outline" className="border-blue-500/40 bg-blue-500/10 text-blue-700 dark:text-blue-300 gap-1">
+        <Sparkles className="h-3 w-3" />
+        Planilha{etiqueta ? ` · ${etiqueta}` : ""}
+      </Badge>
+    );
+  }
+  return <Badge variant="outline" className="text-muted-foreground gap-1"><PlusIcon className="h-3 w-3" />Manual</Badge>;
+}
+
 function PastaTab({
   active, onClick, icon, label, count, onEdit, onDelete,
 }: {

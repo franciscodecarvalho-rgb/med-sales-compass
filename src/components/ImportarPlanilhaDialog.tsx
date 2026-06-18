@@ -135,9 +135,21 @@ export default function ImportarPlanilhaDialog({ open, onOpenChange, onImported 
               </div>
             </div>
             <div className="space-y-2">
+              <Label>Etiqueta desta importação *</Label>
+              <Input
+                value={etiqueta}
+                onChange={(e) => setEtiqueta(e.target.value)}
+                placeholder="Ex: Planilha Hospitais MG · Out/2026"
+                maxLength={60}
+              />
+              <p className="text-xs text-muted-foreground">
+                Identifica a origem dos itens importados (aparece como tag em cada Discovery).
+              </p>
+            </div>
+            <div className="space-y-2">
               <Label>Conteúdo bruto</Label>
               <Textarea
-                rows={14}
+                rows={12}
                 placeholder={`Ex:\nHospital Santa Mônica\tBelo Horizonte\tMG\tHospital\t(31) 3333-4444\nClínica São Lucas\tContagem\tMG\tClínica\nLab Imagem\tBetim\tMG\tLaboratório\t(31) 9999-0000\twww.labimagem.com.br`}
                 value={rawText}
                 onChange={(e) => setRawText(e.target.value)}

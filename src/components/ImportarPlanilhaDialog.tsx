@@ -85,6 +85,7 @@ export default function ImportarPlanilhaDialog({ open, onOpenChange, onImported 
 
   const importar = async () => {
     if (!user) return;
+    if (!etiqueta.trim()) { toast.error("Informe uma etiqueta para esta importação"); return; }
     const sel = rows.filter(r => r._selected && r.nome.trim());
     if (sel.length === 0) { toast.error("Selecione ao menos uma linha"); return; }
     setImporting(true);
@@ -96,6 +97,12 @@ export default function ImportarPlanilhaDialog({ open, onOpenChange, onImported 
       telefone: r.telefone,
       site: r.site,
       informacoes_adicionais: r.informacoes_adicionais,
+      vendedor_id: user.id,
+      created_by: user.id,
+      status: "em_pesquisa" as const,
+      origem: "planilha" as const,
+      origem_etiqueta: etiqueta.trim(),
+    }));
       vendedor_id: user.id,
       created_by: user.id,
       status: "em_pesquisa" as const,

@@ -371,6 +371,7 @@ export default function Discovery() {
                       <TableHeader>
                         <TableRow>
                           <TableHead>Nome</TableHead>
+                          <TableHead>Origem</TableHead>
                           <TableHead>Tipo</TableHead>
                           <TableHead>Pasta</TableHead>
                           <TableHead>Vendedor</TableHead>
@@ -390,6 +391,7 @@ export default function Discovery() {
                                 </Link>
                               </div>
                             </TableCell>
+                            <TableCell><OrigemBadge origem={it.origem} etiqueta={it.origem_etiqueta} /></TableCell>
                             <TableCell className="text-muted-foreground">
                               {it.tipos_unidade?.nome ?? "—"}
                             </TableCell>

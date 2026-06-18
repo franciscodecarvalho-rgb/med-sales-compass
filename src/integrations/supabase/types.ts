@@ -1460,6 +1460,24 @@ export type Database = {
         }
         Relationships: []
       }
+      ligacoes: {
+        Row: {
+          created_at: string
+          id: string
+          vendedor_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          vendedor_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          vendedor_id?: string
+        }
+        Relationships: []
+      }
       linhas_produto: {
         Row: {
           archived_at: string | null
@@ -1685,6 +1703,7 @@ export type Database = {
           created_by: string
           id: string
           meta_agendamentos_dia: number
+          meta_ligacoes_dia: number | null
           updated_at: string
           user_id: string
         }
@@ -1694,6 +1713,7 @@ export type Database = {
           created_by: string
           id?: string
           meta_agendamentos_dia: number
+          meta_ligacoes_dia?: number | null
           updated_at?: string
           user_id: string
         }
@@ -1703,6 +1723,7 @@ export type Database = {
           created_by?: string
           id?: string
           meta_agendamentos_dia?: number
+          meta_ligacoes_dia?: number | null
           updated_at?: string
           user_id?: string
         }

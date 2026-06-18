@@ -21,6 +21,7 @@ import { LoadMoreBar, PAGE_SIZE } from "@/components/LoadMoreBar";
 
 interface Chamado {
   id: string;
+  codigo: string | null;
   unidade_id: string;
   descricao_equipamento: string;
   descricao_problema: string;

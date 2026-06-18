@@ -1744,6 +1744,36 @@ export type Database = {
           },
         ]
       }
+      metas_campanha: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          id: string
+          meta_agendas_dia: number
+          meta_contatos_dia: number
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          meta_agendas_dia?: number
+          meta_contatos_dia?: number
+          titulo?: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          meta_agendas_dia?: number
+          meta_contatos_dia?: number
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       motivos_perda: {
         Row: {
           archived_at: string | null
@@ -2565,6 +2595,15 @@ export type Database = {
         }
       }
       marcar_tarefas_atrasadas: { Args: never; Returns: number }
+      painel_ataque_hoje: {
+        Args: never
+        Returns: {
+          agendamentos: number
+          contatos: number
+          nome: string
+          vendedor_id: string
+        }[]
+      }
     }
     Enums: {
       app_role:

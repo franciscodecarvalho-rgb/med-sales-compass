@@ -103,10 +103,6 @@ export default function ImportarPlanilhaDialog({ open, onOpenChange, onImported 
       origem: "planilha" as const,
       origem_etiqueta: etiqueta.trim(),
     }));
-      vendedor_id: user.id,
-      created_by: user.id,
-      status: "em_pesquisa" as const,
-    }));
     const { error } = await supabase.from("discovery").insert(payload);
     setImporting(false);
     if (error) { toast.error(error.message); return; }

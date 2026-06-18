@@ -2007,67 +2007,46 @@ export type Database = {
           created_at: string
           criado_em: string
           criado_por: string
-          deal_id: string | null
+          deal_id: string
           finalizado_em: string | null
           finalizado_por: string | null
-          forma_pagamento:
-            | Database["public"]["Enums"]["forma_pagamento_tipo"]
-            | null
           id: string
           id_olist: string | null
-          linha_produto_id: string | null
           observacoes_gerais: string | null
           pedido_olist: string | null
           proposta_olist: string | null
           status: Database["public"]["Enums"]["status_saida_advance"]
           tipo_saida: Database["public"]["Enums"]["tipo_saida_advance"] | null
-          titulo: string | null
-          unidade_id: string | null
-          valor_total: number | null
         }
         Insert: {
           created_at?: string
           criado_em?: string
           criado_por: string
-          deal_id?: string | null
+          deal_id: string
           finalizado_em?: string | null
           finalizado_por?: string | null
-          forma_pagamento?:
-            | Database["public"]["Enums"]["forma_pagamento_tipo"]
-            | null
           id?: string
           id_olist?: string | null
-          linha_produto_id?: string | null
           observacoes_gerais?: string | null
           pedido_olist?: string | null
           proposta_olist?: string | null
           status?: Database["public"]["Enums"]["status_saida_advance"]
           tipo_saida?: Database["public"]["Enums"]["tipo_saida_advance"] | null
-          titulo?: string | null
-          unidade_id?: string | null
-          valor_total?: number | null
         }
         Update: {
           created_at?: string
           criado_em?: string
           criado_por?: string
-          deal_id?: string | null
+          deal_id?: string
           finalizado_em?: string | null
           finalizado_por?: string | null
-          forma_pagamento?:
-            | Database["public"]["Enums"]["forma_pagamento_tipo"]
-            | null
           id?: string
           id_olist?: string | null
-          linha_produto_id?: string | null
           observacoes_gerais?: string | null
           pedido_olist?: string | null
           proposta_olist?: string | null
           status?: Database["public"]["Enums"]["status_saida_advance"]
           tipo_saida?: Database["public"]["Enums"]["tipo_saida_advance"] | null
-          titulo?: string | null
-          unidade_id?: string | null
-          valor_total?: number | null
         }
         Relationships: [
           {
@@ -2075,20 +2054,6 @@ export type Database = {
             columns: ["deal_id"]
             isOneToOne: true
             referencedRelation: "deals"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "saidas_advance_unidade_id_fkey"
-            columns: ["unidade_id"]
-            isOneToOne: false
-            referencedRelation: "unidades_saude"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "saidas_advance_linha_produto_id_fkey"
-            columns: ["linha_produto_id"]
-            isOneToOne: false
-            referencedRelation: "linhas_produto"
             referencedColumns: ["id"]
           },
         ]

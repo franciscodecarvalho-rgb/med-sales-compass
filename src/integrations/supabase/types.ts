@@ -1696,33 +1696,6 @@ export type Database = {
           },
         ]
       }
-      metas_campanha: {
-        Row: {
-          ativo: boolean
-          id: string
-          meta_agendas_dia: number
-          meta_contatos_dia: number
-          titulo: string
-          updated_at: string
-        }
-        Insert: {
-          ativo?: boolean
-          id?: string
-          meta_agendas_dia: number
-          meta_contatos_dia: number
-          titulo?: string
-          updated_at?: string
-        }
-        Update: {
-          ativo?: boolean
-          id?: string
-          meta_agendas_dia?: number
-          meta_contatos_dia?: number
-          titulo?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       metas_atividade: {
         Row: {
           ativo: boolean
@@ -2592,15 +2565,6 @@ export type Database = {
         }
       }
       marcar_tarefas_atrasadas: { Args: never; Returns: number }
-      painel_ataque_hoje: {
-        Args: never
-        Returns: {
-          vendedor_id: string
-          nome: string
-          contatos: number
-          agendamentos: number
-        }[]
-      }
     }
     Enums: {
       app_role:

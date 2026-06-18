@@ -5,6 +5,7 @@ import { DashboardGerente } from "@/components/dashboards/DashboardGerente";
 import { DashboardTecnico } from "@/components/dashboards/DashboardTecnico";
 import { DashboardAssistente } from "@/components/dashboards/DashboardAssistente";
 import PainelGerencial from "@/components/dashboards/PainelGerencial";
+import TodosNoAtaque from "@/components/dashboards/TodosNoAtaque";
 
 function MeuDashboard() {
   const { roles } = useAuth();
@@ -23,22 +24,26 @@ export default function Dashboard() {
 
   const showPainel = roles.includes("admin") || roles.includes("gerente");
 
-  if (!showPainel) return <MeuDashboard />;
-
   return (
-    <Tabs defaultValue="meu" className="h-full">
+    <Tabs defaultValue="ataque" className="h-full">
       <div className="px-6 pt-6">
         <TabsList>
+          <TabsTrigger value="ataque">🔥 Todos no Ataque</TabsTrigger>
           <TabsTrigger value="meu">Meu Dashboard</TabsTrigger>
-          <TabsTrigger value="painel">Painel Gerencial</TabsTrigger>
+          {showPainel && <TabsTrigger value="painel">Painel Gerencial</TabsTrigger>}
         </TabsList>
       </div>
+      <TabsContent value="ataque" className="mt-0">
+        <TodosNoAtaque />
+      </TabsContent>
       <TabsContent value="meu" className="mt-0">
         <MeuDashboard />
       </TabsContent>
-      <TabsContent value="painel" className="mt-0">
-        <PainelGerencial />
-      </TabsContent>
+      {showPainel && (
+        <TabsContent value="painel" className="mt-0">
+          <PainelGerencial />
+        </TabsContent>
+      )}
     </Tabs>
   );
 }

@@ -158,6 +158,7 @@ export default function ChamadosTab() {
           </SelectContent>
         </Select>
         <ExportButton onExport={() => exportToExcel(filtered.map((c: any) => ({
+          Codigo: c.codigo ?? "",
           Equipamento: c.descricao_equipamento, Problema: c.descricao_problema,
           Prioridade: CHAMADO_PRIORIDADE_LABELS[c.prioridade as ChamadoPrioridade],
           Status: CHAMADO_STATUS_LABELS[c.status as ChamadoStatus],

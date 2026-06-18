@@ -579,53 +579,44 @@ export type Database = {
           },
         ]
       }
-      deal_playbook_progress: {
+      deal_prospeccao: {
         Row: {
-          checked: boolean
-          checked_at: string | null
-          checked_by: string | null
           created_at: string
           deal_id: string
-          etapa: string
           id: string
-          item_id: string
-          playbook: string
+          respostas: Json
+          updated_at: string
+          updated_by: string | null
         }
         Insert: {
-          checked?: boolean
-          checked_at?: string | null
-          checked_by?: string | null
           created_at?: string
           deal_id: string
-          etapa: string
           id?: string
-          item_id: string
-          playbook: string
+          respostas?: Json
+          updated_at?: string
+          updated_by?: string | null
         }
         Update: {
-          checked?: boolean
-          checked_at?: string | null
-          checked_by?: string | null
           created_at?: string
           deal_id?: string
-          etapa?: string
           id?: string
-          item_id?: string
-          playbook?: string
+          respostas?: Json
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "deal_playbook_progress_checked_by_fkey"
-            columns: ["checked_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
+            foreignKeyName: "deal_prospeccao_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: true
+            referencedRelation: "deals"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "deal_playbook_progress_deal_id_fkey"
-            columns: ["deal_id"]
+            foreignKeyName: "deal_prospeccao_updated_by_fkey"
+            columns: ["updated_by"]
             isOneToOne: false
-            referencedRelation: "deals"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1681,36 +1672,6 @@ export type Database = {
           },
         ]
       }
-      ligacoes: {
-        Row: {
-          created_at: string
-          deal_id: string | null
-          id: string
-          medico_id: string | null
-          observacao: string | null
-          unidade_id: string | null
-          vendedor_id: string
-        }
-        Insert: {
-          created_at?: string
-          deal_id?: string | null
-          id?: string
-          medico_id?: string | null
-          observacao?: string | null
-          unidade_id?: string | null
-          vendedor_id: string
-        }
-        Update: {
-          created_at?: string
-          deal_id?: string | null
-          id?: string
-          medico_id?: string | null
-          observacao?: string | null
-          unidade_id?: string | null
-          vendedor_id?: string
-        }
-        Relationships: []
-      }
       metas_atividade: {
         Row: {
           ativo: boolean
@@ -1718,7 +1679,6 @@ export type Database = {
           created_by: string
           id: string
           meta_agendamentos_dia: number
-          meta_ligacoes_dia: number | null
           updated_at: string
           user_id: string
         }
@@ -1728,7 +1688,6 @@ export type Database = {
           created_by: string
           id?: string
           meta_agendamentos_dia: number
-          meta_ligacoes_dia?: number | null
           updated_at?: string
           user_id: string
         }
@@ -1738,7 +1697,6 @@ export type Database = {
           created_by?: string
           id?: string
           meta_agendamentos_dia?: number
-          meta_ligacoes_dia?: number | null
           updated_at?: string
           user_id?: string
         }

@@ -218,6 +218,7 @@ export default function ChamadosTab() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Código</TableHead>
               <TableHead>Unidade</TableHead>
               <TableHead>Equipamento</TableHead>
               <TableHead>Problema</TableHead>

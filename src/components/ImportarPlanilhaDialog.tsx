@@ -41,12 +41,14 @@ export default function ImportarPlanilhaDialog({ open, onOpenChange, onImported 
   const { user } = useAuth();
   const [step, setStep] = useState<Step>("input");
   const [rawText, setRawText] = useState("");
+  const [etiqueta, setEtiqueta] = useState("");
   const [rows, setRows] = useState<ParsedRow[]>([]);
   const [importing, setImporting] = useState(false);
 
   const reset = () => {
     setStep("input");
     setRawText("");
+    setEtiqueta("");
     setRows([]);
   };
 

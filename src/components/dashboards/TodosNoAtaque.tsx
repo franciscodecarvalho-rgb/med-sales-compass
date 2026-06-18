@@ -44,8 +44,12 @@ export default function TodosNoAtaque() {
     return (
       <div className="p-6">
         <Card className="border-dashed">
-          <CardContent className="p-6 text-sm text-muted-foreground">
-            Nenhuma campanha de meta ativa. {isGestor ? "Defina uma abaixo." : "Peça ao gestor para configurar."}
+          <CardContent className="space-y-4 p-6 text-sm text-muted-foreground">
+            <p>
+              Nenhuma campanha de meta ativa.{" "}
+              {isGestor ? "Crie a campanha do dia para o time." : "Peça ao gestor para configurar."}
+            </p>
+            {isGestor && <EditarCampanhaDialog campanha={null} onSaved={load} />}
           </CardContent>
         </Card>
       </div>
@@ -155,11 +159,12 @@ function MetaHero({ icone, rotulo, realizado, meta, pct }: {
   );
 }
 
-function EditarCampanhaDialog({ campanha, onSaved }: { campanha: Campanha; onSaved: () => void }) {
+function EditarCampanhaDialog({ campanha, onSaved }: { campanha: Campanha | null; onSaved: () => void }) {
+  const criar = !campanha;
   const [open, setOpen] = useState(false);
-  const [titulo, setTitulo] = useState(campanha.titulo);
-  const [contatos, setContatos] = useState(String(campanha.meta_contatos_dia));
-  const [agendas, setAgendas] = useState(String(campanha.meta_agendas_dia));
+  const [titulo, setTitulo] = useState(campanha?.titulo ?? "Todos no Ataque");
+  const [contatos, setContatos] = useState(String(campanha?.meta_contatos_dia ?? 40));
+  const [agendas, setAgendas] = useState(String(campanha?.meta_agendas_dia ?? 4));
   const [saving, setSaving] = useState(false);
 
   async function salvar(e: React.FormEvent) {
@@ -167,12 +172,13 @@ function EditarCampanhaDialog({ campanha, onSaved }: { campanha: Campanha; onSav
     const vc = Number(contatos), va = Number(agendas);
     if (!vc || vc < 1 || !va || va < 1) { toast.error("Metas devem ser ao menos 1"); return; }
     setSaving(true);
-    const { error } = await supabase.from("metas_campanha")
-      .update({ titulo: titulo.trim() || "Todos no Ataque", meta_contatos_dia: vc, meta_agendas_dia: va })
-      .eq("ativo", true);
+    const payload = { titulo: titulo.trim() || "Todos no Ataque", meta_contatos_dia: vc, meta_agendas_dia: va };
+    const { error } = criar
+      ? await supabase.from("metas_campanha").insert({ ...payload, ativo: true })
+      : await supabase.from("metas_campanha").update(payload).eq("ativo", true);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    toast.success("Campanha atualizada");
+    toast.success(criar ? "Campanha criada" : "Campanha atualizada");
     setOpen(false);
     onSaved();
   }
@@ -180,10 +186,12 @@ function EditarCampanhaDialog({ campanha, onSaved }: { campanha: Campanha; onSav
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm"><Settings2 className="mr-1 h-3.5 w-3.5" /> Editar meta</Button>
+        <Button variant={criar ? "default" : "outline"} size="sm">
+          <Settings2 className="mr-1 h-3.5 w-3.5" /> {criar ? "Criar campanha" : "Editar meta"}
+        </Button>
       </DialogTrigger>
       <DialogContent className="max-w-sm">
-        <DialogHeader><DialogTitle>Meta da campanha</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{criar ? "Nova campanha de meta" : "Meta da campanha"}</DialogTitle></DialogHeader>
         <form onSubmit={salvar} className="space-y-3">
           <div className="space-y-2">
             <Label>Título</Label>

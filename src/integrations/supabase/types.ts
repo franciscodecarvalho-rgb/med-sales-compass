@@ -1696,33 +1696,6 @@ export type Database = {
           },
         ]
       }
-      metas_campanha: {
-        Row: {
-          ativo: boolean
-          id: string
-          meta_agendas_dia: number
-          meta_contatos_dia: number
-          titulo: string
-          updated_at: string
-        }
-        Insert: {
-          ativo?: boolean
-          id?: string
-          meta_agendas_dia: number
-          meta_contatos_dia: number
-          titulo?: string
-          updated_at?: string
-        }
-        Update: {
-          ativo?: boolean
-          id?: string
-          meta_agendas_dia?: number
-          meta_contatos_dia?: number
-          titulo?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       metas_atividade: {
         Row: {
           ativo: boolean
@@ -1770,6 +1743,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      metas_campanha: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          id: string
+          meta_agendas_dia: number
+          meta_contatos_dia: number
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          meta_agendas_dia?: number
+          meta_contatos_dia?: number
+          titulo?: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          meta_agendas_dia?: number
+          meta_contatos_dia?: number
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       motivos_perda: {
         Row: {
@@ -2595,10 +2598,10 @@ export type Database = {
       painel_ataque_hoje: {
         Args: never
         Returns: {
-          vendedor_id: string
-          nome: string
-          contatos: number
           agendamentos: number
+          contatos: number
+          nome: string
+          vendedor_id: string
         }[]
       }
     }

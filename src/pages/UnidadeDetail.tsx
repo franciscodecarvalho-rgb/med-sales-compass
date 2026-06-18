@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import CriadoPor from "@/components/CriadoPor";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -128,6 +129,15 @@ export default function UnidadeDetail() {
                 </span>
               )}
             </div>
+            <CriadoPor
+              userId={unidade.created_by}
+              prefixo="Criada por"
+              extra={
+                <Badge variant="outline" className="text-[11px]">
+                  {unidade.discovery_origem_id ? "🔄 Via Discovery" : "✍️ Cadastro direto"}
+                </Badge>
+              }
+            />
           </div>
         </div>
         <div className="flex flex-col items-end gap-2">

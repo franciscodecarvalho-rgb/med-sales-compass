@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import CriadoPor from "@/components/CriadoPor";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -363,6 +364,16 @@ export default function DiscoveryDetail() {
                 </Link>
               )}
             </div>
+            <CriadoPor
+              userId={item.created_by}
+              prefixo="Aberto por"
+              extra={
+                <Badge variant="outline" className="text-[11px]">
+                  {item.origem === "lab" ? "🧪 LAB" : item.origem === "planilha" ? "📄 Planilha" : "✍️ Manual"}
+                  {item.origem_etiqueta ? ` · ${item.origem_etiqueta}` : ""}
+                </Badge>
+              }
+            />
           </div>
         </div>
 

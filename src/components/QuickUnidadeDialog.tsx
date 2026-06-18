@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -21,6 +22,7 @@ interface Props {
 
 /** Modal compacto para criar uma Unidade de Saúde rapidamente. */
 export default function QuickUnidadeDialog({ open, onOpenChange, onCreated }: Props) {
+  const { user } = useAuth();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     nome: "",
@@ -47,6 +49,7 @@ export default function QuickUnidadeDialog({ open, onOpenChange, onCreated }: Pr
       estado: form.estado || null,
       telefone: form.telefone || null,
       status: "lead",
+      created_by: user?.id ?? null,
     }).select("id, nome").single();
     setSaving(false);
     if (error) { toast.error(error.message); return; }

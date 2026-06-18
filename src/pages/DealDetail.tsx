@@ -14,7 +14,6 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { ArrowLeft, Clock, Plus, Trash2, History, XCircle, Pencil, Check, X } from "lucide-react";
-import { EnviarParaFaturamentoModal } from "@/components/EnviarParaFaturamentoModal";
 import { toast } from "sonner";
 import {
   STAGE_ORDER, STAGE_LABELS, formatCurrency, daysBetween, stageColorClass, DealStage, RESULTADO_LABELS, ESTADOS_BR, regiaoFromEstado, REGIAO_LABELS, TarefaPrioridade,
@@ -37,7 +36,6 @@ export default function DealDetail() {
   const [novaAnot, setNovaAnot] = useState("");
   const [proxContato, setProxContato] = useState("");
   const [openFinal, setOpenFinal] = useState(false);
-  const [openAdvance, setOpenAdvance] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [editTarefa, setEditTarefa] = useState<any | null>(null);
 
@@ -345,16 +343,8 @@ export default function DealDetail() {
         <FinalizarInline
           deal={deal}
           onClose={() => { setOpenFinal(false); void load(); }}
-          onGanho={() => { setOpenFinal(false); setOpenAdvance(true); }}
         />
       </Dialog>
-
-      <EnviarParaFaturamentoModal
-        open={openAdvance}
-        deal={deal}
-        onClose={() => { setOpenAdvance(false); void load(); }}
-        onSuccess={() => { setOpenAdvance(false); void load(); }}
-      />
 
       <EditDealDialog
         open={openEdit}
@@ -474,7 +464,7 @@ function DealEquipAdd({ dealId, equipamentos, onAdded }: { dealId: string; equip
   );
 }
 
-function FinalizarInline({ deal, onClose, onGanho }: { deal: any; onClose: () => void; onGanho: () => void }) {
+function FinalizarInline({ deal, onClose }: { deal: any; onClose: () => void }) {
   const [resultado, setResultado] = useState<"ganho" | "perdido">("ganho");
   const [motivoId, setMotivoId] = useState<string>("");
   const [motivoExtra, setMotivoExtra] = useState("");
@@ -491,13 +481,24 @@ function FinalizarInline({ deal, onClose, onGanho }: { deal: any; onClose: () =>
     if (resultado === "perdido" && !motivoId) {
       toast.error("Selecione um motivo de perda"); return;
     }
-    // Se GANHO → delega para o modal Advance
+
+    setSaving(true);
+
+    // GANHO → apenas marca o deal como ganho. O envio ao Advance é feito
+    // depois, manualmente, pela tela do Vendas Advance ("Puxar do Funil").
     if (resultado === "ganho") {
-      onGanho();
+      const { error } = await supabase.from("deals").update({
+        estagio: "finalizado",
+        resultado: "ganho",
+        data_fechamento: new Date().toISOString(),
+      }).eq("id", deal.id);
+      setSaving(false);
+      if (error) { toast.error(error.message); return; }
+      toast.success("Deal ganho! 🎉");
+      onClose();
       return;
     }
 
-    setSaving(true);
     const motivoNome = motivos.find((m) => m.id === motivoId)?.nome ?? "";
     const { error } = await supabase.from("deals").update({
       estagio: "finalizado",
@@ -528,7 +529,7 @@ function FinalizarInline({ deal, onClose, onGanho }: { deal: any; onClose: () =>
         </div>
         {resultado === "ganho" && (
           <p className="rounded-md bg-primary/10 px-3 py-2 text-sm text-primary font-medium">
-            ✅ Você será direcionado para enviar o deal ao Vendas Advance.
+            ✅ O deal será marcado como ganho. Depois, puxe-o para o Vendas Advance pela tela do Advance.
           </p>
         )}
         {resultado === "perdido" && (

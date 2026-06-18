@@ -133,7 +133,7 @@ export default function VendasAdvanceDetalhe() {
     const [{ data: saidaData }, { data: itensData }, { data: anexosData }] = await Promise.all([
       supabase
         .from("saidas_advance")
-        .select(`*, deals(*, unidades_saude(nome), linhas_produto(nome, cor), profiles!deals_vendedor_profile_fkey(nome))`)
+        .select(`*, deals(*, unidades_saude(nome), linhas_produto(nome, cor), profiles!deals_vendedor_profile_fkey(nome)), unidade:unidades_saude(nome), linha:linhas_produto(nome, cor)`)
         .eq("id", id)
         .maybeSingle(),
       supabase
@@ -151,7 +151,17 @@ export default function VendasAdvanceDetalhe() {
     if (!saidaData) { toast.error("Saída não encontrada"); navigate("/vendas-advance"); return; }
 
     setSaida(saidaData);
-    setDeal(saidaData.deals);
+    // Saída avulsa (sem deal): monta um "deal" sintético a partir dos campos manuais
+    setDeal(
+      saidaData.deals ?? {
+        titulo: saidaData.titulo,
+        valor_total: saidaData.valor_total,
+        forma_pagamento: saidaData.forma_pagamento,
+        unidades_saude: saidaData.unidade ?? null,
+        linhas_produto: saidaData.linha ?? null,
+        profiles: null,
+      }
+    );
     setItens(itensData ?? []);
     setAnexos(anexosData ?? []);
 

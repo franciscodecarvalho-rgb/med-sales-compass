@@ -27,7 +27,6 @@ import {
 import { format } from "date-fns";
 import QuickUnidadeDialog from "@/components/QuickUnidadeDialog";
 import UnidadeCombobox from "@/components/UnidadeCombobox";
-import { EnviarParaFaturamentoModal } from "@/components/EnviarParaFaturamentoModal";
 
 // ---------- Live counter helpers ----------
 function useNow(intervalMs = 1000) {
@@ -103,7 +102,6 @@ export default function FunilVendas() {
   const [openNew, setOpenNew] = useState(!!unidadePreSel);
   const [activeDeal, setActiveDeal] = useState<any>(null);
   const [perdaDeal, setPerdaDeal] = useState<any>(null);
-  const [advanceDeal, setAdvanceDeal] = useState<any>(null);
 
   const [sortKey, setSortKey] = useState<SortKey>(persisted.sortKey ?? "tempo");
   const [sortDir, setSortDir] = useState<SortDir>(persisted.sortDir ?? "desc");
@@ -395,22 +393,13 @@ export default function FunilVendas() {
         />
       )}
 
-      {/* Diálogo de finalizar (drag p/ finalizado ou botão) — só para PERDIDO */}
+      {/* Diálogo de finalizar deal (ganho ou perdido) */}
       <Dialog open={!!perdaDeal} onOpenChange={(o) => !o && setPerdaDeal(null)}>
         <FinalizarDialog
           deal={perdaDeal}
-          onGanho={(d) => { setPerdaDeal(null); setAdvanceDeal(d); }}
           onClose={() => { setPerdaDeal(null); void loadDeals(); }}
         />
       </Dialog>
-
-      {/* Modal Enviar para Faturamento (só aparece quando GANHO) */}
-      <EnviarParaFaturamentoModal
-        open={!!advanceDeal}
-        deal={advanceDeal}
-        onClose={() => { setAdvanceDeal(null); void loadDeals(); }}
-        onSuccess={() => { setAdvanceDeal(null); void loadDeals(); }}
-      />
     </div>
   );
 }
@@ -873,11 +862,10 @@ function NewDealDialog({ linhas, vendedores, defaultLinhaId, defaultUnidadeId, o
 
 // ============= Modal Finalizar Deal =============
 function FinalizarDialog({
-  deal, onClose, onGanho,
+  deal, onClose,
 }: {
   deal: any;
   onClose: () => void;
-  onGanho: (deal: any) => void;
 }) {
   const [resultado, setResultado] = useState<"ganho" | "perdido">("ganho");
   const [motivoId, setMotivoId] = useState<string>("");
@@ -898,13 +886,23 @@ function FinalizarDialog({
       toast.error("Selecione um motivo de perda"); return;
     }
 
-    // Se GANHO → abre modal de Enviar para Advance ao invés de fechar direto
+    setSaving(true);
+
+    // GANHO → apenas marca o deal como ganho. O envio ao Advance é feito
+    // depois, manualmente, pela tela do Vendas Advance ("Puxar do Funil").
     if (resultado === "ganho") {
-      onGanho(deal);
+      const { error } = await supabase.from("deals").update({
+        estagio: "finalizado",
+        resultado: "ganho",
+        data_fechamento: new Date().toISOString(),
+      }).eq("id", deal.id);
+      setSaving(false);
+      if (error) { toast.error(error.message); return; }
+      toast.success("Deal ganho! 🎉");
+      onClose();
       return;
     }
 
-    setSaving(true);
     const motivoNome = motivos.find((m) => m.id === motivoId)?.nome ?? "";
     const { error } = await supabase.from("deals").update({
       estagio: "finalizado",
@@ -936,7 +934,7 @@ function FinalizarDialog({
         </div>
         {resultado === "ganho" && (
           <p className="rounded-md bg-primary/10 px-3 py-2 text-sm text-primary font-medium">
-            ✅ Ótimo! Você será direcionado para enviar o deal ao Vendas Advance.
+            ✅ O deal será marcado como ganho. Depois, puxe-o para o Vendas Advance pela tela do Advance.
           </p>
         )}
         {resultado === "perdido" && (
@@ -959,7 +957,7 @@ function FinalizarDialog({
         <DialogFooter>
           <Button type="button" variant="ghost" onClick={onClose}>Cancelar</Button>
           <Button type="submit" disabled={saving}>
-            {saving ? "Salvando..." : resultado === "ganho" ? "Continuar →" : "Confirmar"}
+            {saving ? "Salvando..." : "Confirmar"}
           </Button>
         </DialogFooter>
       </form>

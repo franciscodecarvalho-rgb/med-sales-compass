@@ -23,10 +23,9 @@ import {
   consultarAnaliseCredito,
   type AnaliseCreditoResponse,
 } from "@/services/analiseCreditoService";
+import { criarSaidaAdvance, type FormaPagamento } from "@/services/saidaAdvanceService";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-
-type FormaPagamento = "a_vista_cartao" | "financiado_interno" | "financiamento_externo";
 
 interface Props {
   open: boolean;
@@ -40,21 +39,6 @@ interface Props {
   onClose: () => void;
   onSuccess: () => void;
 }
-
-// Itens pré-definidos de cada saída Advance
-const ITENS_ADVANCE = [
-  { bloco: "cadastro",          chave: "cadastro_completo_cliente", ordem: 1  },
-  { bloco: "cadastro",          chave: "checagem_regulatoria",      ordem: 2  },
-  { bloco: "margem_financeiro", chave: "validacao_margem",          ordem: 3  },
-  { bloco: "margem_financeiro", chave: "financiamento",             ordem: 4  },
-  { bloco: "margem_financeiro", chave: "validacao_pagamento",       ordem: 5  },
-  { bloco: "faturamento",       chave: "validacao_estoque_lotes",   ordem: 6  },
-  { bloco: "faturamento",       chave: "inspecao_saida",            ordem: 7  },
-  { bloco: "faturamento",       chave: "upload_fotos",              ordem: 8  },
-  { bloco: "faturamento",       chave: "nota_fiscal",               ordem: 9  },
-  { bloco: "logistica",         chave: "transportadora",            ordem: 10 },
-  { bloco: "logistica",         chave: "abrir_contas_pagar",        ordem: 11 },
-] as const;
 
 export function EnviarParaFaturamentoModal({ open, deal, onClose, onSuccess }: Props) {
   const { user } = useAuth();
@@ -157,50 +141,18 @@ export function EnviarParaFaturamentoModal({ open, deal, onClose, onSuccess }: P
 
     if (errDeal) { toast.error(errDeal.message); setSaving(false); return; }
 
-    // 2. Cria saida_advance
-    const { data: saida, error: errSaida } = await supabase
-      .from("saidas_advance")
-      .insert({
-        deal_id: deal.id,
-        criado_por: user.id,
-        status: "em_andamento",
-      })
-      .select("id")
-      .single();
-
-    if (errSaida || !saida) {
-      toast.error(errSaida?.message ?? "Erro ao criar saída Advance");
-      setSaving(false);
-      return;
-    }
-
-    // 3. Pré-cria os 11 itens
-    const itens = ITENS_ADVANCE.map((item) => ({
-      saida_id: saida.id,
-      bloco: item.bloco,
-      chave_item: item.chave,
-      ordem: item.ordem,
-      concluido: false,
-      dados_extras:
-        item.chave === "financiamento"
-          ? {
-              forma_pagamento: forma,
-              analise_credito_id:
-                forma === "financiado_interno" ? analiseDbId : null,
-              instituicao:
-                forma === "financiamento_externo" ? instituicao || null : null,
-              observacoes:
-                forma === "financiamento_externo" ? obsExterno.trim() || null : null,
-            }
-          : null,
-    }));
-
-    const { error: errItens } = await supabase
-      .from("saidas_advance_itens")
-      .insert(itens);
-
-    if (errItens) {
-      toast.error(errItens.message);
+    // 2. Cria saida_advance + 11 itens (helper compartilhado)
+    try {
+      await criarSaidaAdvance({
+        criadoPor: user.id,
+        forma,
+        dealId: deal.id,
+        analiseDbId: forma === "financiado_interno" ? analiseDbId : null,
+        instituicao: forma === "financiamento_externo" ? instituicao || null : null,
+        obsExterno: forma === "financiamento_externo" ? obsExterno.trim() || null : null,
+      });
+    } catch (err: any) {
+      toast.error(err?.message ?? "Erro ao criar saída Advance");
       setSaving(false);
       return;
     }

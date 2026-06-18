@@ -11,11 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  ClipboardCheck, Search, AlertTriangle, CheckCircle2, Clock,
+  ClipboardCheck, Search, AlertTriangle, CheckCircle2, Clock, Trophy, PlusCircle,
 } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { FaturamentoTab } from "@/components/FaturamentoTab";
+import { EnviarParaFaturamentoModal } from "@/components/EnviarParaFaturamentoModal";
+import { PuxarDoFunilModal } from "@/components/advance/PuxarDoFunilModal";
+import { AdicionarSaidaDiretaModal } from "@/components/advance/AdicionarSaidaDiretaModal";
 
 const FORMA_LABELS: Record<string, { label: string; color: string }> = {
   a_vista_cartao:       { label: "À Vista / Cartão",       color: "bg-green-100 text-green-800 border-green-300" },
@@ -47,6 +50,11 @@ export default function VendasAdvance() {
   const [filterForma, setFilterForma] = useState("todas");
   const [search, setSearch] = useState("");
 
+  // Modais de criação de saída
+  const [showPuxar, setShowPuxar] = useState(false);
+  const [showAdd, setShowAdd] = useState(false);
+  const [advanceDeal, setAdvanceDeal] = useState<any>(null);
+
   useEffect(() => { void load(); }, []);
 
   async function load() {
@@ -61,6 +69,8 @@ export default function VendasAdvance() {
           linhas_produto(nome, cor),
           profiles!deals_vendedor_profile_fkey(nome)
         ),
+        unidade:unidades_saude(nome),
+        linha:linhas_produto(nome, cor),
         saidas_advance_itens(id, concluido, bloco)
       `)
       .order("criado_em", { ascending: false });
@@ -74,14 +84,17 @@ export default function VendasAdvance() {
 
   const filtradas = useMemo(() => {
     return (saidas || []).filter((s) => {
+      const forma = s.deals?.forma_pagamento ?? s.forma_pagamento;
       if (filterStatus !== "todas" && s.status !== filterStatus) return false;
       if (filterTipo !== "todas" && s.tipo_saida !== filterTipo) return false;
-      if (filterForma !== "todas" && s.deals?.forma_pagamento !== filterForma) return false;
+      if (filterForma !== "todas" && forma !== filterForma) return false;
       if (search) {
         const q = search.toLowerCase();
         const match =
           s.deals?.titulo?.toLowerCase().includes(q) ||
+          s.titulo?.toLowerCase().includes(q) ||
           s.deals?.unidades_saude?.nome?.toLowerCase().includes(q) ||
+          s.unidade?.nome?.toLowerCase().includes(q) ||
           s.id_olist?.toLowerCase().includes(q) ||
           s.proposta_olist?.toLowerCase().includes(q) ||
           s.pedido_olist?.toLowerCase().includes(q);
@@ -115,6 +128,14 @@ export default function VendasAdvance() {
           <p className="text-sm text-muted-foreground">
             {filtradas.length} saídas · pipeline pós-venda
           </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowPuxar(true)}>
+            <Trophy className="h-4 w-4 mr-1.5 text-amber-500" /> Puxar do Funil
+          </Button>
+          <Button onClick={() => setShowAdd(true)}>
+            <PlusCircle className="h-4 w-4 mr-1.5" /> Adicionar Diretamente
+          </Button>
         </div>
       </div>
 
@@ -233,7 +254,11 @@ export default function VendasAdvance() {
                 const total = itens.length;
                 const concluidos = itens.filter((it: any) => it.concluido).length;
                 const pct = total > 0 ? Math.round((concluidos / total) * 100) : 0;
-                const forma = s.deals?.forma_pagamento;
+                const forma = s.deals?.forma_pagamento ?? s.forma_pagamento;
+                const clienteNome = s.deals?.unidades_saude?.nome ?? s.unidade?.nome ?? s.titulo;
+                const subtitulo = s.deals?.titulo ?? (s.unidade?.nome ? s.titulo : null);
+                const linhaNome = s.deals?.linhas_produto?.nome ?? s.linha?.nome;
+                const valorTotal = s.deals?.valor_total ?? s.valor_total;
                 const atrasada =
                   s.status === "em_andamento" &&
                   differenceInDays(new Date(), new Date(s.criado_em)) > 15;
@@ -245,8 +270,8 @@ export default function VendasAdvance() {
                     onClick={() => navigate(`/vendas-advance/${s.id}`)}
                   >
                     <TableCell>
-                      <div className="font-medium text-sm">{s.deals?.unidades_saude?.nome ?? s.deals?.titulo}</div>
-                      <div className="text-xs text-muted-foreground truncate max-w-[180px]">{s.deals?.titulo}</div>
+                      <div className="font-medium text-sm">{clienteNome}</div>
+                      <div className="text-xs text-muted-foreground truncate max-w-[180px]">{subtitulo}</div>
                     </TableCell>
                     <TableCell>
                       {s.tipo_saida ? (
@@ -256,10 +281,10 @@ export default function VendasAdvance() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <span className="text-xs">{s.deals?.linhas_produto?.nome ?? "—"}</span>
+                      <span className="text-xs">{linhaNome ?? "—"}</span>
                     </TableCell>
                     <TableCell className="text-right font-mono tabular-nums text-sm">
-                      {formatCurrency(s.deals?.valor_total)}
+                      {formatCurrency(valorTotal)}
                     </TableCell>
                     <TableCell>
                       {forma ? (
@@ -327,6 +352,26 @@ export default function VendasAdvance() {
         </TabsContent>
 
       </Tabs>
+
+      {/* Puxar do funil → seleciona deal ganho → modal de faturamento cria a saída */}
+      <PuxarDoFunilModal
+        open={showPuxar}
+        onClose={() => setShowPuxar(false)}
+        onPick={(deal) => { setShowPuxar(false); setAdvanceDeal(deal); }}
+      />
+      <EnviarParaFaturamentoModal
+        open={!!advanceDeal}
+        deal={advanceDeal}
+        onClose={() => setAdvanceDeal(null)}
+        onSuccess={() => { setAdvanceDeal(null); void load(); }}
+      />
+
+      {/* Adicionar diretamente → cria saída avulsa (sem deal) */}
+      <AdicionarSaidaDiretaModal
+        open={showAdd}
+        onClose={() => setShowAdd(false)}
+        onSuccess={() => { setShowAdd(false); void load(); }}
+      />
     </div>
   );
 }

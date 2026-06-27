@@ -296,13 +296,13 @@ export default function VendasAdvanceDetalhe() {
 
     if (upErr) { toast.error("Erro no upload: " + upErr.message); setUploadingItem(null); return; }
 
-    const { data: urlData } = supabase.storage.from("advance-anexos").getPublicUrl(path);
-
+    // Bucket é privado: guardamos o CAMINHO do arquivo (não um link público).
+    // O download é feito via URL assinada temporária em abrirAnexo().
     await supabase.from("saidas_advance_anexos").insert({
       saida_id: id,
       item_chave: chaveItem,
       nome_arquivo: arquivo.name,
-      url: urlData.publicUrl,
+      url: path,
       tamanho_bytes: arquivo.size,
       tipo_mime: arquivo.type,
       anexado_por: user.id,
@@ -311,6 +311,22 @@ export default function VendasAdvanceDetalhe() {
     toast.success("Anexo salvo");
     setUploadingItem(null);
     void load();
+  }
+
+  // Abre um anexo gerando uma URL assinada temporária (bucket privado).
+  // Aceita tanto o caminho novo quanto a URL pública antiga (extrai o caminho dela).
+  async function abrirAnexo(stored: string) {
+    const marker = "/advance-anexos/";
+    const i = stored.indexOf(marker);
+    const path = i >= 0 ? stored.slice(i + marker.length) : stored;
+    const { data, error } = await supabase.storage
+      .from("advance-anexos")
+      .createSignedUrl(path, 3600);
+    if (error || !data?.signedUrl) {
+      toast.error("Não foi possível abrir o anexo");
+      return;
+    }
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
   }
 
   // ---------------------------------------------------------------------------
@@ -587,6 +603,7 @@ export default function VendasAdvanceDetalhe() {
                                 canEdit={canEdit}
                                 uploading={uploadingItem === itemMeta.chave}
                                 onUpload={(f) => handleUpload(itemMeta.chave, f)}
+                                onOpen={abrirAnexo}
                               />
 
                               {item.concluido && item.concluido_em && (
@@ -837,12 +854,13 @@ function CamposTransportadora({ extras, onChange, disabled }: {
   );
 }
 
-function AnexosItem({ itemChave, anexos, canEdit, uploading, onUpload }: {
+function AnexosItem({ itemChave, anexos, canEdit, uploading, onUpload, onOpen }: {
   itemChave: string;
   anexos: any[];
   canEdit: boolean;
   uploading: boolean;
   onUpload: (f: File) => void;
+  onOpen: (stored: string) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -857,9 +875,9 @@ function AnexosItem({ itemChave, anexos, canEdit, uploading, onUpload }: {
               <span className="text-muted-foreground shrink-0">
                 {(a.tamanho_bytes / 1024).toFixed(0)} KB
               </span>
-              <a href={a.url} target="_blank" rel="noopener noreferrer" title="Baixar">
+              <button type="button" onClick={() => onOpen(a.url)} title="Baixar" className="shrink-0">
                 <Download className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-              </a>
+              </button>
             </div>
           ))}
         </div>

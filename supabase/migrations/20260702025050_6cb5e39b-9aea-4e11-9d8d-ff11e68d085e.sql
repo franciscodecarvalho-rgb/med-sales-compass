@@ -1,0 +1,1 @@
+ALTER TABLE public.saidas_advance_itens ALTER COLUMN bloco TYPE text USING bloco::text;

@@ -2139,7 +2139,7 @@ export type Database = {
       }
       saidas_advance_itens: {
         Row: {
-          bloco: Database["public"]["Enums"]["bloco_advance"]
+          bloco: string
           chave_item: string
           concluido: boolean
           concluido_em: string | null
@@ -2153,7 +2153,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          bloco: Database["public"]["Enums"]["bloco_advance"]
+          bloco: string
           chave_item: string
           concluido?: boolean
           concluido_em?: string | null
@@ -2167,7 +2167,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          bloco?: Database["public"]["Enums"]["bloco_advance"]
+          bloco?: string
           chave_item?: string
           concluido?: boolean
           concluido_em?: string | null

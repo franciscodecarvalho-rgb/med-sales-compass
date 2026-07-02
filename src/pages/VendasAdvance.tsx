@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { AREAS_ADVANCE } from "@/services/saidaAdvanceService";
 import { FaturamentoTab } from "@/components/FaturamentoTab";
 import { EnviarParaFaturamentoModal } from "@/components/EnviarParaFaturamentoModal";
 import { PuxarDoFunilModal } from "@/components/advance/PuxarDoFunilModal";
@@ -29,13 +30,6 @@ const FORMA_LABELS: Record<string, { label: string; color: string }> = {
 const TIPO_LABELS: Record<string, string> = {
   venda: "Venda", demonstracao: "Demonstração", comodato: "Comodato",
   locacao: "Locação", troca: "Troca",
-};
-
-const BLOCO_CORES: Record<string, string> = {
-  cadastro:          "bg-blue-400",
-  margem_financeiro: "bg-yellow-400",
-  faturamento:       "bg-orange-400",
-  logistica:         "bg-green-400",
 };
 
 export default function VendasAdvance() {
@@ -71,7 +65,7 @@ export default function VendasAdvance() {
         ),
         unidade:unidades_saude(nome),
         linha:linhas_produto(nome, cor),
-        saidas_advance_itens(id, concluido, bloco)
+        saidas_advance_itens(id, concluido, chave_item)
       `)
       .order("criado_em", { ascending: false });
 
@@ -376,24 +370,18 @@ export default function VendasAdvance() {
   );
 }
 
-// Barra de progresso segmentada em 4 cores (uma por bloco)
+// Barra de progresso segmentada: um segmento por área (7), aceso quando concluída
 function BarraProgressoSegmentada({ itens }: { itens: any[] }) {
-  const blocos = ["cadastro", "margem_financeiro", "faturamento", "logistica"];
-
   return (
     <div className="flex h-2 w-24 overflow-hidden rounded-full bg-muted gap-px">
-      {blocos.map((bloco) => {
-        const do_bloco = itens.filter((it) => it.bloco === bloco);
-        const conc = do_bloco.filter((it) => it.concluido).length;
-        const tot = do_bloco.length || 1;
-        const pct = Math.round((conc / tot) * 100);
+      {AREAS_ADVANCE.map((area) => {
+        const item = itens.find((it) => it.chave_item === area.chave);
         return (
-          <div key={bloco} className="flex-1 overflow-hidden">
-            <div
-              className={`h-full transition-all ${BLOCO_CORES[bloco]}`}
-              style={{ width: `${pct}%` }}
-            />
-          </div>
+          <div
+            key={area.chave}
+            title={area.titulo}
+            className={`flex-1 transition-colors ${item?.concluido ? area.cor : "bg-muted"}`}
+          />
         );
       })}
     </div>

@@ -1,7 +1,11 @@
 /**
- * Criação de uma Saída Advance + seus 11 itens de checklist.
+ * Criação de uma Saída Advance + suas 7 áreas (modelo v2).
  *
- * Centraliza a lógica usada em dois lugares:
+ * Cada área tem campos e regra de conclusão próprios — nada de
+ * checkbox livre. A regra vive em areaEstaConcluida() e é aplicada
+ * pela tela de detalhe a cada salvamento.
+ *
+ * Usado em dois lugares:
  *  - EnviarParaFaturamentoModal (saída puxada de um deal ganho do funil)
  *  - AdicionarSaidaDiretaModal  (saída avulsa, criada fora do funil, sem deal)
  */
@@ -12,20 +16,73 @@ export type FormaPagamento =
   | "financiado_interno"
   | "financiamento_externo";
 
-// Itens pré-definidos de cada saída Advance (4 blocos, 11 itens)
-export const ITENS_ADVANCE = [
-  { bloco: "cadastro",          chave: "cadastro_completo_cliente", ordem: 1  },
-  { bloco: "cadastro",          chave: "checagem_regulatoria",      ordem: 2  },
-  { bloco: "margem_financeiro", chave: "validacao_margem",          ordem: 3  },
-  { bloco: "margem_financeiro", chave: "financiamento",             ordem: 4  },
-  { bloco: "margem_financeiro", chave: "validacao_pagamento",       ordem: 5  },
-  { bloco: "faturamento",       chave: "validacao_estoque_lotes",   ordem: 6  },
-  { bloco: "faturamento",       chave: "inspecao_saida",            ordem: 7  },
-  { bloco: "faturamento",       chave: "upload_fotos",              ordem: 8  },
-  { bloco: "faturamento",       chave: "nota_fiscal",               ordem: 9  },
-  { bloco: "logistica",         chave: "transportadora",            ordem: 10 },
-  { bloco: "logistica",         chave: "abrir_contas_pagar",        ordem: 11 },
-] as const;
+export type ChaveArea =
+  | "margem"
+  | "credito"
+  | "legal"
+  | "faturamento"
+  | "logistica"
+  | "instalacao_aplicacao"
+  | "nps";
+
+export interface AreaMeta {
+  chave: ChaveArea;
+  titulo: string;
+  descricao: string;
+  ordem: number;
+  cor: string; // classe tailwind usada na barra segmentada da lista
+}
+
+// As 7 áreas de toda saída Advance
+export const AREAS_ADVANCE: AreaMeta[] = [
+  { chave: "margem",               titulo: "Margem",                 descricao: "Informe a margem e anexe a imagem de comprovação.",            ordem: 1, cor: "bg-blue-400" },
+  { chave: "credito",              titulo: "Crédito",                descricao: "À vista: confirme. Financiado: cole o token da análise.",      ordem: 2, cor: "bg-violet-400" },
+  { chave: "legal",                titulo: "Legal",                  descricao: "Empresa: anexe a comprovação. Médico: informe o CRM.",         ordem: 3, cor: "bg-rose-400" },
+  { chave: "faturamento",          titulo: "Faturamento",            descricao: "Fotografe a caixa e preencha os dados da Nota Fiscal.",        ordem: 4, cor: "bg-orange-400" },
+  { chave: "logistica",            titulo: "Logística",              descricao: "Informe o custo da logística e conclua.",                      ordem: 5, cor: "bg-amber-400" },
+  { chave: "instalacao_aplicacao", titulo: "Instalação e Aplicação", descricao: "Aguarda instalação e aplicação registradas no Pós-Venda.",     ordem: 6, cor: "bg-teal-400" },
+  { chave: "nps",                  titulo: "NPS",                    descricao: "Gere o link da pesquisa e aguarde a resposta do cliente.",     ordem: 7, cor: "bg-green-400" },
+];
+
+export const TOTAL_AREAS = AREAS_ADVANCE.length;
+
+/**
+ * Regra de conclusão de cada área, derivada dos dados — o status
+ * nunca é um checkbox livre.
+ *
+ * Áreas 6 (instalação/aplicação) e 7 (NPS) não passam por aqui:
+ * são concluídas pela verificação no Pós-Venda e pela resposta do
+ * cliente (função nps_responder_publico no banco), respectivamente.
+ */
+export function areaEstaConcluida(
+  chave: ChaveArea,
+  dados: any,
+  temAnexo: boolean
+): boolean {
+  const d = dados ?? {};
+  switch (chave) {
+    case "margem":
+      return !!String(d.margem ?? "").trim() && temAnexo;
+    case "credito":
+      return d.forma_pagamento === "a_vista_cartao"
+        ? !!d.a_vista_confirmado
+        : !!String(d.token ?? "").trim();
+    case "legal":
+      return d.tipo_cliente === "medico"
+        ? !!String(d.crm ?? "").trim()
+        : temAnexo;
+    case "faturamento":
+      return (
+        !!String(d.numero_nf ?? "").trim() &&
+        !!d.data &&
+        d.valor != null && d.valor !== ""
+      );
+    case "logistica":
+      return d.custo != null && d.custo !== "" && !!d.concluido;
+    default:
+      return false;
+  }
+}
 
 export interface CriarSaidaParams {
   criadoPor: string;
@@ -38,14 +95,14 @@ export interface CriarSaidaParams {
   linhaProdutoId?: string | null;
   valorTotal?: number | null;
   tipoSaida?: string | null;
-  // Detalhes do financiamento
+  // Detalhes do financiamento (semeiam a área de crédito)
   analiseDbId?: string | null;
   instituicao?: string | null;
   obsExterno?: string | null;
 }
 
 /**
- * Insere a saida_advance e seus 11 itens. Lança em caso de erro.
+ * Insere a saida_advance e suas 7 áreas. Lança em caso de erro.
  * Retorna o id da saída criada.
  */
 export async function criarSaidaAdvance(params: CriarSaidaParams): Promise<string> {
@@ -78,15 +135,16 @@ export async function criarSaidaAdvance(params: CriarSaidaParams): Promise<strin
     throw new Error(errSaida?.message ?? "Erro ao criar saída Advance");
   }
 
-  // 2. Pré-cria os 11 itens, com os dados do financiamento no item correspondente.
-  const itens = ITENS_ADVANCE.map((item) => ({
+  // 2. Pré-cria as 7 áreas; a de crédito nasce semeada com a forma de
+  //    pagamento e os dados do financiamento coletados no modal.
+  const areas = AREAS_ADVANCE.map((area) => ({
     saida_id: saida.id,
-    bloco: item.bloco,
-    chave_item: item.chave,
-    ordem: item.ordem,
+    bloco: area.chave,
+    chave_item: area.chave,
+    ordem: area.ordem,
     concluido: false,
     dados_extras:
-      item.chave === "financiamento"
+      area.chave === "credito"
         ? {
             forma_pagamento: forma,
             analise_credito_id: forma === "financiado_interno" ? analiseDbId : null,
@@ -96,11 +154,13 @@ export async function criarSaidaAdvance(params: CriarSaidaParams): Promise<strin
         : null,
   }));
 
-  const { error: errItens } = await supabase
+  // Cast: types.ts ainda declara bloco como enum antigo; a migration
+  // 20260701090000 converteu a coluna para text (Lovable regenera os types).
+  const { error: errAreas } = await supabase
     .from("saidas_advance_itens")
-    .insert(itens);
+    .insert(areas as any);
 
-  if (errItens) throw new Error(errItens.message);
+  if (errAreas) throw new Error(errAreas.message);
 
   return saida.id;
 }

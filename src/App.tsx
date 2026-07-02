@@ -12,6 +12,7 @@ import AppLayout from "@/components/AppLayout";
 // mantendo recharts/xlsx/dnd-kit fora do bundle inicial.
 const AuthPage = lazy(() => import("./pages/Auth"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const NpsPublico = lazy(() => import("./pages/NpsPublico"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Unidades = lazy(() => import("./pages/Unidades"));
 const UnidadeDetail = lazy(() => import("./pages/UnidadeDetail"));
@@ -54,6 +55,8 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            {/* Pesquisa NPS pública — o cliente responde sem login */}
+            <Route path="/nps/:token" element={<NpsPublico />} />
             <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
               <Route path="/" element={<Dashboard />} />
               <Route path="/discovery" element={
